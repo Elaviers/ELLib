@@ -145,9 +145,9 @@ bool UITextbox::OnCharInput(char c)
 	return false;
 }
 
-void UITextbox::OnMouseMove(float x, float y)
+bool UITextbox::OnMouseMove(float x, float y, bool blocked)
 {
-	UIElement::OnMouseMove(x, y);
+	UIElement::OnMouseMove(x, y, blocked);
 
 	if (_hover)
 	{
@@ -162,6 +162,8 @@ void UITextbox::OnMouseMove(float x, float y)
 
 		_UpdateSelectionBox();
 	}
+
+	return _hover;
 }
 
 bool UITextbox::OnMouseUp()

@@ -93,6 +93,5 @@ public:
 	virtual bool OnCharInput(char) override;
 	virtual bool OnMouseUp() override;
 	virtual bool OnMouseDown() override;
-
-	virtual void OnMouseMove(float x, float y) override;
+	virtual bool OnMouseMove(float x, float y, bool blocked) override;
 };

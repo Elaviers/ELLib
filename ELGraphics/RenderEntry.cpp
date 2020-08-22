@@ -148,7 +148,7 @@ void RenderEntry::AddRing(const Vector3& centre, const Vector3& normal, float ra
 #define Y 1
 #define Z 2
 
-void RenderEntry::AddGrid(const Transform& cameraTransform, const Projection& cameraProjection, EDirection plane, float gap, float limit, float offset)
+void RenderEntry::AddGrid(const Transform& cameraTransform, const Projection& cameraProjection, EDirection plane, float gap, float limit, float offset, float z)
 {
 	Matrix4 transformX;
 	Matrix4 transformY;
@@ -278,6 +278,8 @@ void RenderEntry::AddGrid(const Transform& cameraTransform, const Projection& ca
 	transformY = Matrix4::Scale(Vector3(1.f, maxX - startX, 1.f)) * transformY;
 	transformX[3][axisY] = (startY + maxY) / 2.f;
 	transformY[3][axisX] = (startX + maxX) / 2.f;
+	transformX[3][axisZ] = z;
+	transformY[3][axisZ] = z;
 
 	startX = (int)(startX / gap) * gap + offset + (startX > 0 ? gap : 0);
 	startY = (int)(startY / gap) * gap + offset + (startY > 0 ? gap : 0);

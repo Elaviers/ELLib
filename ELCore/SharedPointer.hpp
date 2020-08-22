@@ -85,6 +85,11 @@ public:
 		_data = addr ? new SharedPointerData<T>(addr, 1, _pDeletePointer) : _NullPtrData();
 	}
 
+	explicit SharedPointer(T& obj)
+	{
+		_data = new SharedPointerData<T>(&obj, 1);
+	}
+
 	~SharedPointer() { _data->_Decrement(); }
 
 	void Clear() { if (_data != _NullPtrData()) operator=(*_NullPtrData()); }

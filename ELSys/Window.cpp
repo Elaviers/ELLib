@@ -222,6 +222,13 @@ LRESULT CALLBACK Window::_WindowsProc(HWND hwnd, UINT msg, WPARAM wparam, LPARAM
 		window->_eventList.Emplace(WindowEvent::RIGHTMOUSEUP);
 		break;
 
+	case WM_MOUSEWHEEL:
+	{
+		auto& e = *window->_eventList.Emplace(WindowEvent::SCROLLWHEEL);
+		e.data.scrollWheel.lines = (int16)HIWORD(wparam) / WHEEL_DELTA;
+	}
+		break;
+
 	case WM_KEYDOWN:
 	{
 		auto& e = *window->_eventList.Emplace(WindowEvent::KEYDOWN);

@@ -113,7 +113,7 @@ public:
 	UIElement& SetY(const UICoord& y) { _bounds.y = y; UpdateAbsoluteBounds(); return *this; }
 	UIElement& SetW(const UICoord& w) { _bounds.w = w; UpdateAbsoluteBounds(); return *this; }
 	UIElement& SetH(const UICoord& h) { _bounds.h = h; UpdateAbsoluteBounds(); return *this; }
-	UIElement& SetZ(float z) { _z = z; UpdateAbsoluteBounds(); return *this; }
+	UIElement& SetZ(float z);
 	UIElement& SetCursor(const ECursor& cursor) { _cursor = cursor; return *this; }
 	UIElement& SetFocusOnClick(bool focusOnClick) { _focusOnClick = focusOnClick; return *this; }
 	void MarkForDelete() { _markedForDelete = true; }
@@ -150,8 +150,7 @@ public:
 	virtual bool OnCharInput(char) { return false; }
 	virtual bool OnMouseUp();
 	virtual bool OnMouseDown();
-
-	virtual void OnMouseMove(float mouseX, float mouseY);
+	virtual bool OnMouseMove(float mouseX, float mouseY, bool blocked);
 
 	virtual void OnHoverStart() {}
 	virtual void OnHoverStop() {}

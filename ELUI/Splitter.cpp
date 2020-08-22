@@ -92,9 +92,10 @@ void UISplitter::Render(RenderQueue& q) const
 	e.AddCommand(RCMDRenderMesh::PLANE);
 }
 
-void UISplitter::OnMouseMove(float mouseX, float mouseY)
+bool UISplitter::OnMouseMove(float mouseX, float mouseY, bool blocked)
 {
-	UIRect::OnMouseMove(mouseX, mouseY);
+	//never blocking to allow multiple splitter overlap
+	UIRect::OnMouseMove(mouseX, mouseY, false);
 
 	if (_drag)
 	{
@@ -129,6 +130,8 @@ void UISplitter::OnMouseMove(float mouseX, float mouseY)
 			UpdateAbsoluteBounds();
 		}
 	}
+
+	return _hover;
 }
 
 bool UISplitter::OnMouseUp()

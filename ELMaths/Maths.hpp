@@ -159,4 +159,6 @@ namespace Maths
 	{
 		return (a >= b - tolerance && a <= b + tolerance);
 	}
+
+	int FloorPow2(int x);
 }

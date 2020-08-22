@@ -5,12 +5,24 @@
 
 void UIContainer::_OnChildGained(UIElement *child)
 {
+	for (size_t i = 0; i < _children.GetSize(); ++i)
+		if (child->GetZ() > _children[i]->GetZ())
+		{
+			_children.Insert(child, i);
+			return;
+		}
+
 	_children.Add(child);
 }
 
 void UIContainer::_OnChildLost(UIElement *child)
 {
 	_children.Remove(child);
+}
+
+void UIContainer::_SortChildren()
+{
+	_children.Sort<float>([](UIElement* const& e) -> float { return e->GetZ(); });
 }
 
 void UIContainer::Update(float deltaTime)
@@ -35,23 +47,23 @@ void UIContainer::FocusElement(UIElement* element)			{ PASSTOEACHCHILD(FocusElem
 void UIContainer::Render(RenderQueue& q) const				{ PASSTOEACHCHILD(Render(q)); }
 void UIContainer::_OnBoundsChanged()						{ PASSTOEACHCHILD(UpdateAbsoluteBounds()); }
 
-//TODO: Z-order is NOT taken into account for all of these functions, only render order!!! Kind of dumb!!!
 bool UIContainer::OnKeyUp(EKeycode key)						{ PASSTOEACHCHILD_RETURNIFTRUE(OnKeyUp(key));	return false; }
 bool UIContainer::OnKeyDown(EKeycode key)					{ PASSTOEACHCHILD_RETURNIFTRUE(OnKeyDown(key));	return false; }
 bool UIContainer::OnCharInput(char c)						{ PASSTOEACHCHILD_RETURNIFTRUE(OnCharInput(c)); return false; }
 bool UIContainer::OnMouseDown()								{ PASSTOEACHCHILD_RETURNIFTRUE(OnMouseDown());  return false; }
 bool UIContainer::OnMouseUp()								{ PASSTOEACHCHILD_RETURNIFTRUE(OnMouseUp());  return false; }
 
-//todo: ditto
-void UIContainer::OnMouseMove(float mouseX, float mouseY) 
+bool UIContainer::OnMouseMove(float mouseX, float mouseY, bool blocked) 
 { 
 	_hover = false;
 
 	_cursor = ECursor::DEFAULT;
 
+	bool block = blocked;
 	for (size_t i = 0; i < _children.GetSize(); ++i)
 	{
-		_children[i]->OnMouseMove(mouseX, mouseY);
+		if (_children[i]->OnMouseMove(mouseX, mouseY, block))
+			block = true;
 
 		if (_children[i]->GetHover())
 		{
@@ -66,4 +78,6 @@ void UIContainer::OnMouseMove(float mouseX, float mouseY)
 	}
 
 	_cursor = _cursor;
+
+	return block;
 }

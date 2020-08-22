@@ -99,4 +99,17 @@ namespace Maths
 
 		return y < 0.f ? -90.f : 90.f;
 	}
+
+	int FloorPow2(int x)
+	{
+		x |= x >> 1;
+		x |= x >> 2;
+		x |= x >> 4;
+		x |= x >> 8;
+		x |= x >> 16;
+#ifdef _WIN64
+		x |= x >> 32;
+#endif
+		return x - (x >> 1);
+	}
 }

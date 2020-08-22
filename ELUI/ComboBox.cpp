@@ -4,7 +4,7 @@ void UIComboBox::_StopSelecting()
 {
 	_selecting = false;
 
-	UITextButton::OnMouseMove(_lastMouseX, _lastMouseY);
+	UITextButton::OnMouseMove(_lastMouseX, _lastMouseY, true);
 }
 
 void UIComboBox::_OnPressed(UIButton& button)

@@ -25,6 +25,9 @@ public:
 
 	virtual ~MaterialGrid() {}
 
+	const SharedPointer<const Texture>& GetTexture() const { return _texture; }
+	void SetDiffuse(const SharedPointer<const Texture>& texture) { _texture = texture; }
+
 	virtual const PropertyCollection& GetProperties() override;
 
 	virtual void Apply(RenderEntry&, const MaterialParam *param) const override;

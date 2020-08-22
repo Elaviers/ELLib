@@ -14,7 +14,10 @@ public:
 
 	virtual ~MaterialSprite() {}
 
+	const SharedPointer<const Texture>& GetDiffuse() const { return _diffuse; }
+	void SetDiffuse(const SharedPointer<const Texture>& diffuse) { _diffuse = diffuse; }
+
 	virtual const PropertyCollection& GetProperties() override;
 
-	virtual void Apply(RenderEntry&, const MaterialParam* param = nullptr) const override { _diffuse->Bind(0); }
+	virtual void Apply(RenderEntry&, const MaterialParam* param = nullptr) const override;
 };

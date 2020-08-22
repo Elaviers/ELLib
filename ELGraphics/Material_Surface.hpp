@@ -20,6 +20,11 @@ public:
 
 	virtual const PropertyCollection& GetProperties() override;
 
+	const SharedPointer<const Texture>& GetDiffuse() const { return _diffuse; }
+	const SharedPointer<const Texture>& GetNormal() const { return _normal; }
+	const SharedPointer<const Texture>& GetSpecular() const { return _specular; }
+	const SharedPointer<const Texture>& GetReflection() const { return _reflection; }
+
 	void SetDiffuse(const SharedPointer<const Texture>& texture) { _diffuse = texture; }
 	void SetNormal(const SharedPointer<const Texture>& texture) { _normal = texture; }
 	void SetSpecular(const SharedPointer<const Texture>& texture) { _specular = texture; }

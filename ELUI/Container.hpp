@@ -5,12 +5,16 @@
 class UIContainer : public UIElement
 {
 protected:
+	friend UIElement;
+
 	Buffer<UIElement*> _children;
 
 	virtual void _OnBoundsChanged();
 
 	virtual void _OnChildGained(UIElement *child) override;
 	virtual void _OnChildLost(UIElement *child) override;
+
+	void _SortChildren();
 
 public:
 	UIContainer(UIElement *parent = nullptr) : UIElement(parent) {}
@@ -30,6 +34,5 @@ public:
 	virtual bool OnCharInput(char) override;
 	virtual bool OnMouseUp() override;
 	virtual bool OnMouseDown() override;
-
-	virtual void OnMouseMove(float mouseX, float mouseY) override;
+	virtual bool OnMouseMove(float mouseX, float mouseY, bool blocked) override;
 };

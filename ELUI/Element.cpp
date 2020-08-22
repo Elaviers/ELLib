@@ -1,4 +1,16 @@
 #include "Element.hpp"
+#include "Container.hpp"
+
+UIElement& UIElement::SetZ(float z)
+{
+	_z = z; 
+	UpdateAbsoluteBounds(); 
+	
+	UIContainer* p = dynamic_cast<UIContainer*>(_parent);
+	if (p) p->_SortChildren();
+
+	return *this;
+}
 
 void UIElement::RequestFocus()
 {
@@ -56,12 +68,25 @@ bool UIElement::OnMouseUp()
 	return _focusOnClick && _hover;
 }
 
-void UIElement::OnMouseMove(float x, float y)
+bool UIElement::OnMouseMove(float x, float y, bool blocked)
 {
+	if (blocked)
+	{
+		if (_hover)
+		{
+			_hover = false;
+			OnHoverStop();
+		}
+
+		return false;
+	}
+
 	bool hover = OverlapsPoint(x, y);
 	if (hover != _hover)
 	{
 		_hover = hover;
 		_hover ? OnHoverStart() : OnHoverStop();
 	}
+
+	return _hover;
 }

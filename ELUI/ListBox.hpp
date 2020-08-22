@@ -74,6 +74,5 @@ public:
 	}
 
 	virtual bool OnMouseUp() override;
-
-	virtual void OnMouseMove(float mouseX, float mouseY) override;
+	virtual bool OnMouseMove(float mouseX, float mouseY, bool blocked) override;
 };

@@ -25,9 +25,9 @@ const struct KeyName { EKeycode key; String name; } keyNames[] =
 	KEYNAME(SEMICOLON, semicolon),
 	KEYNAME(SLASH, / ),
 	KEYNAME(TILDE, ~),
-	KEYNAME(SQBRACKETLEFT, [),
+	KEYNAME(SQBRACKETLEFT,[),
 	KEYNAME(BACKSLASH, \\),
-	KEYNAME(SQBRACKETRIGHT, ]),
+	KEYNAME(SQBRACKETRIGHT,]),
 	{ EKeycode::APOSTROPHE, "\'" },
 	{ EKeycode::COMMA, ","},
 	{ EKeycode::PERIOD, '.'},
@@ -57,7 +57,7 @@ String KeyToString(EKeycode key)
 	return "";
 }
 
-EKeycode StringToKey(const char *string)
+EKeycode StringToKey(const char* string)
 {
 	size_t length = StringLength(string);
 
@@ -70,62 +70,76 @@ EKeycode StringToKey(const char *string)
 
 InputManager::~InputManager()
 {
-	_keyBinds.ForEach( [](const EKeycode&, KeyBind* &keyBind)
-	{
-		delete keyBind;
-	}
-	);
+	_keyBinds.ForEach([](const EKeycode&, List<KeyBind*>& binds)
+		{
+			for (KeyBind* bind : binds)
+				delete bind;
+		});
+}
+
+void InputManager::Clear()
+{
+	_keyBinds.ForEach([](const EKeycode&, List<KeyBind*>& binds)
+		{
+			for (KeyBind* bind : binds)
+				delete bind;
+		});
+
+	_keyBinds.Clear();
+	_axisBinds.Clear();
 }
 
 void InputManager::KeyDown(EKeycode key)
 {
 	_keyStates[(byte)key] = 1;
 
-	KeyBind **keyBind = _keyBinds.Get(key);
-
-	if (keyBind)
-		(*keyBind)->KeyDown();
+	List<KeyBind*>* binds = _keyBinds.Get(key);
+	for (KeyBind* bind : *binds)
+		bind->KeyDown();
 }
 
 void InputManager::KeyUp(EKeycode key)
 {
 	_keyStates[(byte)key] = 0;
 
-	KeyBind **keyBind = _keyBinds.Get(key);
-
-	if (keyBind)
-		(*keyBind)->KeyUp();
+	List<KeyBind*>* binds = _keyBinds.Get(key);
+	for (KeyBind* bind : *binds)
+		bind->KeyUp();
 }
 
 void InputManager::ClearMouseInput()
 {
-	auto mouseX = _axisBinds.Get(EAxis::MOUSE_X);
-	auto mouseY = _axisBinds.Get(EAxis::MOUSE_Y);
+	List<float*>* xAxes = _axisBinds.Get(EAxis::MOUSE_X);
+	List<float*>* yAxes = _axisBinds.Get(EAxis::MOUSE_Y);
 
-	if (mouseX)
-		**mouseX = 0.f;
+	if (xAxes)
+		for (float* axis : *xAxes)
+			*axis = 0.f;
 
-	if (mouseY)
-		**mouseY = 0.f;
+	if (yAxes)
+		for (float* axis : *yAxes)
+			*axis = 0.f;
 }
 
 void InputManager::AddMouseInput(short x, short y)
 {
-	auto mouseX = _axisBinds.Get(EAxis::MOUSE_X);
-	auto mouseY = _axisBinds.Get(EAxis::MOUSE_Y);
+	List<float*>* xAxes = _axisBinds.Get(EAxis::MOUSE_X);
+	List<float*>* yAxes = _axisBinds.Get(EAxis::MOUSE_Y);
 
-	if (mouseX)
-		**mouseX += (float)x;
+	if (xAxes)
+		for (float* axis : *xAxes)
+			*axis += (float)x;
 
-	if (mouseY)
-		**mouseY += (float)-y;
+	if (yAxes)
+		for (float* axis : *yAxes)
+			*axis += (float)y;
 }
 
 void InputManager::Reset()
 {
 	byte* keystates = _keyStates;
-	_keyBinds.ForEach([&keystates](const EKeycode& kc, KeyBind*& keybind) { if (keystates[(size_t)kc] != 0) keybind->KeyUp(); });
-	_axisBinds.ForEach([](const EAxis&, float*& axis) { *axis = 0.f; });
+	_keyBinds.ForEach([&keystates](const EKeycode& kc, List<KeyBind*>& binds) { if (keystates[(size_t)kc] != 0) for (KeyBind* bind : binds) bind->KeyUp(); });
+	_axisBinds.ForEach([](const EAxis&, List<float*>& axes) { for (float* axis : axes) *axis = 0.f; });
 
 	for (int i = 0; i < 256; ++i)
 		_keyStates[i] = 0;

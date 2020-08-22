@@ -69,18 +69,21 @@ public:
 			_listBox.Render(q);
 	}
 
-	virtual void OnMouseMove(float mouseX, float mouseY) override
+	virtual bool OnMouseMove(float mouseX, float mouseY, bool blocked) override
 	{
 		if (_readOnly)
-			return;
+			return false;
 
+		bool b1 = false;
 		if (!_selecting)
-			UITextButton::OnMouseMove(mouseX, mouseY);
+			b1 = UITextButton::OnMouseMove(mouseX, mouseY, blocked);
 		
-		_listBox.OnMouseMove(mouseX, mouseY); 
+		float b2 = _listBox.OnMouseMove(mouseX, mouseY, blocked); 
 
 		_lastMouseX = mouseX;
 		_lastMouseY = mouseY;
+
+		return b1 || b2;
 	}
 
 	virtual bool OnMouseUp() override

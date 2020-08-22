@@ -21,3 +21,8 @@ void MaterialSprite::CMD_texmgr(const Buffer<String>& args, const Context& ctx)
 			_diffuse = textureManager->Get(args[0], ctx);
 	}
 }
+
+void MaterialSprite::Apply(RenderEntry& e, const MaterialParam* param) const
+{
+	e.AddSetTexture(*_diffuse, 0);
+}

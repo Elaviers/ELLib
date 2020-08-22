@@ -36,6 +36,34 @@ private:
 			delete[] _data;
 	}
 
+	template <typename S>
+	void _Quicksort(size_t first, size_t last, S (*func)(const T&))
+	{
+		if (first >= last)
+			return;
+
+		const S pivot = func(_elements[(first + last) / 2]);
+
+		size_t i = first, j = last;
+		while (true)
+		{
+			while (func(_elements[i]) < pivot)
+				++i;
+
+			while (func(_elements[j]) > pivot)
+				--j;
+
+			if (i >= j)
+				break;
+
+			Utilities::Swap(_elements[i], _elements[j]);
+			++i; --j;
+		}
+
+		_Quicksort(first, j, func);
+		_Quicksort(j + 1, last, func);
+	}
+
 public:
 	Buffer() : _data(nullptr), _size(0) {}
 
@@ -279,8 +307,15 @@ public:
 	}
 
 	//For range-based for
-	T* begin() { return _elements; }
-	const T* begin() const { return _elements; }
+	T* begin() { return _size ? _elements : nullptr; }
+	const T* begin() const { return _size ? _elements : nullptr; }
 	T* end() { return _size ? (_elements + _size) : nullptr; }
 	const T* end() const { return _size ? (_elements + _size) : nullptr; }
+
+	template <typename S>
+	void Sort(S (*func)(const T&))
+	{
+		if (_size >= 2)
+			_Quicksort(0, _size - 1, func);
+	}
 };

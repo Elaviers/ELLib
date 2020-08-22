@@ -29,6 +29,7 @@ struct WindowEvent
 		LEFTMOUSEUP,
 		RIGHTMOUSEDOWN,
 		RIGHTMOUSEUP,
+		SCROLLWHEEL,
 		KEYDOWN,
 		KEYUP,
 		CHAR,
@@ -53,6 +54,11 @@ struct WindowEvent
 			uint16 x;
 			uint16 y;
 		} mouseMove;
+
+		struct _scrollWheel
+		{
+			int16 lines;
+		} scrollWheel;
 
 		struct _keyDown
 		{

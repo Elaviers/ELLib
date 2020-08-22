@@ -20,6 +20,13 @@ public:
 		_ptrs[typeid(T).hash_code()] = ptr;
 	}
 
+	template <typename T, typename ...Args>
+	void Set(T* ptr, Args ...more)
+	{
+		Set(ptr);
+		Set(more...);
+	}
+
 	template <typename T>
 	T* GetPtr(bool assert = true) const
 	{

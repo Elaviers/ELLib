@@ -27,9 +27,19 @@ void UIListBox::Add(const String& item)
 	newLabel.SetString(item);
 }
 
-void UIListBox::OnMouseMove(float x, float y)
+bool UIListBox::OnMouseUp()
 {
-	UIElement::OnMouseMove(x, y);
+	if (_hover && _selectedLabel)
+	{
+		onSelectionSubmitted(*_selectedLabel);
+	}
+
+	return _hover;
+}
+
+bool UIListBox::OnMouseMove(float x, float y, bool blocked)
+{
+	UIElement::OnMouseMove(x, y, blocked);
 
 	if (_hover)
 	{
@@ -47,14 +57,6 @@ void UIListBox::OnMouseMove(float x, float y)
 				break;
 			}
 		}
-	}
-}
-
-bool UIListBox::OnMouseUp()
-{
-	if (_hover && _selectedLabel)
-	{
-		onSelectionSubmitted(*_selectedLabel);
 	}
 
 	return _hover;

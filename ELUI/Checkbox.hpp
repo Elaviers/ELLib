@@ -88,8 +88,7 @@ public:
 
 	virtual bool OnMouseUp() override { return _readOnly ? false : _button.OnMouseUp(); }
 	virtual bool OnMouseDown() override  { return _readOnly ? false : _button.OnMouseDown(); }
-
-	virtual void OnMouseMove(float x, float y) override { if (!_readOnly) _button.OnMouseMove(x, y); }
+	virtual bool OnMouseMove(float x, float y, bool blocked) override { return _readOnly ? false : _button.OnMouseMove(x, y, blocked); }
 
 	void Toggle()
 	{

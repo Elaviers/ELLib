@@ -91,5 +91,5 @@ public:
 	void AddLine(const Vector3& a, const Vector3& b);
 	void AddBox(const Vector3& p1, const Vector3& p2);
 	void AddRing(const Vector3& centre, const Vector3& nomal, float radius, int segments);
-	void AddGrid(const Transform& cameraTransform, const Projection& cameraProjection, EDirection plane, float gap, float limit, float offset);
+	void AddGrid(const Transform& cameraTransform, const Projection& cameraProjection, EDirection plane, float gap, float limit, float offset, float z);
 };

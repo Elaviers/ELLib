@@ -43,15 +43,29 @@ public:
 	}
 };
 
-class KeyBind_Callback : public KeyBind
+class KeyBind_CallbackDown : public KeyBind
 {
 	Callback _callback;
 
 public:
-	KeyBind_Callback(const Callback &callback) : _callback(callback) {}
-	virtual ~KeyBind_Callback() {}
+	KeyBind_CallbackDown(const Callback &callback) : _callback(callback) {}
+	virtual ~KeyBind_CallbackDown() {}
 
 	virtual void KeyDown()
+	{
+		_callback.TryCall();
+	}
+};
+
+class KeyBind_CallbackUp : public KeyBind
+{
+	Callback _callback;
+
+public:
+	KeyBind_CallbackUp(const Callback& callback) : _callback(callback) {}
+	virtual ~KeyBind_CallbackUp() {}
+
+	virtual void KeyUp()
 	{
 		_callback.TryCall();
 	}
@@ -62,17 +76,20 @@ class InputManager
 private:
 	byte _keyStates[256];
 
-	Hashmap<EKeycode, KeyBind*> _keyBinds;
-	Hashmap<EAxis, float*> _axisBinds;
+	Hashmap<EKeycode, List<KeyBind*>> _keyBinds;
+	Hashmap<EAxis, List<float*>> _axisBinds;
 
 public:
 	InputManager() : _keyStates() {}
 	~InputManager();
 
-	void BindAxis(EAxis axis, float *axisPtr) { _axisBinds.Set(axis, axisPtr); }
+	void Clear();
 
-	void BindKey(EKeycode key, const Callback &callback) { _keyBinds.Set(key, new KeyBind_Callback(callback)); }
-	void BindKeyAxis(EKeycode key, float *axisPtr, float axisDisplacement) { _keyBinds.Set(key, new KeyBind_Axis(axisPtr, axisDisplacement)); }
+	void BindAxis(EAxis axis, float *axisPtr) { _axisBinds[axis].Add(axisPtr); }
+
+	void BindKeyDown(EKeycode key, const Callback &callback) { _keyBinds[key].Add(new KeyBind_CallbackDown(callback)); }
+	void BindKeyUp(EKeycode key, const Callback &callback) { _keyBinds[key].Add(new KeyBind_CallbackUp(callback)); }
+	void BindKeyAxis(EKeycode key, float *axisPtr, float axisDisplacement) { _keyBinds[key].Add(new KeyBind_Axis(axisPtr, axisDisplacement)); }
 
 	bool IsKeyDown(EKeycode key) const { return _keyStates[(byte)key] == 1; }
 
