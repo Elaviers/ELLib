@@ -22,7 +22,7 @@ void UIContainer::_OnChildLost(UIElement *child)
 
 void UIContainer::_SortChildren()
 {
-	_children.Sort<float>([](UIElement* const& e) -> float { return e->GetZ(); });
+	_children.Sort<float>([](UIElement* const& e) -> float { return -e->GetZ(); });
 }
 
 void UIContainer::Update(float deltaTime)
@@ -60,20 +60,22 @@ bool UIContainer::OnMouseMove(float mouseX, float mouseY, bool blocked)
 	_cursor = ECursor::DEFAULT;
 
 	bool block = blocked;
-	for (size_t i = 0; i < _children.GetSize(); ++i)
+	for (size_t i = _children.GetSize(); i > 0; --i)
 	{
-		if (_children[i]->OnMouseMove(mouseX, mouseY, block))
+		UIElement* child = _children[i - 1];
+
+		if (child->OnMouseMove(mouseX, mouseY, block))
 			block = true;
 
-		if (_children[i]->GetHover())
+		if (child->GetHover())
 		{
 			_hover = true;
 
-			if ((_cursor == ECursor::ARROWS_HORIZONTAL && _children[i]->GetCursor() == ECursor::ARROWS_VERTICAL) ||
-				(_cursor == ECursor::ARROWS_VERTICAL && _children[i]->GetCursor() == ECursor::ARROWS_HORIZONTAL))
+			if ((_cursor == ECursor::ARROWS_HORIZONTAL && child->GetCursor() == ECursor::ARROWS_VERTICAL) ||
+				(_cursor == ECursor::ARROWS_VERTICAL && child->GetCursor() == ECursor::ARROWS_HORIZONTAL))
 				_cursor = ECursor::ARROWS_QUAD;
 			else
-				_cursor = _children[i]->GetCursor();
+				_cursor = child->GetCursor();
 		}
 	}
 

@@ -66,7 +66,7 @@ public:
 		Initialise();
 
 		//Reload all assets that are still in use
-		Buffer<Pair<const String, SharedPointerDataT<T>>*> buffer = _map.ToKVBuffer();
+		Buffer<Pair<const String, SharedPointerData<T>>*> buffer = _map.ToKVBuffer();
 		for (size_t i = 0; i < buffer.GetSize(); ++i)
 		{
 			if (buffer[i]->second.GetReferenceCount())
