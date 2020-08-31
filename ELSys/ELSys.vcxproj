@@ -228,6 +228,11 @@
     <ClCompile Include="Window_Win32.cpp" />
     <ClCompile Include="WinMain.cpp" />
   </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\ELCore\ELCore.vcxproj">
+      <Project>{90d23395-1a5c-48ae-b2aa-318fa6140cc7}</Project>
+    </ProjectReference>
+  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>

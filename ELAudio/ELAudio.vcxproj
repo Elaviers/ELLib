@@ -219,6 +219,17 @@
     <ClCompile Include="Sound.cpp" />
     <ClCompile Include="WavReader.cpp" />
   </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\ELCore\ELCore.vcxproj">
+      <Project>{90d23395-1a5c-48ae-b2aa-318fa6140cc7}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\ELMaths\ELMaths.vcxproj">
+      <Project>{4a3a2fe0-b739-4091-8ee4-2c7737cb5ccf}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\ELSys\ELSys.vcxproj">
+      <Project>{94421f68-e77e-4213-bd49-7624bc9eacf2}</Project>
+    </ProjectReference>
+  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>

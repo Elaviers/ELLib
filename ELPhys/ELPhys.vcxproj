@@ -206,6 +206,14 @@
     <ClCompile Include="CollisionCapsule.cpp" />
     <ClCompile Include="CollisionSphere.cpp" />
   </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\ELCore\ELCore.vcxproj">
+      <Project>{90d23395-1a5c-48ae-b2aa-318fa6140cc7}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\ELMaths\ELMaths.vcxproj">
+      <Project>{4a3a2fe0-b739-4091-8ee4-2c7737cb5ccf}</Project>
+    </ProjectReference>
+  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>
