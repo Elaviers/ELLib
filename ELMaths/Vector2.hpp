@@ -8,7 +8,7 @@ template <typename T = float>
 union Vector2T
 {
 private:
-	T _data[3];
+	T _data[2];
 
 public:
 	struct

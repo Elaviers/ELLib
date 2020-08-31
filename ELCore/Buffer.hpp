@@ -5,6 +5,11 @@
 #include <initializer_list>
 #include <utility>
 
+/*
+	Basically just a dynamically sized array
+	Always guaranteed to be continous in memory
+*/
+
 template <typename T>
 class Buffer
 {
