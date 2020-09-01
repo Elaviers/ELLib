@@ -123,18 +123,18 @@ void InputManager::ClearMouseInput()
 			*axis = 0.f;
 }
 
-void InputManager::AddMouseInput(short x, short y)
+void InputManager::AddMouseInput(float x, float y)
 {
 	List<float*>* xAxes = _axisBinds.Get(EAxis::MOUSE_X);
 	List<float*>* yAxes = _axisBinds.Get(EAxis::MOUSE_Y);
 
 	if (xAxes)
 		for (float* axis : *xAxes)
-			*axis += (float)x;
+			*axis += x;
 
 	if (yAxes)
 		for (float* axis : *yAxes)
-			*axis += (float)y;
+			*axis += y;
 }
 
 void InputManager::Reset()

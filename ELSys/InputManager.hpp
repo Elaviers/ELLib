@@ -100,6 +100,5 @@ public:
 
 	void ClearMouseInput();
 
-	//xDelta and yDelta are in pixels
-	void AddMouseInput(short xDelta, short yDelta);
+	void AddMouseInput(float xDelta, float yDelta);
 };

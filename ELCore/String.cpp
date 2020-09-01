@@ -627,14 +627,17 @@ bool StringContains(const char *string, const char *phrase)
 {
 	for (; string[0] != '\0'; ++string)
 	{
-		for (size_t i = 0; string[i] != '\0'; ++i)
+		for (size_t i = 0; ; ++i)
 		{
 			if (phrase[i] == '\0')
 				return true;
 
+			if (string[i] == '\0')
+				return false;
+
 			if (string[i] != phrase[i])
 			{
-				string += i;
+				if (i > 1) string += i - 1;
 				break;
 			}
 		}

@@ -194,7 +194,7 @@
     <ClInclude Include="Collision.hpp" />
     <ClInclude Include="CollisionBox.hpp" />
     <ClInclude Include="CollisionCapsule.hpp" />
-    <ClInclude Include="CollisionChannels.hpp" />
+    <ClInclude Include="ECollisionChannels.hpp" />
     <ClInclude Include="CollisionShape.hpp" />
     <ClInclude Include="CollisionSphere.hpp" />
     <ClInclude Include="RaycastResult.hpp" />

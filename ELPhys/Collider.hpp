@@ -1,5 +1,5 @@
 #pragma once
-#include "CollisionChannels.hpp"
+#include "ECollisionChannels.hpp"
 #include "CollisionShape.hpp"
 #include <ELCore/Buffer.hpp>
 #include <ELCore/Pair.hpp>
