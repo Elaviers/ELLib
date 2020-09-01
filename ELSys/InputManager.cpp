@@ -94,8 +94,9 @@ void InputManager::KeyDown(EKeycode key)
 	_keyStates[(byte)key] = 1;
 
 	List<KeyBind*>* binds = _keyBinds.Get(key);
-	for (KeyBind* bind : *binds)
-		bind->KeyDown();
+	if (binds)
+		for (KeyBind* bind : *binds)
+			bind->KeyDown();
 }
 
 void InputManager::KeyUp(EKeycode key)
@@ -103,8 +104,9 @@ void InputManager::KeyUp(EKeycode key)
 	_keyStates[(byte)key] = 0;
 
 	List<KeyBind*>* binds = _keyBinds.Get(key);
-	for (KeyBind* bind : *binds)
-		bind->KeyUp();
+	if (binds)
+		for (KeyBind* bind : *binds)
+			bind->KeyUp();
 }
 
 void InputManager::ClearMouseInput()

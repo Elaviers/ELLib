@@ -210,7 +210,6 @@ Vector3 EPA(
 	//Array of closest faces, closest first, farthest last
 	List<Face> closestFaces(NewHandler(&pool, &PoolType::NewArray), DeleteHandler(&pool, &PoolType::DeleteHandler));
 	
-	//todo: ENSURE FIRST FACE IS CLOSEST
 	closestFaces.Add(Face(simplex[3], simplex[0], simplex[1]));
 	InsertFace(closestFaces, Face(simplex[3], simplex[1], simplex[2]));
 	InsertFace(closestFaces, Face(simplex[3], simplex[2], simplex[0]));

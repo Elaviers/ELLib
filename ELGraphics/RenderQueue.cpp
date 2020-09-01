@@ -34,8 +34,14 @@ void RenderQueue::ClearDynamicQueue()
 	_dynamicPtrPool.Clear();
 }
 
-void RenderQueue::Render(ERenderChannels channels, const MeshManager& meshManager, const TextureManager& textureManager) const
+void RenderQueue::Render(ERenderChannels channels, const MeshManager& meshManager, const TextureManager& textureManager, int lightCount) const
 {
+	const float zero = 1.f;
+	for (int i = 0; i < lightCount; ++i)
+	{
+		glUniform1fv(GLProgram::Current().GetUniformLocation(CSTR("Lights[", i, "].Radius")), 1, &zero);
+	}
+
 	RenderContext ctx = { &meshManager, &textureManager, 0 };
 
 	for (const QueueGroup& q : _queues)
@@ -47,12 +53,6 @@ void RenderQueue::Render(ERenderChannels channels, const MeshManager& meshManage
 		for (const RenderEntry* entry : q.dynamicQueue)
 			if (entry->GetRenderChannels() & channels)
 				entry->Render(ctx);
-	}
-
-	//todo- hardcoded 8 light count!!! easy fix!!
-	for (int i = ctx.submittedLightCount; i < 8; ++i)
-	{
-		GLProgram::Current().SetFloat(CSTR("Lights[", i, "].Radius"), 0.f);
 	}
 }
 

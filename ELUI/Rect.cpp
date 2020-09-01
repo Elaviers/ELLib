@@ -10,7 +10,6 @@ void UIRect::_OnBoundsChanged()
 
 void UIRect::Render(RenderQueue& q) const
 {
-	//todo- priority
 	RenderEntry& e = q.NewDynamicEntry(ERenderChannels::UNLIT, 0);
 	_colour.Apply(e);
 

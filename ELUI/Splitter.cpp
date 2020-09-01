@@ -77,7 +77,6 @@ void UISplitter::_OnBoundsChanged()
 
 void UISplitter::Render(RenderQueue& q) const
 {
-	//todo- priority
 	RenderEntry& e = q.NewDynamicEntry(ERenderChannels::UNLIT);
 	_colour.Apply(e);
 	

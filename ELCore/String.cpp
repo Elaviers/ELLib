@@ -346,11 +346,20 @@ String String::ToLower() const
 
 void String::Read(ByteReader& reader)
 {
-	//todo- optimise
-	byte next;
+	size_t len = 0;
+	size_t readStart = reader.GetIndex();
+	while (reader.Read_byte())
+		++len;
+	
+	reader.SetIndex(readStart);
+	size_t i = _length;
+	_SetLength(_length + len);
 
-	while (next = reader.Read_byte())
-		*this += next;
+	while (i < _length)
+		_data[i++] = reader.Read_byte();
+
+	//skip null byte
+	reader.IncrementIndex(1);
 }
 
 void String::Write(ByteWriter& writer) const

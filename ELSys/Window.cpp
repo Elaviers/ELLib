@@ -133,6 +133,21 @@ bool Window::PollEvent(WindowEvent& out)
 
 #include <ELCore/Buffer.hpp>
 
+WPARAM SplitKeyWPARAMLeftRight(WPARAM wparam)
+{
+	switch (wparam)
+	{
+	case VK_CONTROL:
+		return ::GetKeyState(VK_RCONTROL) & 0x8000 ? VK_RCONTROL : VK_LCONTROL;
+	case VK_SHIFT:
+		return ::GetKeyState(VK_RSHIFT) & 0x8000 ? VK_RSHIFT : VK_LSHIFT;
+	case VK_MENU:
+		return ::GetKeyState(VK_RMENU) & 0x8000 ? VK_RMENU : VK_RMENU;
+	}
+
+	return wparam;
+}
+
 LRESULT CALLBACK Window::_WindowsProc(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam)
 {
 	if (msg == WM_CREATE)
@@ -232,7 +247,7 @@ LRESULT CALLBACK Window::_WindowsProc(HWND hwnd, UINT msg, WPARAM wparam, LPARAM
 	case WM_KEYDOWN:
 	{
 		auto& e = *window->_eventList.Emplace(WindowEvent::KEYDOWN);
-		e.data.keyDown.key = (EKeycode)wparam;
+		e.data.keyDown.key = (EKeycode)SplitKeyWPARAMLeftRight(wparam);
 		e.data.keyDown.isRepeat = lparam & (1 << 30);
 	}
 		break;
@@ -240,7 +255,7 @@ LRESULT CALLBACK Window::_WindowsProc(HWND hwnd, UINT msg, WPARAM wparam, LPARAM
 	case WM_KEYUP:
 	{
 		auto& e = *window->_eventList.Emplace(WindowEvent::KEYUP);
-		e.data.keyUp.key = (EKeycode)wparam;
+		e.data.keyUp.key = (EKeycode)SplitKeyWPARAMLeftRight(wparam);
 	}
 		break;
 

@@ -64,11 +64,20 @@ public:
 	void Clear(bool freeMemory = false)
 	{
 		if (freeMemory)
+		{
 			_pools.Clear();
+			
+			_firstUsablePage = nullptr;
+		}
 		else
 		{
 			for (_PoolType& pool : _pools)
 				pool.Clear();
+
+			if (_pools.begin().IsValid())
+				_firstUsablePage = _pools.begin();
+			else
+				_firstUsablePage = nullptr;
 		}
 	}
 

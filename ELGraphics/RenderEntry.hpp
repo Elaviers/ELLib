@@ -46,10 +46,9 @@ protected:
 public:
 	RenderEntry(ERenderChannels renderChannels) : _renderChannels(renderChannels) {}
 	RenderEntry(ERenderChannels renderChannels, const NewHandler& newHandler, const DeleteHandler& deleteHandler) :  
-		//todo: fix memory leak!!!!!!!!!!!!!!!!!!!!!!!!!
-		//_commands(newHandler, deleteHandler), 
-		//_newHandler(newHandler),
-		//_deleteHandler(deleteHandler),
+		_commands(newHandler, deleteHandler), 
+		_newHandler(newHandler),
+		_deleteHandler(deleteHandler),
 		_renderChannels(renderChannels) {}
 	~RenderEntry();
 	

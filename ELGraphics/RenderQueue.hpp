@@ -48,7 +48,7 @@ public:
 	~RenderQueue() {}
 
 	void ClearDynamicQueue();
-	void Render(ERenderChannels channels, const MeshManager& meshManager, const TextureManager& textureManager) const;
+	void Render(ERenderChannels channels, const MeshManager& meshManager, const TextureManager& textureManager, int lightCount) const;
 
 	void AddStatic(const RenderEntry*, int priority = 0);
 	void RemoveStatic(const RenderEntry*, int priority = 0);

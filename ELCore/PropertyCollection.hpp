@@ -24,7 +24,8 @@ public:
 	void Transfer(const void* from, void* to, const Context& ctx) const
 	{
 		for (size_t i = 0; i < _cvars.GetSize(); ++i)
-			_cvars[i]->TransferTo(from, to, ctx);
+			if ((_cvars[i]->GetFlags() & PropertyFlags::READONLY) == 0)
+				_cvars[i]->TransferTo(from, to, ctx);
 	}
 
 	Property* Find(const String& name) const

@@ -10,6 +10,7 @@ class ByteReader
 public:
 	ByteReader(const Buffer<byte>& buffer, size_t index = 0) : _buffer(buffer), _pointer(nullptr) { if (!SetIndex(index)) _index = 0; }
 
+	size_t GetIndex() const { return _index; }
 	const byte* Ptr() const { return _pointer; }
 	bool IsValid() const { return _index < _buffer.GetSize(); }
 

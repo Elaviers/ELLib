@@ -9,7 +9,6 @@ void UIPanel::Render(RenderQueue& q) const
 	if (!_material)
 		return;
 	
-	//todo- priority
 	RenderEntry& e = q.NewDynamicEntry(ERenderChannels::UNLIT, 0);
 	_colour.Apply(e);
 

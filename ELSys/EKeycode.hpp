@@ -15,7 +15,6 @@ enum class EKeycode
 	SHIFT = VK_SHIFT,
 	ALT = VK_MENU,
 
-	//todo: make sure these fire events properly
 	LCTRL = VK_LCONTROL, LSHIFT = VK_LSHIFT, LALT = VK_LMENU,
 	RCTRL = VK_RCONTROL, RSHIFT = VK_RSHIFT, RALT = VK_RMENU,
 	ENTER = VK_RETURN,

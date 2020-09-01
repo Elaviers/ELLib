@@ -30,6 +30,8 @@ namespace DefaultUniformVars
 	constexpr const char *intCubemap = "Cubemap";
 
 	constexpr const char *boolIsFont = "IsFont";
+
+	constexpr const char* intLightCount = "LightCount";
 }
 
 class GLProgram
@@ -64,11 +66,19 @@ public:
 
 	//Setter inlines
 
-	void SetBool(const char* name, GLboolean x) const				{ glUniform1i(GetUniformLocation(name), x ? 1 : 0); }
+	void SetBool(const char* name, bool x) const					{ SetInt(name, x ? 1 : 0); }
 	void SetInt(const char *name, GLint x) const					{ glUniform1i(GetUniformLocation(name), x); }
 	void SetFloat(const char* name, GLfloat x) const				{ glUniform1f(GetUniformLocation(name), x); }
 	void SetMatrix4(const char *name, const Matrix4 &x) const		{ glUniformMatrix4fv(GetUniformLocation(name), 1, GL_FALSE, &x[0][0]); }
 	void SetVec2(const char *name, const Vector2 &x) const			{ glUniform2fv(GetUniformLocation(name), 1, x.GetData()); }
 	void SetVec3(const char *name, const Vector3 &x) const			{ glUniform3fv(GetUniformLocation(name), 1, x.GetData()); }
 	void SetVec4(const char *name, const Vector4 &x) const			{ glUniform4fv(GetUniformLocation(name), 1, x.GetData()); }
+
+	bool GetBool(const char* name) const { return GetInt(name) != 0; }
+	GLint GetInt(const char* name) const { GLint x; glGetnUniformiv(_id, GetUniformLocation(name), sizeof(GLint), &x); return x; }
+	GLfloat GetFloat(const char* name) const { GLfloat x; glGetnUniformfv(_id, GetUniformLocation(name), sizeof(GLfloat), &x); return x; }
+	Matrix4 GetMatrix4(const char* name) const { GLfloat x[16]; glGetnUniformfv(_id, GetUniformLocation(name), sizeof(GLfloat) * 16, x); return Matrix4(x[0], x[1], x[2], x[3], x[4], x[5], x[6], x[7], x[8], x[9], x[10], x[11], x[12], x[13], x[14], x[15]); }
+	Vector2 GetVec2(const char* name) const { GLfloat x[2]; glGetnUniformfv(_id, GetUniformLocation(name), sizeof(GLfloat) * 2, x); return Vector2(x[0], x[1]); }
+	Vector3 GetVec3(const char* name) const { GLfloat x[3]; glGetnUniformfv(_id, GetUniformLocation(name), sizeof(GLfloat) * 3, x); return Vector3(x[0], x[1], x[2]); }
+	Vector4 GetVec4(const char* name) const { GLfloat x[4]; glGetnUniformfv(_id, GetUniformLocation(name), sizeof(GLfloat) * 4, x); return Vector4(x[0], x[1], x[2], x[3]); }
 };

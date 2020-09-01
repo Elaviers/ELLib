@@ -57,6 +57,14 @@ extern PFNGLGENERATEMIPMAPPROC		glGenerateMipmap;
 //Uniform variables
 extern PFNGLGETACTIVEUNIFORMPROC	glGetActiveUniform;
 extern PFNGLGETUNIFORMLOCATIONPROC	glGetUniformLocation;
+extern PFNGLGETUNIFORMFVPROC		glGetUniformfv;
+extern PFNGLGETUNIFORMIVPROC		glGetUniformiv;
+extern PFNGLGETUNIFORMUIVPROC		glGetUniformuiv;
+extern PFNGLGETUNIFORMDVPROC		glGetUniformdv;
+extern PFNGLGETNUNIFORMFVPROC		glGetnUniformfv;
+extern PFNGLGETNUNIFORMIVPROC		glGetnUniformiv;
+extern PFNGLGETNUNIFORMUIVPROC		glGetnUniformuiv;
+extern PFNGLGETNUNIFORMDVPROC		glGetnUniformdv;
 extern PFNGLUNIFORM1FPROC			glUniform1f;
 extern PFNGLUNIFORM2FPROC			glUniform2f;
 extern PFNGLUNIFORM3FPROC			glUniform3f;
