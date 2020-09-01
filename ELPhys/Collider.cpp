@@ -83,17 +83,17 @@ Vector3 ClosestPointToOriginOnTriangle(const Vector3& a, const Vector3& b, const
 	Vector3 ca = a - c;
 
 	//A.-N[AB]
-	if ((a).Dot(TripleCross(ab, ca, ab)) <= 0.f)
+	if (a.Dot(TripleCross(ab, ca, ab)) <= 0.f)
 	{
-		if ((a).Dot(-ab) <= 0.f)				//A.BA (outside a on ab)
+		if (a.Dot(-ab) <= 0.f)				//A.BA (outside a on ab)
 		{
-			if ((a).Dot(ca) <= 0.f) return a;	//A.CA (outside a on ca)
+			if (a.Dot(ca) <= 0.f) return a;	//A.CA (outside a on ca)
 			return ClosestPointToOriginOnLineSegment(c, ca);
 		}
 
-		if ((b).Dot(ab) <= 0.f)					//B.AB (outside b on ab)
+		if (b.Dot(ab) <= 0.f)					//B.AB (outside b on ab)
 		{
-			if ((b).Dot(-bc) <= 0.f) return b;	//B.CB (outside b on bc)
+			if (b.Dot(-bc) <= 0.f) return b;	//B.CB (outside b on bc)
 			return ClosestPointToOriginOnLineSegment(b, bc);
 		}
 
@@ -101,13 +101,13 @@ Vector3 ClosestPointToOriginOnTriangle(const Vector3& a, const Vector3& b, const
 	}
 
 	//B.-N[BC]
-	if ((b).Dot(TripleCross(bc, ab, bc)) <= 0.f)
+	if (b.Dot(TripleCross(bc, ab, bc)) <= 0.f)
 	{
-		if ((b).Dot(-bc) <= 0.f) return b;		//B.CB (outside b on bc)
+		if (b.Dot(-bc) <= 0.f) return b;		//B.CB (outside b on bc)
 
-		if ((c).Dot(bc) <= 0.f)					//B.BC (outside c on bc)
+		if (c.Dot(bc) <= 0.f)					//B.BC (outside c on bc)
 		{
-			if ((c).Dot(-ca) <= 0.f) return c;	//C.AC (outside c on ca)
+			if (c.Dot(-ca) <= 0.f) return c;	//C.AC (outside c on ca)
 
 			return ClosestPointToOriginOnLineSegment(c, ca);
 		}
@@ -116,10 +116,10 @@ Vector3 ClosestPointToOriginOnTriangle(const Vector3& a, const Vector3& b, const
 	}
 
 	//C.-N[CA]
-	if ((c).Dot(TripleCross(ca, -ab, ca)) <= 0.f)
+	if (c.Dot(TripleCross(ca, -ab, ca)) <= 0.f)
 	{
-		if ((a).Dot(ca) <= 0.f) return a;		//A.CA (outside a on ca)
-		if ((c).Dot(-ca) <= 0.f) return c;		//C.AC (outside c on ca)
+		if (a.Dot(ca) <= 0.f) return a;		//A.CA (outside a on ca)
+		if (c.Dot(-ca) <= 0.f) return c;		//C.AC (outside c on ca)
 		return ClosestPointToOriginOnLineSegment(c, ca);
 	}
 
@@ -131,7 +131,7 @@ inline Vector3 GetNormalForFace(const Vector3& side1, const Vector3& side2, cons
 {
 	Vector3 result = (side1).Cross(side2);
 
-	if ((result).Dot(dir) < 0.f)
+	if (result.Dot(dir) < 0.f)
 		return -result;
 
 	return result;
@@ -189,7 +189,7 @@ inline Vector3 Support(
 {
 	if (pLineA)
 	{
-		Vector3 farthestLinePoint = (dir).Dot(pLineA->end - pLineA->start) > 0.f ? pLineA->end : pLineA->start;
+		Vector3 farthestLinePoint = dir.Dot(pLineA->end - pLineA->start) > 0.f ? pLineA->end : pLineA->start;
 		return (farthestLinePoint + shapeA.GetFarthestPointInDirection(dir, tA)) - shapeB.GetFarthestPointInDirection(-dir, tB);
 	}
 	
@@ -222,8 +222,8 @@ Vector3 EPA(
 
 		Vector3 newPoint = Support(shapeA, tA, shapeB, tB, pLineA, dir);
 
-		double newDot = ((Vector3T<double>)dir).Dot(newPoint);
-		double oldDot = ((Vector3T<double>)dir).Dot(closestFace.a);
+		double newDot = ((Vector3T<double>)dir).Dot((Vector3T<double>)newPoint);
+		double oldDot = ((Vector3T<double>)dir).Dot((Vector3T<double>)closestFace.a);
 		if (newDot - oldDot <= EPA_TOLERANCE)
 		{
 			return closestFace.closestPointToOrigin;
@@ -313,8 +313,8 @@ EOverlapResult GJK(const CollisionShape& shapeA, const Transform& tA, const Coll
 			Vector3 dc = c - d;
 			Vector3 db = b - d;
 
-			Vector3 bcd = (dc).Cross(db);
-			float dot = (bcd).Dot(d);
+			Vector3 bcd = dc.Cross(db);
+			float dot = bcd.Dot(d);
 
 			if (Maths::AlmostEquals(dot, 0.f, GJK_TOUCH_TOLERANCE))
 				return EOverlapResult::TOUCHING;
@@ -333,8 +333,8 @@ EOverlapResult GJK(const CollisionShape& shapeA, const Transform& tA, const Coll
 
 			Vector3 da = simplex[0] - simplex[3];
 
-			Vector3 abd = (db).Cross(da);
-			dot = (abd).Dot(d);
+			Vector3 abd = db.Cross(da);
+			dot = abd.Dot(d);
 
 			if (Maths::AlmostEquals(dot, 0.f, GJK_TOUCH_TOLERANCE))
 				return EOverlapResult::TOUCHING;
@@ -349,8 +349,8 @@ EOverlapResult GJK(const CollisionShape& shapeA, const Transform& tA, const Coll
 				break;
 			}
 
-			Vector3 acd = (da).Cross(dc);
-			dot = (acd).Dot(d);
+			Vector3 acd = da.Cross(dc);
+			dot = acd.Dot(d);
 
 			if (Maths::AlmostEquals(dot, 0.f, GJK_TOUCH_TOLERANCE))
 				return EOverlapResult::TOUCHING;
@@ -377,7 +377,7 @@ EOverlapResult GJK(const CollisionShape& shapeA, const Transform& tA, const Coll
 		simplex[i] = Support(shapeA, tA, shapeB, tB, pLineA, dir);
 
 		//Fail if the new point did not go past the origin
-		if ((simplex[i]).Dot(dir) < 0.f)
+		if (simplex[i].Dot(dir) < 0.f)
 			return EOverlapResult::SEPERATE;
 
 		++i;
@@ -536,10 +536,10 @@ float GJKDist(
 				Vector3 dc = mC - mD;
 				//I did have a more efficient way of doing this but it is way uglier and has a small issue so it is not used here, see UnusedCollider.txt
 
-				if ((mD).Dot(GetNormalForFace(da, db, -dc)) > 0.f &&	//Inside DAB
-					(mD).Dot(GetNormalForFace(db, dc, -da)) > 0.f &&	//Inside DBC
-					(mD).Dot(GetNormalForFace(dc, da, -db)) > 0.f &&	//Inside DCA
-					(mA).Dot(GetNormalForFace(mB - mA, mC - mA, da)) > 0.f)//Inside ABC
+				if (mD.Dot(GetNormalForFace(da, db, -dc)) > 0.f &&	//Inside DAB
+					mD.Dot(GetNormalForFace(db, dc, -da)) > 0.f &&	//Inside DBC
+					mD.Dot(GetNormalForFace(dc, da, -db)) > 0.f &&	//Inside DCA
+					mA.Dot(GetNormalForFace(mB - mA, mC - mA, da)) > 0.f)//Inside ABC
 				{
 					//Inside all faces of tetrahedron
 					return 0.f;
