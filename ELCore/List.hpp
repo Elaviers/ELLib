@@ -489,8 +489,8 @@ public:
 		if (_first)
 		{
 			Node* node = before._node;
-
-			if (node == _first) return Iterator(_first = _NewNode(_first, value));
+			if (node == _first) 
+				return Iterator(_first = _NewNode(_first, value));
 
 			return Iterator(_first->InsertChildBefore(value, node, *this));
 		}
@@ -501,11 +501,9 @@ public:
 	Iterator Insert(const T& value, size_t index)
 	{
 		if (index == 0)
-		{
-			Node* oldFirst = _first;
-			return _first = _NewNode(oldFirst, value);
-		}
-		else if (_first)
+			return Iterator(_first = _NewNode(_first, value));
+		
+		if (_first)
 		{
 			Node* node = _first->InsertChild(value, index, *this);
 			if (node->Next() == nullptr)
@@ -523,8 +521,8 @@ public:
 		if (_first)
 		{
 			Node* node = before._node;
-
-			if (node == _first) return Iterator(_first = _NewNode(_first, args...));
+			if (node == _first)
+				return Iterator(_first = _NewNode(_first, args...));
 
 			return Iterator(_first->InsertChildBefore(node, *this, args...));
 		}
@@ -536,11 +534,9 @@ public:
 	Iterator Insert(size_t index, Args ...args)
 	{
 		if (index == 0)
-		{
-			Node* oldFirst = _first;
-			return _first = _NewNode(oldFirst, args...);
-		}
-		else if (_first)
+			return Iterator(_first = _NewNode(_first, args...));
+		
+		if (_first)
 		{
 			Node* node = _first->InsertChild(index, *this, args...);
 			if (node->Next() == nullptr)

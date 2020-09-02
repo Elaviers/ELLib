@@ -53,9 +53,6 @@ public:
 
 	GLuint GetID() const { return _id; }
 
-	int GetMaxLightCount() const { return _maxLightCount; }
-	void SetMaxLightCount(int maxLightCount) { _maxLightCount = maxLightCount; }
-
 	void Create(const char *vertSource, const char *fragSource);
 	void Load(const char *vertFile, const char *fragFile);
 
@@ -75,10 +72,10 @@ public:
 	void SetVec4(const char *name, const Vector4 &x) const			{ glUniform4fv(GetUniformLocation(name), 1, x.GetData()); }
 
 	bool GetBool(const char* name) const { return GetInt(name) != 0; }
-	GLint GetInt(const char* name) const { GLint x; glGetnUniformiv(_id, GetUniformLocation(name), sizeof(GLint), &x); return x; }
-	GLfloat GetFloat(const char* name) const { GLfloat x; glGetnUniformfv(_id, GetUniformLocation(name), sizeof(GLfloat), &x); return x; }
-	Matrix4 GetMatrix4(const char* name) const { GLfloat x[16]; glGetnUniformfv(_id, GetUniformLocation(name), sizeof(GLfloat) * 16, x); return Matrix4(x[0], x[1], x[2], x[3], x[4], x[5], x[6], x[7], x[8], x[9], x[10], x[11], x[12], x[13], x[14], x[15]); }
-	Vector2 GetVec2(const char* name) const { GLfloat x[2]; glGetnUniformfv(_id, GetUniformLocation(name), sizeof(GLfloat) * 2, x); return Vector2(x[0], x[1]); }
-	Vector3 GetVec3(const char* name) const { GLfloat x[3]; glGetnUniformfv(_id, GetUniformLocation(name), sizeof(GLfloat) * 3, x); return Vector3(x[0], x[1], x[2]); }
-	Vector4 GetVec4(const char* name) const { GLfloat x[4]; glGetnUniformfv(_id, GetUniformLocation(name), sizeof(GLfloat) * 4, x); return Vector4(x[0], x[1], x[2], x[3]); }
+	GLint GetInt(const char* name) const { GLint x; glGetUniformiv(_id, GetUniformLocation(name), &x); return x; }
+	GLfloat GetFloat(const char* name) const { GLfloat x; glGetUniformfv(_id, GetUniformLocation(name), &x); return x; }
+	Matrix4 GetMatrix4(const char* name) const { GLfloat x[16]; glGetUniformfv(_id, GetUniformLocation(name), x); return Matrix4(x[0], x[1], x[2], x[3], x[4], x[5], x[6], x[7], x[8], x[9], x[10], x[11], x[12], x[13], x[14], x[15]); }
+	Vector2 GetVec2(const char* name) const { GLfloat x[2]; glGetUniformfv(_id, GetUniformLocation(name), x); return Vector2(x[0], x[1]); }
+	Vector3 GetVec3(const char* name) const { GLfloat x[3]; glGetUniformfv(_id, GetUniformLocation(name), x); return Vector3(x[0], x[1], x[2]); }
+	Vector4 GetVec4(const char* name) const { GLfloat x[4]; glGetUniformfv(_id, GetUniformLocation(name), x); return Vector4(x[0], x[1], x[2], x[3]); }
 };

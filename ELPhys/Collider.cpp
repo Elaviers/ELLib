@@ -158,13 +158,8 @@ struct Face
 void AddEdge(List<Pair<Vector3>>& edges, const Vector3& a, const Vector3& b)
 {
 	for (auto it = edges.begin(); it.IsValid(); ++it)
-	{
 		if (a == it->second && b == it->first)
-		{
-			edges.Remove(it);
 			return;
-		}
-	}
 
 	edges.Add(Pair<Vector3>(a, b));
 }
@@ -193,7 +188,8 @@ inline Vector3 Support(
 		return (farthestLinePoint + shapeA.GetFarthestPointInDirection(dir, tA)) - shapeB.GetFarthestPointInDirection(-dir, tB);
 	}
 	
-	return shapeA.GetFarthestPointInDirection(dir, tA) - shapeB.GetFarthestPointInDirection(-dir, tB);
+	Vector3 v3 = shapeA.GetFarthestPointInDirection(dir, tA) - shapeB.GetFarthestPointInDirection(-dir, tB);
+	return v3;
 }
 
 Vector3 EPA(
@@ -203,6 +199,8 @@ Vector3 EPA(
 	const LineSegment* pLineA = nullptr)
 {
 	typedef MultiPool<byte, 1000> PoolType;
+
+	//todo: this will cause problems with multithreading
 	static PoolType pool;
 
 	pool.Clear();
@@ -248,7 +246,9 @@ Vector3 EPA(
 		}
 
 		for (const Pair<Vector3>& edge : edges)
+		{
 			InsertFace(closestFaces, Face(newPoint, edge.first, edge.second));
+		}
 	}
 
 	return closestFaces.begin()->closestPointToOrigin;
