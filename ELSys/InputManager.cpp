@@ -91,22 +91,28 @@ void InputManager::Clear()
 
 void InputManager::KeyDown(EKeycode key)
 {
-	_keyStates[(byte)key] = 1;
+	if (_keyStates[(byte)key] == 0)
+	{
+		_keyStates[(byte)key] = 1;
 
-	List<KeyBind*>* binds = _keyBinds.Get(key);
-	if (binds)
-		for (KeyBind* bind : *binds)
-			bind->KeyDown();
+		List<KeyBind*>* binds = _keyBinds.Get(key);
+		if (binds)
+			for (KeyBind* bind : *binds)
+				bind->KeyDown();
+	}
 }
 
 void InputManager::KeyUp(EKeycode key)
 {
-	_keyStates[(byte)key] = 0;
+	if (_keyStates[(byte)key])
+	{
+		_keyStates[(byte)key] = 0;
 
-	List<KeyBind*>* binds = _keyBinds.Get(key);
-	if (binds)
-		for (KeyBind* bind : *binds)
-			bind->KeyUp();
+		List<KeyBind*>* binds = _keyBinds.Get(key);
+		if (binds)
+			for (KeyBind* bind : *binds)
+				bind->KeyUp();
+	}
 }
 
 void InputManager::ClearMouseInput()

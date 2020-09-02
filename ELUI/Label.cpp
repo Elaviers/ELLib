@@ -28,7 +28,21 @@ void UILabel::_OnBoundsChanged()
 {
 	if (_font)
 	{
-		float x = _absoluteBounds.x + _absoluteBounds.w / 2.f - _font->CalculateStringWidth(_string.GetData(), _absoluteBounds.h) / 2.f;
+		float x;
+		switch (_alignment)
+		{
+		case ETextAlignment::LEFT: 
+			x = _absoluteBounds.x;
+			break;
+		case ETextAlignment::RIGHT:
+			x = _absoluteBounds.x + _absoluteBounds.w - _font->CalculateStringWidth(_string.GetData(), _absoluteBounds.h);
+			break;
+		case ETextAlignment::CENTRE:
+		default:
+			x = _absoluteBounds.x + _absoluteBounds.w / 2.f - _font->CalculateStringWidth(_string.GetData(), _absoluteBounds.h) / 2.f;
+			break;
+		}
+
 		_transform.SetPosition(Vector3(x, _absoluteBounds.y, _z));
 		_transform.SetScale(Vector3(_absoluteBounds.h, _absoluteBounds.h, 1.f));
 	}

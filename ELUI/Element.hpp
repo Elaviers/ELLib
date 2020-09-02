@@ -126,6 +126,9 @@ public:
 	bool HasFocus() const { return _hasFocus; }
 	bool GetFocusOnClick() const { return _focusOnClick; }
 
+	//Fires onmousemove with coordinates that cannot possibly overlap anything
+	void ResetMouseMove() { OnMouseMove(INFINITY, INFINITY, false); }
+
 	//True if mouse is currently hovering over the element
 	bool GetHover() const { return _hover; }
 

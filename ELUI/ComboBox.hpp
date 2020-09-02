@@ -2,6 +2,8 @@
 #include "TextButton.hpp"
 #include "ListBox.hpp"
 
+//todo: make combobox a container, not a text button
+
 class UIComboBox : public UITextButton
 {
 private:
@@ -48,6 +50,7 @@ public:
 	const UIColour& GetListTextColour() const { return _listBox.GetTextColour(); }
 	const UIColour& GetListTextShadowColour() const { return _listBox.GetTextShadowColour(); }
 	const Vector2& GetListTextShadowOffset() const { return _listBox.GetTextShadowOffset(); }
+	ETextAlignment GetListTextAlignment() const { return _listBox.GetTextAlignment(); }
 	const UIColour& GetListSelectionColour() const { return _listBox.GetSelectionColour(); }
 
 	UIComboBox& SetReadOnly(bool readOnly) { _readOnly = readOnly; return *this; }
@@ -59,6 +62,7 @@ public:
 	UIComboBox& SetListTextColour(const UIColour& colour) { _listBox.SetTextColour(colour); return *this; }
 	UIComboBox& SetListTextShadowColour(const UIColour& colour) { _listBox.SetTextShadowColour(colour); return *this; }
 	UIComboBox& SetListTextShadowOffset(const Vector2& offset) { _listBox.SetTextShadowOffset(offset); return *this; }
+	UIComboBox& SetListTextAlignment(ETextAlignment alignment) { _listBox.SetTextAlignment(alignment); return *this; }
 	UIComboBox& SetListSelectionColour(const UIColour& colour) { _listBox.SetSelectionColour(colour); return *this; }
 
 	virtual void Render(RenderQueue& q) const override
@@ -69,38 +73,8 @@ public:
 			_listBox.Render(q);
 	}
 
-	virtual bool OnMouseMove(float mouseX, float mouseY, bool blocked) override
-	{
-		if (_readOnly)
-			return false;
+	virtual bool OnMouseMove(float mouseX, float mouseY, bool blocked) override;
 
-		bool b1 = false;
-		if (!_selecting)
-			b1 = UITextButton::OnMouseMove(mouseX, mouseY, blocked);
-		
-		float b2 = _listBox.OnMouseMove(mouseX, mouseY, blocked); 
-
-		_lastMouseX = mouseX;
-		_lastMouseY = mouseY;
-
-		return b1 || b2;
-	}
-
-	virtual bool OnMouseUp() override
-	{
-		if (_readOnly)
-			return false;
-
-		if (_selecting)
-		{
-			if (_listBox.OverlapsPoint(_lastMouseX, _lastMouseY))
-				return _listBox.OnMouseUp();
-			else
-				_StopSelecting();
-		}
-		else
-			return UITextButton::OnMouseUp();
-
-		return false;
-	}
+	virtual bool OnMouseDown() override;
+	virtual bool OnMouseUp() override;
 };

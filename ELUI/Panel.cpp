@@ -6,11 +6,16 @@
 
 void UIPanel::Render(RenderQueue& q) const
 {
-	if (!_material)
-		return;
-	
-	RenderEntry& e = q.NewDynamicEntry(ERenderChannels::UNLIT, 0);
+	RenderEntry& e = q.NewDynamicEntry(ERenderChannels::UNLIT);
 	_colour.Apply(e);
+
+	if (!_material)
+	{
+		e.AddSetTexture(RCMDSetTexture::Type::WHITE, 0);
+		e.AddSetTransform(_transforms[4].GetTransformationMatrix());
+		e.AddCommand(RCMDRenderMesh::PLANE);
+		return;
+	}
 
 	if (dynamic_cast<const MaterialGrid*>(_material.Ptr()))
 	{

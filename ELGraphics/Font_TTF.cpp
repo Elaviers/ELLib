@@ -211,7 +211,7 @@ void FontTTF::RenderString(RenderEntry& e, const char* string, const Transform& 
 	float line = 0.f;
 	float currentLineW = 0.f;
 
-	float yOffset = (float)_descender;
+	float yOffset = (float)_descender * scale;
 
 	t.Move(downDirection * yOffset);
 

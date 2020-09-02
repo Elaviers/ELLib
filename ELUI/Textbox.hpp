@@ -67,6 +67,7 @@ public:
 	UITextbox& SetTextColour(const UIColour& colour) { _label.SetColour(colour);  return *this; }
 	UITextbox& SetTextShadowColour(const UIColour& colour) { _label.SetShadowColour(colour); return *this; }
 	UITextbox& SetTextShadowOffset(const Vector2& offset) { _label.SetShadowOffset(offset); return *this; }
+	UITextbox& SetTextAlignment(ETextAlignment alignment) { _label.SetAlignment(alignment); return *this; }
 	UITextbox& SetFont(const SharedPointer<const Font>& font) { _label.SetFont(font);  return *this; }
 	UITextbox& SetBorderSize(float size) { _panel.SetBorderSize(size);  return *this; }
 	UITextbox& SetSelectionColour(const UIColour& colour) { _selectionRect.SetColour(colour); return *this; }
@@ -81,6 +82,7 @@ public:
 	const UIColour& GetTextColour() const { return _label.GetColour(); }
 	const UIColour& GetTextShadowColour() const { return _label.GetShadowColour(); }
 	const Vector2& GetTextShadowOffset() const { return _label.GetShadowOffset(); }
+	ETextAlignment GetTextAlignment() const { return _label.GetAlignment(); }
 	const SharedPointer<const Font>& GetFont() const { return _label.GetFont(); }
 	float GetBorderSize() const { return _panel.GetBorderSize(); }
 	const UIColour& GetSelectionColour() const { return _selectionRect.GetColour(); }

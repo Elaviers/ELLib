@@ -10,6 +10,7 @@ void UIListBox::_UpdateLabels()
 		label.SetColour(_textColour);
 		label.SetShadowColour(_textShadowColour);
 		label.SetShadowOffset(_textShadowOffset);
+		label.SetAlignment(_textAlignment);
 		++i;
 	}
 }
@@ -25,6 +26,11 @@ void UIListBox::Add(const String& item)
 	newLabel.SetShadowColour(_textShadowColour);
 	newLabel.SetShadowOffset(_textShadowOffset);
 	newLabel.SetString(item);
+}
+
+bool UIListBox::OnMouseDown()
+{
+	return _hover;
 }
 
 bool UIListBox::OnMouseUp()
@@ -56,7 +62,12 @@ bool UIListBox::OnMouseMove(float x, float y, bool blocked)
 
 				break;
 			}
-		}
+		}	
+	}
+	else if (_selectedLabel)
+	{
+		_selectedLabel = nullptr;
+		_selectionBox.SetBounds(0.f, 0.f, 0.f, 0.f);
 	}
 
 	return _hover;

@@ -45,6 +45,6 @@ public:
 
 	static Colour FromColourCode(const char* colourCode);
 
-	static Colour Black, Grey, White, Red, Green, Blue, Yellow, Pink, Cyan;
+	static Colour Invisible, Black, Grey, White, Red, Green, Blue, Yellow, Pink, Cyan;
 };
 	

@@ -17,6 +17,7 @@ class UIListBox : public UIElement
 	UIColour _textColour;
 	UIColour _textShadowColour;
 	Vector2 _textShadowOffset;
+	ETextAlignment _textAlignment;
 	float _itemHeight;
 
 	void _UpdateLabels();
@@ -50,6 +51,7 @@ public:
 	const UIColour& GetTextColour() const { return _textColour; }
 	const UIColour& GetTextShadowColour() const { return _textShadowColour; }
 	const Vector2& GetTextShadowOffset() const { return _textShadowOffset; }
+	ETextAlignment GetTextAlignment() const { return _textAlignment; }
 	const UILabel* GetSelectedLabel() const { return _selectedLabel; }
 	const UIColour& GetSelectionColour() const { return _selectionBox.GetColour(); }
 
@@ -61,6 +63,7 @@ public:
 	UIListBox& SetTextColour(const UIColour& colour) { _textColour = colour; _UpdateLabels(); return *this; }
 	UIListBox& SetTextShadowColour(const UIColour& colour) { _textShadowColour = colour; _UpdateLabels(); return *this; }
 	UIListBox& SetTextShadowOffset(const Vector2& offset) { _textShadowOffset = offset; _UpdateLabels(); return *this; }
+	UIListBox& SetTextAlignment(ETextAlignment alignment) { _textAlignment = alignment; _UpdateLabels(); return *this; }
 	UIListBox& SetSelectionColour(const UIColour& colour) { _selectionBox.SetColour(colour); return *this; }
 
 	virtual void Render(RenderQueue& q) const override
@@ -73,6 +76,7 @@ public:
 			_selectionBox.Render(q);
 	}
 
+	virtual bool OnMouseDown() override;
 	virtual bool OnMouseUp() override;
 	virtual bool OnMouseMove(float mouseX, float mouseY, bool blocked) override;
 };

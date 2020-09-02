@@ -6,6 +6,8 @@
 #include <ELMaths/Vector2.hpp>
 #include <ELGraphics/Font.hpp>
 
+enum class ETextAlignment { CENTRE, LEFT, RIGHT };
+
 class UILabel : public UIElement
 {
 	SharedPointer<const Font> _font;
@@ -18,6 +20,8 @@ class UILabel : public UIElement
 	Transform _shadowTransform;
 
 	Vector2 _shadowOffset;
+
+	ETextAlignment _alignment;
 
 	void _UpdateShadowTransform();
 	virtual void _OnBoundsChanged() override;
@@ -32,12 +36,14 @@ public:
 	const Transform& GetRenderTransform() const { return _transform; }
 	const Vector2& GetShadowOffset() const { return _shadowOffset; }
 	const UIColour& GetShadowColour() const { return _shadowColour; }
+	const ETextAlignment& GetAlignment() const { return _alignment; }
 
 	UILabel& SetFont(const SharedPointer<const Font>& font) { _font = font; _OnBoundsChanged(); return *this; }
 	UILabel& SetString(const String& string) { _string = string; _OnBoundsChanged(); return *this; }
 	UILabel& SetColour(const UIColour& colour) { _colour = colour; return *this; }
 	UILabel& SetShadowOffset(const Vector2& offset) { _shadowOffset = offset; _UpdateShadowTransform(); return *this; }
 	UILabel& SetShadowColour(const UIColour& colour) { _shadowColour = colour; return *this; }
+	UILabel& SetAlignment(ETextAlignment alignment) { _alignment = alignment; _OnBoundsChanged(); return *this; }
 
 	virtual void Render(RenderQueue&) const override;
 };

@@ -1,5 +1,6 @@
 #include "Colour.hpp"
 
+Colour Colour::Invisible(0.f, 0.f, 0.f, 0.f);
 Colour Colour::White	(1.f, 1.f, 1.f);
 Colour Colour::Grey		(.5f, .5f, .5f);
 Colour Colour::Black	(0.f, 0.f, 0.f);
