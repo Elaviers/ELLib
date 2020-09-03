@@ -3,7 +3,7 @@
 #include <ELCore/FunctionPointer.hpp>
 #include <ELCore/Hashmap.hpp>
 
-enum class EAxis
+enum class EInputAxis
 {
 	MOUSE_X, MOUSE_Y,
 	LJOY_X, LJOY_Y,
@@ -77,7 +77,7 @@ private:
 	byte _keyStates[256];
 
 	Hashmap<EKeycode, List<KeyBind*>> _keyBinds;
-	Hashmap<EAxis, List<float*>> _axisBinds;
+	Hashmap<EInputAxis, List<float*>> _axisBinds;
 
 public:
 	InputManager() : _keyStates() {}
@@ -85,7 +85,7 @@ public:
 
 	void Clear();
 
-	void BindAxis(EAxis axis, float *axisPtr) { _axisBinds[axis].Add(axisPtr); }
+	void BindAxis(EInputAxis axis, float *axisPtr) { _axisBinds[axis].Add(axisPtr); }
 
 	void BindKeyDown(EKeycode key, const Callback &callback) { _keyBinds[key].Add(new KeyBind_CallbackDown(callback)); }
 	void BindKeyUp(EKeycode key, const Callback &callback) { _keyBinds[key].Add(new KeyBind_CallbackUp(callback)); }

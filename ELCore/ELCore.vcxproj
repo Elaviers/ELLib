@@ -180,6 +180,7 @@
     <ClInclude Include="ByteWriter.hpp" />
     <ClInclude Include="Concepts.hpp" />
     <ClInclude Include="Context.hpp" />
+    <ClInclude Include="Axes.hpp" />
     <ClInclude Include="Event.hpp" />
     <ClInclude Include="FunctionPointer.hpp" />
     <ClInclude Include="Hashing.hpp" />
@@ -205,6 +206,7 @@
     <ClCompile Include="Asset.cpp" />
     <ClCompile Include="ByteReader.cpp" />
     <ClCompile Include="ByteWriter.cpp" />
+    <ClCompile Include="Axes.cpp" />
     <ClCompile Include="MH2.cpp" />
     <ClCompile Include="PropertyCollection.cpp" />
     <ClCompile Include="RigidPropertyCollection.cpp" />
