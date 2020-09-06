@@ -136,4 +136,20 @@ namespace Collision
 
 		return t;
 	}
+
+	Vector3 ClosestPointOnLineSegment(const Vector3& a, const Vector3& b, const Vector3& x)
+	{
+		Vector3 ab = b - a;
+
+		float length = ab.Length();
+		if (length == 0.f)
+			return a;
+
+		Vector3 d = ab / length;
+		float dot = (x - a).Dot(d);
+
+		if (dot <= 0.f) return a;
+		if (dot >= length) return b;
+		return a + d * dot;
+	}
 }

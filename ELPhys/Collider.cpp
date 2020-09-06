@@ -19,14 +19,6 @@ bool Collider::IntersectsRay(const Transform& transform, const Ray& ray, ECollis
 	return false;
 }
 
-/*
-	Returns the result of (A X B) X C
-*/
-Vector3 TripleCross(const Vector3& a, const Vector3& b, const Vector3& c)
-{
-	return c.Dot(a) * b - c.Dot(b) * a;
-}
-
 constexpr const int GJK_MAX_ITERATIONS = 50;
 
 constexpr const int EPA_MAX_ITERATIONS = 250;
@@ -83,7 +75,7 @@ Vector3 ClosestPointToOriginOnTriangle(const Vector3& a, const Vector3& b, const
 	Vector3 ca = a - c;
 
 	//A.-N[AB]
-	if (a.Dot(TripleCross(ab, ca, ab)) <= 0.f)
+	if (a.Dot(Vector3::TripleCross(ab, ca, ab)) <= 0.f)
 	{
 		if (a.Dot(-ab) <= 0.f)				//A.BA (outside a on ab)
 		{
@@ -101,7 +93,7 @@ Vector3 ClosestPointToOriginOnTriangle(const Vector3& a, const Vector3& b, const
 	}
 
 	//B.-N[BC]
-	if (b.Dot(TripleCross(bc, ab, bc)) <= 0.f)
+	if (b.Dot(Vector3::TripleCross(bc, ab, bc)) <= 0.f)
 	{
 		if (b.Dot(-bc) <= 0.f) return b;		//B.CB (outside b on bc)
 
@@ -116,7 +108,7 @@ Vector3 ClosestPointToOriginOnTriangle(const Vector3& a, const Vector3& b, const
 	}
 
 	//C.-N[CA]
-	if (c.Dot(TripleCross(ca, -ab, ca)) <= 0.f)
+	if (c.Dot(Vector3::TripleCross(ca, -ab, ca)) <= 0.f)
 	{
 		if (a.Dot(ca) <= 0.f) return a;		//A.CA (outside a on ca)
 		if (c.Dot(-ca) <= 0.f) return c;		//C.AC (outside c on ca)
@@ -287,7 +279,7 @@ EOverlapResult GJK(const CollisionShape& shapeA, const Transform& tA, const Coll
 			Vector3 ba = a - b;
 
 			//(BA X B0) X BA
-			dir = TripleCross(ba, -b, ba);
+			dir = Vector3::TripleCross(ba, -b, ba);
 			break;
 		}
 		case 3:

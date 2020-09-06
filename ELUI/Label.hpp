@@ -22,12 +22,14 @@ class UILabel : public UIElement
 	Vector2 _shadowOffset;
 
 	ETextAlignment _alignment;
+	float _margin;
 
 	void _UpdateShadowTransform();
 	virtual void _OnBoundsChanged() override;
 
 public:
-	UILabel(UIElement *parent) : UIElement(parent), _font(nullptr), _colour(Colour::White), _shadowOffset(2.f, -2.f), _shadowColour(Colour::Black) {}
+	UILabel(UIElement *parent) : 
+		UIElement(parent), _font(nullptr), _colour(Colour::White), _shadowOffset(2.f, -2.f), _shadowColour(Colour::Black), _margin(4.f), _alignment(ETextAlignment::LEFT) {}
 	virtual ~UILabel() {}
 
 	const SharedPointer<const Font>& GetFont() const { return _font; }
@@ -37,6 +39,7 @@ public:
 	const Vector2& GetShadowOffset() const { return _shadowOffset; }
 	const UIColour& GetShadowColour() const { return _shadowColour; }
 	const ETextAlignment& GetAlignment() const { return _alignment; }
+	float GetMargin() const { return _margin; }
 
 	UILabel& SetFont(const SharedPointer<const Font>& font) { _font = font; _OnBoundsChanged(); return *this; }
 	UILabel& SetString(const String& string) { _string = string; _OnBoundsChanged(); return *this; }
@@ -44,6 +47,7 @@ public:
 	UILabel& SetShadowOffset(const Vector2& offset) { _shadowOffset = offset; _UpdateShadowTransform(); return *this; }
 	UILabel& SetShadowColour(const UIColour& colour) { _shadowColour = colour; return *this; }
 	UILabel& SetAlignment(ETextAlignment alignment) { _alignment = alignment; _OnBoundsChanged(); return *this; }
+	UILabel& SetMargin(float margin) { _margin = margin; _OnBoundsChanged(); return *this; }
 
 	virtual void Render(RenderQueue&) const override;
 };

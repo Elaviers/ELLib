@@ -17,9 +17,9 @@ namespace VectorMaths
 
 		float smallestDot = axes[0].Dot(v);
 		int axis = 0;
-		for (int i = 1; i < 3; ++i)
+		for (int i = 1; i < 3 && smallestDot > 0.f; ++i)
 		{
-			float dot = axes[i].Dot(v);
+			float dot = Maths::Abs(axes[i].Dot(v));
 			if (dot < smallestDot)
 			{
 				smallestDot = dot;

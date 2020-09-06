@@ -18,6 +18,7 @@ class UIListBox : public UIElement
 	UIColour _textShadowColour;
 	Vector2 _textShadowOffset;
 	ETextAlignment _textAlignment;
+	float _textMargin;
 	float _itemHeight;
 
 	void _UpdateLabels();
@@ -52,6 +53,7 @@ public:
 	const UIColour& GetTextShadowColour() const { return _textShadowColour; }
 	const Vector2& GetTextShadowOffset() const { return _textShadowOffset; }
 	ETextAlignment GetTextAlignment() const { return _textAlignment; }
+	float GetTextMargin() const { return _textMargin; }
 	const UILabel* GetSelectedLabel() const { return _selectedLabel; }
 	const UIColour& GetSelectionColour() const { return _selectionBox.GetColour(); }
 
@@ -64,6 +66,7 @@ public:
 	UIListBox& SetTextShadowColour(const UIColour& colour) { _textShadowColour = colour; _UpdateLabels(); return *this; }
 	UIListBox& SetTextShadowOffset(const Vector2& offset) { _textShadowOffset = offset; _UpdateLabels(); return *this; }
 	UIListBox& SetTextAlignment(ETextAlignment alignment) { _textAlignment = alignment; _UpdateLabels(); return *this; }
+	UIListBox& SetTextMargin(float margin) { _textMargin = margin; _UpdateLabels(); return *this; }
 	UIListBox& SetSelectionColour(const UIColour& colour) { _selectionBox.SetColour(colour); return *this; }
 
 	virtual void Render(RenderQueue& q) const override

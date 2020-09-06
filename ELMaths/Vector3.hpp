@@ -132,6 +132,14 @@ public:
 		return Vector3T();
 	}
 
+	/*
+		Returns the result of (A X B) X C
+	*/
+	static Vector3T TripleCross(const Vector3T& a, const Vector3T& b, const Vector3T& c)
+	{
+		return c.Dot(a) * b - c.Dot(b) * a;
+	}
+
 	//
 	static const Vector3T& Unit() { static Vector3T unit((T)1, (T)1, (T)1); return unit; }
 };

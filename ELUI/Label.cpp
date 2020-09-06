@@ -28,23 +28,38 @@ void UILabel::_OnBoundsChanged()
 {
 	if (_font)
 	{
+		float availableW = _absoluteBounds.w - _margin * 2.f;
+		float availableH = _absoluteBounds.h - _margin * 2.f;
+		float w = _font->CalculateStringWidth(_string.GetData(), _absoluteBounds.h);
+
+		float fontSize = availableH;
+		if (w > availableW)
+		{
+			float scale = availableW / w;
+			fontSize *= scale;
+			w *= scale;
+			w = _font->CalculateStringWidth(_string.GetData(), fontSize);
+
+			//todo: String width scaling not linear with font size, I'll have to clip it to the textbox like a sane person
+		}
+
 		float x;
 		switch (_alignment)
 		{
 		case ETextAlignment::LEFT: 
-			x = _absoluteBounds.x;
+			x = _absoluteBounds.x + _margin;
 			break;
 		case ETextAlignment::RIGHT:
-			x = _absoluteBounds.x + _absoluteBounds.w - _font->CalculateStringWidth(_string.GetData(), _absoluteBounds.h);
+			x = _absoluteBounds.x + _absoluteBounds.w - w - _margin;
 			break;
 		case ETextAlignment::CENTRE:
 		default:
-			x = _absoluteBounds.x + _absoluteBounds.w / 2.f - _font->CalculateStringWidth(_string.GetData(), _absoluteBounds.h) / 2.f;
+			x = _absoluteBounds.x + _absoluteBounds.w / 2.f - w / 2.f;
 			break;
 		}
 
-		_transform.SetPosition(Vector3(x, _absoluteBounds.y, _z));
-		_transform.SetScale(Vector3(_absoluteBounds.h, _absoluteBounds.h, 1.f));
+		_transform.SetPosition(Vector3(x, _absoluteBounds.y + _margin, _z));
+		_transform.SetScale(Vector3(fontSize, fontSize, 1.f));
 	}
 
 	_UpdateShadowTransform();

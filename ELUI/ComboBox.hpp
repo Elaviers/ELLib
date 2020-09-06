@@ -51,6 +51,7 @@ public:
 	const UIColour& GetListTextShadowColour() const { return _listBox.GetTextShadowColour(); }
 	const Vector2& GetListTextShadowOffset() const { return _listBox.GetTextShadowOffset(); }
 	ETextAlignment GetListTextAlignment() const { return _listBox.GetTextAlignment(); }
+	float GetListTextMargin() const { return _listBox.GetTextMargin(); }
 	const UIColour& GetListSelectionColour() const { return _listBox.GetSelectionColour(); }
 
 	UIComboBox& SetReadOnly(bool readOnly) { _readOnly = readOnly; return *this; }
@@ -63,6 +64,7 @@ public:
 	UIComboBox& SetListTextShadowColour(const UIColour& colour) { _listBox.SetTextShadowColour(colour); return *this; }
 	UIComboBox& SetListTextShadowOffset(const Vector2& offset) { _listBox.SetTextShadowOffset(offset); return *this; }
 	UIComboBox& SetListTextAlignment(ETextAlignment alignment) { _listBox.SetTextAlignment(alignment); return *this; }
+	UIComboBox& SetListTextMargin(float margin) { _listBox.SetTextMargin(margin); return *this; }
 	UIComboBox& SetListSelectionColour(const UIColour& colour) { _listBox.SetSelectionColour(colour); return *this; }
 
 	virtual void Render(RenderQueue& q) const override

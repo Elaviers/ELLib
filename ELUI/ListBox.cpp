@@ -11,6 +11,7 @@ void UIListBox::_UpdateLabels()
 		label.SetShadowColour(_textShadowColour);
 		label.SetShadowOffset(_textShadowOffset);
 		label.SetAlignment(_textAlignment);
+		label.SetMargin(_textMargin);
 		++i;
 	}
 }

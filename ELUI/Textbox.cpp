@@ -48,7 +48,7 @@ void UITextbox::Render(RenderQueue& q) const
 	{
 		Transform t = _label.GetRenderTransform();
 		float caretX = _caretOffset * t.GetScale().x + (_caretPos == 0 ? 0.f : _label.GetFont()->CalculateStringWidth(_label.GetString().GetData(), t.GetScale().x, _caretPos));
-		t.Move(Vector3(caretX, _absoluteBounds.h / 2.f, 0.f));
+		t.Move(Vector3(caretX, t.GetScale().y / 2.f, 0.f));
 		t.SetScale(Vector3(_caretWidth, t.GetScale().y, 0.f));
 
 		RenderEntry& e = q.NewDynamicEntry(ERenderChannels::UNLIT, 0);

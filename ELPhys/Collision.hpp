@@ -19,4 +19,6 @@ namespace Collision
 
 	//dim is Vector3 from centre to corner
 	float IntersectRayRect(const Ray& ray, const Vector3& centre, const Vector3& normal, const Vector3& w, const Vector3& h);
+
+	Vector3 ClosestPointOnLineSegment(const Vector3& a, const Vector3& b, const Vector3& x);
 }
