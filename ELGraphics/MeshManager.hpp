@@ -6,7 +6,6 @@ class MeshManager : public AssetManager<Mesh>
 {
 private:
 	virtual Mesh* _CreateResource(const Buffer<byte>&, const String&, const String&, const Context&) override;
-	virtual Mesh* _CreateResource(const String&, const String&, const String&, const Context&) override;
 	
 	Mesh_Static* _line = nullptr;
 	Mesh_Static* _cube = nullptr;
@@ -16,7 +15,7 @@ private:
 	SharedPointer<const Mesh> _tLine, _tCube, _tInvCube, _tPlane;
 
 public:
-	MeshManager() : AssetManager({ ".mesh" }, { ".obj" }) {}
+	MeshManager() : AssetManager({ ".mesh", ".obj" }) {}
 	virtual ~MeshManager() {}
 
 	virtual void Initialise() override;

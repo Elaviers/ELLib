@@ -107,9 +107,9 @@ namespace Maths
 		x |= x >> 4;
 		x |= x >> 8;
 		x |= x >> 16;
-#ifdef _WIN64
-		x |= x >> 32;
-#endif
+//#if sizeof(int) >= 8
+//		x |= x >> 32;
+//#endif
 		return x - (x >> 1);
 	}
 }

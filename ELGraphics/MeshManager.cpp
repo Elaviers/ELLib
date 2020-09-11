@@ -3,19 +3,9 @@
 
 Mesh* MeshManager::_CreateResource(const Buffer<byte>& data, const String& name, const String& ext, const Context& ctx)
 {
-	Mesh* mesh = Mesh::FromData(data);
-
-	if (mesh == nullptr)
-		Debug::Error(CSTR("Could not load mesh \"", name, "\""));
-
-	return Mesh::FromData(data);
-}
-
-Mesh* MeshManager::_CreateResource(const String& data, const String& name, const String& ext, const Context& ctx)
-{
 	if (ext == ".obj")
 	{
-		Mesh* mesh = IO::ReadOBJFile(data);
+		Mesh* mesh = IO::ReadOBJFile(String(data));
 
 		if (mesh == nullptr)
 			Debug::Error(CSTR("Could not load OBJ \"", name, "\""));
@@ -23,7 +13,12 @@ Mesh* MeshManager::_CreateResource(const String& data, const String& name, const
 		return mesh;
 	}
 
-	return nullptr;
+	Mesh* mesh = Mesh::FromData(data);
+
+	if (mesh == nullptr)
+		Debug::Error(CSTR("Could not load mesh \"", name, "\""));
+
+	return Mesh::FromData(data);
 }
 
 void MeshManager::Initialise()
@@ -42,10 +37,10 @@ void MeshManager::Initialise()
 	//Plane
 	_plane = new Mesh_Static(
 		Buffer<Vertex17F>({
-			{ Vector3(-.5f, -.5f, 0), Vector2(0, 0),	white, Vector3(), Vector3(), Vector3(0, 0, -1) },
-			{ Vector3(.5f, -.5f, 0), Vector2(1, 0),		white, Vector3(), Vector3(), Vector3(0, 0, -1) },
-			{ Vector3(-.5f, .5f, 0), Vector2(0, 1),		white, Vector3(), Vector3(), Vector3(0, 0, -1) },
-			{ Vector3(.5f, .5f, 0), Vector2(1, 1),		white, Vector3(), Vector3(), Vector3(0, 0, -1) }
+			{ Vector3(-.5f, -.5f, 0), Vector2(0, 1),	white, Vector3(), Vector3(), Vector3(0, 0, -1) },
+			{ Vector3(.5f, -.5f, 0), Vector2(1, 1),		white, Vector3(), Vector3(), Vector3(0, 0, -1) },
+			{ Vector3(-.5f, .5f, 0), Vector2(0, 0),		white, Vector3(), Vector3(), Vector3(0, 0, -1) },
+			{ Vector3(.5f, .5f, 0), Vector2(1, 0),		white, Vector3(), Vector3(), Vector3(0, 0, -1) }
 			}),
 		Buffer<uint32>({
 			0, 1, 2,

@@ -17,13 +17,13 @@ AudioManager::~AudioManager()
 	TRYRELEASE(_enumerator);
 }
 
-WaveSound* AudioManager::_CreateResource(const String& data, const String& name, const String& ext, const Context& ctx)
+WaveSound* AudioManager::_CreateResource(const Buffer<byte>& data, const String& name, const String& extension, const Context&)
 {
 	String filename;
 	float volume = 1.f;
 	ESoundCategory category = ESoundCategory::GENERIC;
 
-	Buffer<String> lines = data.ToLower().Split("\r\n");
+	Buffer<String> lines = String(data).ToLower().Split("\r\n");
 
 	for (const String& line : lines)
 	{

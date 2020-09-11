@@ -38,42 +38,67 @@ size_t ByteReader::Read(byte* dest, size_t amount)
 	return amount;
 }
 
+byte ByteReader::Peek_byte()
+{
+	return *_pointer;
+}
+
 byte ByteReader::Read_byte()
 {
-	byte value = *_pointer;
+	byte value = Peek_byte();
 	IncrementIndex(1);
 	return value;
 }
 
+uint16 ByteReader::Peek_uint16()
+{
+	return (_pointer[0] << 8) + _pointer[1];
+}
+
 uint16 ByteReader::Read_uint16()
 {
-	uint16 value = (_pointer[0] << 8) + _pointer[1];
+	uint16 value = Peek_uint16();
 	IncrementIndex(2);
 	return value;
+}
+
+uint16 ByteReader::Peek_uint16_little()
+{
+	return _pointer[0] + (_pointer[1] << 8);
 }
 
 uint16 ByteReader::Read_uint16_little()
 {
-	uint16 value = _pointer[0] + (_pointer[1] << 8);
+	uint16 value = Peek_uint16_little();
 	IncrementIndex(2);
 	return value;
 }
 
+uint32 ByteReader::Peek_uint32()
+{
+	return (_pointer[0] << 24) + (_pointer[1] << 16) + (_pointer[2] << 8) + _pointer[3];
+}
+
 uint32 ByteReader::Read_uint32()
 {
-	uint16 value = (_pointer[0] << 24) + (_pointer[1] << 16) + (_pointer[2] << 8) + _pointer[3];
+	uint16 value = Peek_uint32();
 	IncrementIndex(4);
 	return value;
+}
+
+uint32 ByteReader::Peek_uint32_little()
+{
+	return _pointer[0] + (_pointer[1] << 8) + (_pointer[2] << 16) + (_pointer[3] << 24);
 }
 
 uint32 ByteReader::Read_uint32_little()
 {
-	uint32 value = _pointer[0] + (_pointer[1] << 8) + (_pointer[2] << 16) + (_pointer[3] << 24);
+	uint32 value = Peek_uint32_little();
 	IncrementIndex(4);
 	return value;
 }
 
-float ByteReader::Read_float()
+float ByteReader::Peek_float()
 {
 	//Todo- Proper IEEE 754 conversion
 
@@ -89,7 +114,12 @@ float ByteReader::Read_float()
 	bytes[1] = _pointer[1];
 	bytes[2] = _pointer[2];
 	bytes[3] = _pointer[3];
+	return value;
+}
 
+float ByteReader::Read_float()
+{
+	float value = Peek_float();
 	IncrementIndex(4);
 	return value;
 }

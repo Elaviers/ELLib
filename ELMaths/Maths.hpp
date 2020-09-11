@@ -9,6 +9,10 @@ namespace Maths
 {
 	constexpr double PI = 3.14159265358979323846;
 	constexpr float PI_F = (float)PI;
+
+	constexpr double SQRT2 = 1.4142135623730950488;
+	constexpr float SQRT2_F = (float)SQRT2;
+
 	constexpr const double DEGS_PER_RAD = 180.0 / PI;
 	constexpr const double RADS_PER_DEG = PI / 180.0;
 

@@ -21,6 +21,13 @@ public:
 	//returns bytes read
 	size_t Read(byte* dest, size_t amount);
 
+	byte Peek_byte();
+	uint16 Peek_uint16();
+	uint16 Peek_uint16_little();
+	uint32 Peek_uint32();
+	uint32 Peek_uint32_little();
+	float Peek_float();
+
 	byte Read_byte();
 	uint16 Read_uint16();
 	uint16 Read_uint16_little();

@@ -3,7 +3,7 @@
 #include "Font_Texture.hpp"
 #include "Font_TTF.hpp"
 
-Font* FontManager::_CreateResource(const String& data, const String& name, const String& ext, const Context& ctx)
+Font* FontManager::_CreateResource(const Buffer<byte>& data, const String& name, const String& extension, const Context& ctx)
 {
 	Font* font = Font::FromText(data, ctx);
 

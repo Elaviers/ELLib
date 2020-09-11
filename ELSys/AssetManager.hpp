@@ -1,9 +1,12 @@
 #pragma once
 #include "IO.hpp"
+#include <ELCore/ByteReader.hpp>
 #include <ELCore/Context.hpp>
 #include <ELCore/Hashmap.hpp>
 #include <ELCore/SharedPointer.hpp>
 #include <ELCore/String.hpp>
+
+class Asset;
 
 template<typename T>
 class AssetManager
@@ -12,20 +15,24 @@ private:
 	Buffer<String> _paths;
 	Hashmap<String, SharedPointerData<T>> _map;
 
-	const Buffer<String> _textExtensions;
-	const Buffer<String> _binaryExtensions;
+	const Buffer<String> _extensions;
 
 protected:
-	virtual T* _CreateResource(const Buffer<byte>& data, const String& name, const String& extension, const Context&) { return nullptr; }
-	virtual T* _CreateResource(const String& textData, const String& name, const String& extension, const Context&) { return nullptr; }
+	virtual T* _CreateResource(const Buffer<byte>& data, const String& name, const String& extension, const Context&) = 0;
+	virtual void _ResourceRead(T& resource, const Buffer<byte>& data, const String& extension, const Context&)
+	{
+		ByteReader reader = data;
+		((Asset&)resource).Read(reader);
+	}
 
 	//Called before deleting a resource
 	virtual void _DestroyResource(T& resource) {}
 
-	AssetManager(const Buffer<String>& binaryExtensions = { "" }, const Buffer<String>& textExtensions = { ".txt" }) :
-		_textExtensions(textExtensions), _binaryExtensions(binaryExtensions)
+	//Extensions are in priority order (names that specify the extension override this)
+	AssetManager(const Buffer<String>& extensions = { ".txt" }) :
+		_extensions(extensions)
 	{ 
-		_paths.Add(""); 
+		_paths.Add(""); //Root dir
 	}
 
 	AssetManager(const AssetManager&) = delete;
@@ -85,98 +92,40 @@ public:
 		return _map.Set(name, SharedPointerData<T>(value, 0));
 	}
 
-	String GetFilename(const String& name, bool* out_IsBinary = nullptr) const
+	String GetFilename(const String& name) const
 	{
 		String extension = Utilities::GetExtension(name);
-		bool extIsText = false;
-		bool extIsBinary = false;
 
 		if (extension.GetLength())
 		{
-			for (size_t i = 0; i < _textExtensions.GetSize(); ++i)
-			{
-				if (extension == _textExtensions[i])
+			bool validExtension = false;
+			for (const String& ext : _extensions)
+				if (extension == ext)
 				{
-					extIsText = true;
+					validExtension = true;
 					break;
 				}
-			}
 
-			for (size_t i = 0; i < _binaryExtensions.GetSize(); ++i)
-			{
-				if (extension == _binaryExtensions[i])
-				{
-					extIsBinary = true;
-					break;
-				}
-			}
-
-			if (!extIsText && !extIsBinary)
+			if (!validExtension)
 				return "";
+
+			for (const String& path : _paths)
+			{
+				String filepath = path + '/' + name;
+				if (IO::FileExists(filepath.GetData()))
+					return filepath;
+			}
+
+			return "";
 		}
 
-		T* resource = nullptr;
-
-		for (size_t i = 0; i < _paths.GetSize(); ++i)
+		for (const String& path : _paths)
 		{
-			String baseName = _paths[_paths.GetSize() - 1 - i] + name;
-
-			if (!extIsBinary)
+			for (const String& ext : _extensions)
 			{
-				if (extIsText)
-				{
-					if (IO::FileExists(baseName.GetData()))
-					{
-						if (out_IsBinary)
-							*out_IsBinary = false;
-
-						return baseName;
-					}
-				}
-				else
-				{
-					for (size_t i = 0; i < _textExtensions.GetSize(); ++i)
-					{
-						String filename = baseName + _textExtensions[i];
-
-						if (IO::FileExists(filename.GetData()))
-						{
-							if (out_IsBinary)
-								* out_IsBinary = false;
-
-							return filename;
-						}
-					}
-				}
-			}
-
-			if (!extIsText && resource == nullptr)
-			{
-				if (extIsBinary)
-				{
-					if (IO::FileExists(baseName.GetData()))
-					{
-						if (out_IsBinary)
-							*out_IsBinary = true;
-
-						return baseName;
-					}
-				}
-				else
-				{
-					for (size_t i = 0; i < _binaryExtensions.GetSize(); ++i)
-					{
-						String filename = baseName + _binaryExtensions[i];
-
-						if (IO::FileExists(filename.GetData()))
-						{
-							if (out_IsBinary)
-								* out_IsBinary = true;
-
-							return filename;
-						}
-					}
-				}
+				String filepath = path + '/' + name + ext;
+				if (IO::FileExists(filepath.GetData()))
+					return filepath;
 			}
 		}
 
@@ -189,18 +138,24 @@ public:
 			return SharedPointer<T>();
 
 		String lowerName = name.ToLower();
-
 		SharedPointerData<T>* existing = _map.Get(lowerName);
-			
 		if (existing && existing->GetPtr()) 
 			return SharedPointer<T>(*existing);
 
-		bool binary = false;
-		String filename = GetFilename(name, &binary);
+		String filename = GetFilename(name);
 		if (filename.GetLength())
 		{
 			String extension = Utilities::GetExtension(filename);
-			T* resource = binary ? _CreateResource(IO::ReadFile(filename.GetData()), lowerName, extension, ctx) : _CreateResource(IO::ReadFileString(filename.GetData()), lowerName, extension, ctx);
+			T* resource;
+			
+			String preFile = filename.SubString(0, filename.LastIndexOf('/') + 1) + "_all.txt";
+			if (IO::FileExists(preFile.GetData()))
+			{
+				resource = _CreateResource(IO::ReadFile(preFile.GetData()), lowerName, ".txt", ctx);
+				_ResourceRead(*resource, IO::ReadFile(filename.GetData()), extension, ctx);
+			}
+			else
+				resource = _CreateResource(IO::ReadFile(filename.GetData()), lowerName, extension, ctx);
 
 			if (resource)
 			{
@@ -264,39 +219,27 @@ public:
 		for (size_t i = 0; i < keys.GetSize(); ++i)
 			results.OrderedAdd(*keys[i]);
 
-		for (size_t pathIndex = 0; pathIndex < _paths.GetSize(); ++pathIndex)
+		for (const String& path : _paths)
 		{
-			Buffer<String> filenames = IO::FindFilesInDirectoryRecursive(_paths[pathIndex].GetData(), "*.*");
+			Buffer<String> filenames = IO::FindFilesInDirectoryRecursive(path.GetData(), "*.*");
 
-			for (size_t filenameIndex = 0; filenameIndex < filenames.GetSize(); ++filenameIndex)
+			for (const String& filename : filenames)
 			{
-				int extIndex = filenames[filenameIndex].IndexOf('.');
+				int extIndex = filename.IndexOf('.');
 				if (extIndex >= 0)
 				{
-					String filename = filenames[filenameIndex].ToLower();
-					String name = filename.SubString(0, extIndex);
-					String ext = filename.SubString(extIndex, filename.GetLength());
+					String filenamelower = filename.ToLower();
+					String name = filenamelower.SubString(0, extIndex);
+					String ext = filenamelower.SubString(extIndex, filenamelower.GetLength());
 
-					bool noExtension = false;
-					for (size_t i = 0; i < _textExtensions.GetSize(); ++i)
-						if (ext == _textExtensions[i])
+					for (const String& extension : _extensions)
+						if (ext == extension)
 						{
-							noExtension = true;
+							if (name[0] != '_' && results.IndexOf(name) == -1)
+								results.OrderedAdd(name);
+
 							break;
 						}
-
-					if (!noExtension)
-					{
-						for (size_t i = 0; i < _binaryExtensions.GetSize(); ++i)
-							if (ext == _binaryExtensions[i])
-							{
-								noExtension = true;
-								break;
-							}
-					}
-
-					if (noExtension && results.IndexOf(name) == -1)
-						results.OrderedAdd(name);
 				}
 			}
 		}

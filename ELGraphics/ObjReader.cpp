@@ -148,7 +148,7 @@ Mesh_Static* IO::ReadOBJFile(const String& objSrc)
 					}
 
 					else if (tokens[0][1] == 't')	//Vertex texture coordinates
-						uvs.Add(Vector2(tokens[1].ToFloat(), 1.f - tokens[2].ToFloat()));
+						uvs.Add(Vector2(1.f - tokens[1].ToFloat(), 1.f - tokens[2].ToFloat()));
 				}
 				else if (tokens[0][0] == 'f')		//Face
 				{

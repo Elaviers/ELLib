@@ -44,7 +44,7 @@ void Texture::_CMD_img(const Buffer<String>& args, const Context& ctx)
 			{
 				String filename = paths[paths.GetSize() - 1 - i] + args[0];
 
-				if (IO::FileExists(filename.GetData()) && IO::ReadPNGFile(filename.GetData(), _data, width, _height))
+				if (IO::FileExists(filename.GetData()) && IO::ReadPNGFile(filename.GetData(), _data, _width, _height))
 				{
 					Create(textureManager->GetMaxMipLevels(), textureManager->GetMaxAnisotropy());
 					break;

@@ -22,8 +22,23 @@ String::String(char c, size_t length) : _length(length)
 	_data = new char[_length + 1];
 	_data[_length] = '\0';
 	
-	for (int i = 0; i < _length; ++i)
+	for (size_t i = 0; i < _length; ++i)
 		_data[i] = c;
+}
+
+String::String(const Buffer<byte>& bytes) : _length(0)
+{
+	for (char c : bytes)
+		if (c == '\0' || _length >= bytes.GetSize())
+			break;
+		else
+			++_length;
+
+	_data = new char[_length + 1];
+	_data[_length] = '\0';
+
+	for (size_t i = 0; i < _length; ++i)
+		_data[i] = bytes[i];
 }
 
 //Copy constructor
@@ -151,12 +166,31 @@ int String::IndexOf(char c) const
 	return -1;
 }
 
+int String::LastIndexOf(char c) const
+{
+	for (size_t i = _length; i > 0; --i)
+		if (_data[i - 1] == c)
+			return (int)(i - 1);
+
+	return -1;
+}
+
 int String::IndexOfAny(const char* chars) const
 {
 	for (size_t i = 0; i < _length; ++i)
 		for (const char* c = chars; *c != '\0'; ++c)
 			if (_data[i] == *c)
 				return (int)i;
+
+	return -1;
+}
+
+int String::LastIndexOfAny(const char* chars) const
+{
+	for (size_t i = _length; i > 0; --i)
+		for (const char* c = chars; *c != '\0'; ++c)
+			if (_data[i - 1] == *c)
+				return (int)(i - 1);
 
 	return -1;
 }

@@ -7,22 +7,39 @@
 
 Texture* TextureManager::_CreateResource(const Buffer<byte>& data, const String& name, const String& extension, const Context& ctx)
 {
-	Texture* tex = IO::ReadPNGFile(data);
+	if (extension == ".png")
+	{
+		Texture* tex = IO::ReadPNGFile(data);
 
-	if (tex && tex->IsValid())
-		tex->Create(_maxMipLevels, _maxAnisotropy);
-	
-	return tex;
-}
+		if (tex == nullptr)
+			Debug::Error(CSTR("Could not load texture \"", name, '\"'));
 
-Texture* TextureManager::_CreateResource(const String& textData, const String& name, const String& extension, const Context& ctx)
-{
-	Texture* tex = Asset::FromText<Texture>(textData, ctx);
+		if (tex && tex->IsValid())
+			tex->Create(_maxMipLevels, _maxAnisotropy);
+
+		return tex;
+	}
+
+	Texture* tex = Asset::FromText<Texture>(data, ctx);
 
 	if (tex == nullptr)
 		Debug::Error(CSTR("Could not load texture \"", name, '\"'));
 
 	return tex;
+}
+
+void TextureManager::_ResourceRead(Texture& texture, const Buffer<byte>& data, const String& extension, const Context&)
+{
+	if (extension == ".png")
+	{
+		Buffer<byte> pngData;
+		unsigned int w, h;
+		if (IO::ReadPNGFile(data, pngData, w, h))
+		{
+			texture.SetData(pngData, w, h);
+			texture.Create(_maxMipLevels, _maxAnisotropy);
+		}
+	}
 }
 
 void TextureManager::Initialise()

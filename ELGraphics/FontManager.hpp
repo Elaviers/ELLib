@@ -4,8 +4,8 @@
 
 class FontManager : public AssetManager<Font>
 {
-	virtual Font* _CreateResource(const String&, const String&, const String&, const Context&) override;
-	
+	virtual Font* _CreateResource(const Buffer<byte>& data, const String& name, const String& extension, const Context&) override;
+
 	String _systemPath;
 
 public:

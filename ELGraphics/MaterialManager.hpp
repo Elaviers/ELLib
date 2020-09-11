@@ -7,8 +7,8 @@
 class MaterialManager : public AssetManager<Material>
 {
 private:
-	virtual Material* _CreateResource(const String&, const String&, const String&, const Context&) override;
-
+	virtual Material* _CreateResource(const Buffer<byte>& data, const String& name, const String& extension, const Context&) override;
+	
 public:
 	MaterialManager() : AssetManager() {}
 	virtual ~MaterialManager() {}

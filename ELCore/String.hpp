@@ -45,6 +45,8 @@ public:
 	String(const char *string);
 	String(char character);
 
+	String(const Buffer<byte>& bytes);
+
 
 	const char* const GetData() const		{ return _data; }
 	size_t GetLength() const				{ return _length; }
@@ -56,7 +58,9 @@ public:
 	String SubString(size_t start, size_t end) const;
 	String SubString(size_t start) const	{ return SubString(start, _length); }
 	int IndexOf(char) const;
+	int LastIndexOf(char) const;
 	int IndexOfAny(const char* possibleChars) const;
+	int LastIndexOfAny(const char* possibleChars) const;
 
 	void Clear()							{ _SetLength(0); }
 	void Shrink(size_t amount)				{ _SetLength(_length - amount); }

@@ -7,7 +7,8 @@ Mesh* Mesh::FromData(const Buffer<byte>& data)
 {
 	Mesh* mesh = nullptr;
 
-	switch (data[0])
+	ByteReader reader = data;
+	switch (reader.Peek_byte())
 	{
 	case ASSET_MESH_STATIC:
 		mesh = new Mesh_Static();
@@ -19,7 +20,6 @@ Mesh* Mesh::FromData(const Buffer<byte>& data)
 
 	if (mesh)
 	{
-		ByteReader reader(data);
 		mesh->Read(reader);
 	}
 

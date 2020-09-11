@@ -4,7 +4,7 @@
 
 class AnimationManager : public AssetManager<Animation>
 {
-	virtual Animation* _CreateResource(const Buffer<byte>& data, const String& name, const String& extension, const Context& ctx) override;
+	virtual Animation* _CreateResource(const Buffer<byte>& data, const String& name, const String& extension, const Context&) override;
 
 public:
 	AnimationManager() : AssetManager({ ".anim" }) {}

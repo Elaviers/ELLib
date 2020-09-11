@@ -16,13 +16,13 @@ private:
 	} _colours;
 
 	virtual Texture* _CreateResource(const Buffer<byte>& data, const String& name, const String& extension, const Context&) override;
-	virtual Texture* _CreateResource(const String& textData, const String& name, const String& extension, const Context&) override;
+	virtual void _ResourceRead(Texture& texture, const Buffer<byte>& data, const String& extension, const Context&) override;
 
 	byte _maxAnisotropy;
 	byte _maxMipLevels;
 
 public:
-	TextureManager() : AssetManager({".png", ".tex"}), _maxAnisotropy(0), _maxMipLevels(0) {}
+	TextureManager() : AssetManager({".txt", ".png", ".tex"}), _maxAnisotropy(0), _maxMipLevels(0) {}
 	
 	virtual ~TextureManager()
 	{

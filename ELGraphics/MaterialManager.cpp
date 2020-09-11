@@ -7,7 +7,7 @@
 #include <ELCore/Utilities.hpp>
 #include <ELSys/Debug.hpp>
 
-Material* MaterialManager::_CreateResource(const String& data, const String& name, const String& ext, const Context& ctx)
+Material* MaterialManager::_CreateResource(const Buffer<byte>& data, const String& name, const String& ext, const Context& ctx)
 {
 	Material* mat = Material::FromText(data, ctx);
 
