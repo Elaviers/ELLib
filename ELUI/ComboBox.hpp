@@ -75,8 +75,7 @@ public:
 			_listBox.Render(q);
 	}
 
-	virtual bool OnMouseMove(float mouseX, float mouseY, bool blocked) override;
-
-	virtual bool OnMouseDown() override;
-	virtual bool OnMouseUp() override;
+	virtual bool OnKeyUp(bool blocked, EKeycode) override;
+	virtual bool OnKeyDown(bool blocked, EKeycode) override;
+	virtual bool OnMouseMove(bool blocked, float x, float y) override;
 };

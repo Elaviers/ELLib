@@ -11,27 +11,26 @@ void UIButton::OnHoverStop()
 	_hold = false;
 }
 
-bool UIButton::OnMouseUp()
+bool UIButton::OnKeyDown(bool blocked, EKeycode key)
 {
-	if (_hold)
+	if (key == EKeycode::MOUSE_LEFT && _hover)
 	{
-		_hold = false;
-		onPressed(*this);
-
-		_panel.SetColour(_colourHover);
-
+		_hold = true;
+		_panel.SetColour(_colourHold);
 		return true;
 	}
 
 	return false;
 }
 
-bool UIButton::OnMouseDown()
+bool UIButton::OnKeyUp(bool blocked, EKeycode key)
 {
-	if (_hover)
+	if (key == EKeycode::MOUSE_LEFT && _hold)
 	{
-		_hold = true;
-		_panel.SetColour(_colourHold);
+		_hold = false;
+		onPressed(*this);
+
+		_panel.SetColour(_colourHover);
 
 		return true;
 	}

@@ -127,7 +127,7 @@ public:
 	bool GetFocusOnClick() const { return _focusOnClick; }
 
 	//Fires onmousemove with coordinates that cannot possibly overlap anything
-	void ResetMouseMove() { OnMouseMove(INFINITY, INFINITY, false); }
+	void ResetMouseMove() { OnMouseMove(false, INFINITY, INFINITY); }
 
 	//True if mouse is currently hovering over the element
 	bool GetHover() const { return _hover; }
@@ -147,14 +147,17 @@ public:
 	virtual void Render(RenderQueue&) const {}
 	virtual void Update(float deltaTime) {}
 
-	//These functions return true if they 'consume' the input
-	virtual bool OnKeyUp(EKeycode) { return false; }
-	virtual bool OnKeyDown(EKeycode) { return false; }
-	virtual bool OnCharInput(char) { return false; }
-	virtual bool OnMouseUp();
-	virtual bool OnMouseDown();
-	virtual bool OnMouseMove(float mouseX, float mouseY, bool blocked);
-
 	virtual void OnHoverStart() {}
 	virtual void OnHoverStop() {}
+
+	//These functions return true if they 'consume' the input
+	virtual bool OnKeyUp(bool blocked, EKeycode);
+	virtual bool OnKeyDown(bool blocked, EKeycode);
+	virtual bool OnCharInput(bool blocked, char) { return false; }
+	virtual bool OnMouseMove(bool blocked, float x, float y);
+
+	bool KeyDown(EKeycode key) { return OnKeyDown(false, key); }
+	bool KeyUp(EKeycode key) { return OnKeyUp(false, key); }
+	bool InputChar(char c) { return OnCharInput(false, c); }
+	bool SetCursorPos(float x, float y) { return OnMouseMove(false, x, y); }
 };

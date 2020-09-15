@@ -29,10 +29,8 @@ public:
 	virtual void Render(RenderQueue&) const override;
 	virtual void Update(float deltaTime) override;
 	
-	virtual bool OnKeyUp(EKeycode) override;
-	virtual bool OnKeyDown(EKeycode) override;
-	virtual bool OnCharInput(char) override;
-	virtual bool OnMouseUp() override;
-	virtual bool OnMouseDown() override;
-	virtual bool OnMouseMove(float mouseX, float mouseY, bool blocked) override;
+	virtual bool OnKeyUp(bool blocked, EKeycode) override;
+	virtual bool OnKeyDown(bool blocked, EKeycode) override;
+	virtual bool OnCharInput(bool blocked, char) override;
+	virtual bool OnMouseMove(bool blocked, float x, float y) override;
 };

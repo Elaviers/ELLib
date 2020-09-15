@@ -29,14 +29,14 @@ void UIListBox::Add(const String& item)
 	newLabel.SetString(item);
 }
 
-bool UIListBox::OnMouseDown()
+bool UIListBox::OnKeyDown(bool blocked, EKeycode key)
 {
-	return _hover;
+	return key == EKeycode::MOUSE_LEFT && _hover;
 }
 
-bool UIListBox::OnMouseUp()
+bool UIListBox::OnKeyUp(bool blocked, EKeycode key)
 {
-	if (_hover && _selectedLabel)
+	if (key == EKeycode::MOUSE_LEFT && _hover && _selectedLabel)
 	{
 		onSelectionSubmitted(*_selectedLabel);
 	}
@@ -44,9 +44,9 @@ bool UIListBox::OnMouseUp()
 	return _hover;
 }
 
-bool UIListBox::OnMouseMove(float x, float y, bool blocked)
+bool UIListBox::OnMouseMove(bool blocked, float x, float y)
 {
-	UIElement::OnMouseMove(x, y, blocked);
+	UIElement::OnMouseMove(blocked, x, y);
 
 	if (_hover)
 	{

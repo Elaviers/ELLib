@@ -86,9 +86,9 @@ public:
 			_image.Render(q);
 	}
 
-	virtual bool OnMouseUp() override { return _readOnly ? false : _button.OnMouseUp(); }
-	virtual bool OnMouseDown() override  { return _readOnly ? false : _button.OnMouseDown(); }
-	virtual bool OnMouseMove(float x, float y, bool blocked) override { return _readOnly ? false : _button.OnMouseMove(x, y, blocked); }
+	virtual bool OnKeyDown(bool blocked, EKeycode key) override { return _readOnly ? false : _button.OnKeyDown(blocked, key); }
+	virtual bool OnKeyUp(bool blocked, EKeycode key) override  { return _readOnly ? false : _button.OnKeyUp(blocked, key); }
+	virtual bool OnMouseMove(bool blocked, float x, float y) override { return _readOnly ? false : _button.OnMouseMove(blocked, x, y); }
 
 	void Toggle()
 	{

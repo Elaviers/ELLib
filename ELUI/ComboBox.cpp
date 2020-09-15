@@ -30,21 +30,21 @@ void UIComboBox::_UpdateListBounds()
 	_listBox.SetBounds(0.f, UICoord(1.f, -h - _absoluteBounds.h), 1.f, UICoord(0.f, h));
 }
 
-bool UIComboBox::OnMouseMove(float mouseX, float mouseY, bool blocked)
+bool UIComboBox::OnMouseMove(bool blocked, float x, float y)
 {
 	if (_readOnly)
 		return false;
 
 	bool b1 = false;
 	if (!_selecting)
-		b1 = UITextButton::OnMouseMove(mouseX, mouseY, blocked);
+		b1 = UITextButton::OnMouseMove(blocked, x, y);
 	else
-		b1 = UITextButton::OverlapsPoint(mouseX, mouseY);
+		b1 = UITextButton::OverlapsPoint(x, y);
 
-	float b2 = _listBox.OnMouseMove(mouseX, mouseY, blocked);
+	float b2 = _listBox.OnMouseMove(blocked, x, y);
 
-	_lastMouseX = mouseX;
-	_lastMouseY = mouseY;
+	_lastMouseX = x;
+	_lastMouseY = y;
 
 	if (_selecting)
 	{
@@ -55,13 +55,13 @@ bool UIComboBox::OnMouseMove(float mouseX, float mouseY, bool blocked)
 	return b1 || b2;
 }
 
-bool UIComboBox::OnMouseDown()
+bool UIComboBox::OnKeyDown(bool blocked, EKeycode key)
 {
-	if (UITextButton::OnMouseDown()) return true;
-	return _listBox.OnMouseDown();
+	if (UITextButton::OnKeyDown(blocked, key)) return true;
+	return _listBox.OnKeyDown(blocked, key);
 }
 
-bool UIComboBox::OnMouseUp()
+bool UIComboBox::OnKeyUp(bool blocked, EKeycode key)
 {
 	if (_readOnly)
 		return false;
@@ -69,12 +69,12 @@ bool UIComboBox::OnMouseUp()
 	if (_selecting)
 	{
 		if (_listBox.OverlapsPoint(_lastMouseX, _lastMouseY))
-			return _listBox.OnMouseUp();
+			return _listBox.OnKeyUp(blocked, key);
 		else
 			_StopSelecting();
 	}
 	else
-		return UITextButton::OnMouseUp();
+		return UITextButton::OnKeyUp(blocked, key);
 
 	return false;
 }

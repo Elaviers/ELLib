@@ -2,7 +2,7 @@
 
 enum class ECursor
 {
-	NONE,
+	NONE = 0,
 	DEFAULT,
 	HAND,
 	ARROWS_VERTICAL,

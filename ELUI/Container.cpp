@@ -1,8 +1,5 @@
 #include "Container.hpp"
 
-#define PASSTOEACHCHILD(FUNC_CALL) for (size_t i = 0; i < _children.GetSize(); ++i) _children[i]->FUNC_CALL
-#define PASSTOEACHCHILD_RETURNIFTRUE(FUNC_CALL) for (size_t ti = _children.GetSize(); ti > 0; --ti) if (_children[ti - 1]->FUNC_CALL) return true;
-
 void UIContainer::_OnChildGained(UIElement *child)
 {
 	for (size_t i = 0; i < _children.GetSize(); ++i)
@@ -43,29 +40,62 @@ void UIContainer::Clear()
 		_children[0]->SetParent(nullptr); 
 }
 
-void UIContainer::FocusElement(UIElement* element)			{ PASSTOEACHCHILD(FocusElement(element)); }
-void UIContainer::Render(RenderQueue& q) const				{ PASSTOEACHCHILD(Render(q)); }
-void UIContainer::_OnBoundsChanged()						{ PASSTOEACHCHILD(UpdateAbsoluteBounds()); }
+void UIContainer::FocusElement(UIElement* element)			
+{ 
+	for (UIElement* child : _children)
+		child->FocusElement(element);
+}
 
-bool UIContainer::OnKeyUp(EKeycode key)						{ PASSTOEACHCHILD_RETURNIFTRUE(OnKeyUp(key));	return false; }
-bool UIContainer::OnKeyDown(EKeycode key)					{ PASSTOEACHCHILD_RETURNIFTRUE(OnKeyDown(key));	return false; }
-bool UIContainer::OnCharInput(char c)						{ PASSTOEACHCHILD_RETURNIFTRUE(OnCharInput(c)); return false; }
-bool UIContainer::OnMouseDown()								{ PASSTOEACHCHILD_RETURNIFTRUE(OnMouseDown());  return false; }
-bool UIContainer::OnMouseUp()								{ PASSTOEACHCHILD_RETURNIFTRUE(OnMouseUp());  return false; }
+void UIContainer::Render(RenderQueue& q) const
+{ 
+	for (UIElement* child : _children)
+		child->Render(q);
+}
 
-bool UIContainer::OnMouseMove(float mouseX, float mouseY, bool blocked) 
+void UIContainer::_OnBoundsChanged()
+{
+	for (UIElement* child : _children)
+		child->UpdateAbsoluteBounds();
+}
+
+bool UIContainer::OnKeyUp(bool blocked, EKeycode key)
+{
+	for (size_t i = _children.GetSize(); i > 0; --i)
+		if (_children[i - 1]->OnKeyUp(blocked, key))
+			blocked = true;
+
+	return blocked;
+}
+
+bool UIContainer::OnKeyDown(bool blocked, EKeycode key)
+{
+	for (size_t i = _children.GetSize(); i > 0; --i)
+		if (_children[i - 1]->OnKeyDown(blocked, key))
+			blocked = true;
+
+	return blocked;
+}
+
+bool UIContainer::OnCharInput(bool blocked, char c)
+{
+	for (size_t i = _children.GetSize(); i > 0; --i)
+		if (_children[i - 1]->OnCharInput(blocked, c))
+			blocked = true;
+
+	return blocked;
+}
+
+bool UIContainer::OnMouseMove(bool blocked, float x, float y) 
 { 
 	_hover = false;
-
 	_cursor = ECursor::DEFAULT;
 
-	bool block = blocked;
 	for (size_t i = _children.GetSize(); i > 0; --i)
 	{
 		UIElement* child = _children[i - 1];
 
-		if (child->OnMouseMove(mouseX, mouseY, block))
-			block = true;
+		if (child->OnMouseMove(blocked, x, y))
+			blocked = true;
 
 		if (child->GetHover())
 		{
@@ -80,6 +110,5 @@ bool UIContainer::OnMouseMove(float mouseX, float mouseY, bool blocked)
 	}
 
 	_cursor = _cursor;
-
-	return block;
+	return blocked;
 }

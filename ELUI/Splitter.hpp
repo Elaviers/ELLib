@@ -60,7 +60,7 @@ public:
 
 	virtual void Render(RenderQueue&) const override;
 
-	virtual bool OnMouseUp() override;
-	virtual bool OnMouseDown() override;
-	virtual bool OnMouseMove(float x, float y, bool blocked) override;
+	virtual bool OnKeyUp(bool blocked, EKeycode) override;
+	virtual bool OnKeyDown(bool blocked, EKeycode) override;
+	virtual bool OnMouseMove(bool blocked, float x, float y) override;
 }; 

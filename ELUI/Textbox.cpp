@@ -35,7 +35,7 @@ void UITextbox::_RemoveSelection()
 
 	_caretPos = _selectionStart;
 	_selectionStart = _selectionEnd = 0;
-	_UpdateSelectionBox();
+	_selectionRect.SetW(0.f);
 }
 
 void UITextbox::Render(RenderQueue& q) const
@@ -71,8 +71,29 @@ void UITextbox::Update(float deltaTime)
 	}
 }
 
-bool UITextbox::OnKeyDown(EKeycode key)
+bool UITextbox::OnKeyDown(bool blocked, EKeycode key)
 {
+	if (key == EKeycode::MOUSE_LEFT)
+	{
+		if (_hover)
+		{
+			RequestFocus();
+
+			_caretPos = _label.GetFont()->GetPositionOf(_lastMouseX, _lastMouseY, _label.GetString().GetData(), _label.GetRenderTransform());
+
+			_selecting = true;
+			_selectionStart = _caretPos;
+			_selectionEnd = _caretPos;
+
+			_ResetCaretBlink();
+			_UpdateSelectionBox();
+
+			return true;
+		}
+
+		return false;
+	}
+
 	if (_hasFocus && !_readOnly)
 	{
 		switch (key)
@@ -80,12 +101,18 @@ bool UITextbox::OnKeyDown(EKeycode key)
 		case EKeycode::LEFT:
 			if (_caretPos > 0) --_caretPos;
 
+			_selecting = false;
+			_selectionStart = _selectionEnd = 0;
+			_selectionRect.SetW(0.f);
 			_ResetCaretBlink();
 			break;
 		
 		case EKeycode::RIGHT:
 			if (_caretPos < GetString().GetLength()) ++_caretPos;
 
+			_selecting = false;
+			_selectionStart = _selectionEnd = 0;
+			_selectionRect.SetW(0.f);
 			_ResetCaretBlink();
 			break;
 
@@ -100,12 +127,18 @@ bool UITextbox::OnKeyDown(EKeycode key)
 	return false;
 }
 
-bool UITextbox::OnKeyUp(EKeycode kc)
+bool UITextbox::OnKeyUp(bool blocked, EKeycode key)
 {
+	if (key == EKeycode::MOUSE_LEFT)
+	{
+		_selecting = false;
+		return _hover;
+	}
+
 	return _hasFocus && !_readOnly;
 }
 
-bool UITextbox::OnCharInput(char c)
+bool UITextbox::OnCharInput(bool blocked, char c)
 {
 	if (_hasFocus && !_readOnly)
 	{
@@ -144,9 +177,9 @@ bool UITextbox::OnCharInput(char c)
 	return false;
 }
 
-bool UITextbox::OnMouseMove(float x, float y, bool blocked)
+bool UITextbox::OnMouseMove(bool blocked, float x, float y)
 {
-	UIElement::OnMouseMove(x, y, blocked);
+	UIElement::OnMouseMove(blocked, x, y);
 
 	if (_hover)
 	{
@@ -163,32 +196,4 @@ bool UITextbox::OnMouseMove(float x, float y, bool blocked)
 	}
 
 	return _hover;
-}
-
-bool UITextbox::OnMouseUp()
-{
-	_selecting = false;
-
-	return _hover;
-}
-
-bool UITextbox::OnMouseDown()
-{
-	if (_hover)
-	{
-		RequestFocus();
-		
-		_caretPos = _label.GetFont()->GetPositionOf(_lastMouseX, _lastMouseY, _label.GetString().GetData(), _label.GetRenderTransform());
-
-		_selecting = true;
-		_selectionStart = _caretPos;
-		_selectionEnd = _caretPos;
-
-		_ResetCaretBlink();
-		_UpdateSelectionBox();
-
-		return true;
-	}
-
-	return false;
 }

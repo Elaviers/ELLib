@@ -5,7 +5,7 @@
 void UIColour::Apply(RenderEntry& e) const
 {
 	if (_isBlend)
-		e.AddSetColour(_blendFrom, _blendTo);
+		e.AddSetColour(_primary, _secondary, _tertiary);
 	else
 		e.AddSetColour(_colour);
 }

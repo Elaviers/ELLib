@@ -58,9 +58,6 @@ public:
 	}
 	UIButton& SetMaterial(const SharedPointer<const Material>& material) { _panel.SetMaterial(material); return *this; }
 
-	virtual bool OnMouseUp() override;
-	virtual bool OnMouseDown() override;
-
 	virtual void OnHoverStart() override;
 	virtual void OnHoverStop() override;
 
@@ -68,4 +65,7 @@ public:
 	{
 		_panel.Render(q);
 	}
+
+	virtual bool OnKeyDown(bool blocked, EKeycode) override;
+	virtual bool OnKeyUp(bool blocked, EKeycode) override;
 };

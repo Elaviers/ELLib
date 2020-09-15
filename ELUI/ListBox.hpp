@@ -79,7 +79,7 @@ public:
 			_selectionBox.Render(q);
 	}
 
-	virtual bool OnMouseDown() override;
-	virtual bool OnMouseUp() override;
-	virtual bool OnMouseMove(float mouseX, float mouseY, bool blocked) override;
+	virtual bool OnKeyUp(bool blocked, EKeycode) override;
+	virtual bool OnKeyDown(bool blocked, EKeycode) override;
+	virtual bool OnMouseMove(bool blocked, float x, float y) override;
 };

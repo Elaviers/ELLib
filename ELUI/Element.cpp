@@ -52,9 +52,9 @@ void UIElement::UpdateAbsoluteBounds()
 	_OnBoundsChanged();
 }
 
-bool UIElement::OnMouseDown()
+bool UIElement::OnKeyDown(bool blocked, EKeycode key)
 {
-	if (_focusOnClick && _hover)
+	if (key == EKeycode::MOUSE_LEFT && _focusOnClick && _hover)
 	{
 		RequestFocus();
 		return true;
@@ -63,12 +63,12 @@ bool UIElement::OnMouseDown()
 	return false;
 }
 
-bool UIElement::OnMouseUp()
+bool UIElement::OnKeyUp(bool blocked, EKeycode key)
 {
-	return _focusOnClick && _hover;
+	return key == EKeycode::MOUSE_LEFT && _focusOnClick && _hover;
 }
 
-bool UIElement::OnMouseMove(float x, float y, bool blocked)
+bool UIElement::OnMouseMove(bool blocked, float x, float y)
 {
 	if (blocked)
 	{

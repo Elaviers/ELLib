@@ -24,8 +24,9 @@ namespace DefaultUniformVars
 	constexpr const char *intTextureReflection = "T_Reflection";
 
 	constexpr const char *boolBlend = "Blend";
-	constexpr const char *vec4BlendFrom = "BlendFrom";
-	constexpr const char *vec4BlendTo = "BlendTo";
+	constexpr const char *vec4BlendPrimary = "BlendPrimary";
+	constexpr const char *vec4BlendSecondary = "BlendSecondary";
+	constexpr const char *vec4BlendTertiary = "BlendTertiary";
 
 	constexpr const char *intCubemap = "Cubemap";
 

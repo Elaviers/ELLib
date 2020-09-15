@@ -10,23 +10,26 @@ class UIColour
 	union
 	{
 		Colour _colour;
-		Colour _blendFrom;
+		Colour _primary;
 	};
 
-	Colour _blendTo;
+	Colour _secondary;
+	Colour _tertiary;
 
 public:
 	UIColour(const Colour& colour = Colour::White) : _colour(colour), _isBlend(false) {}
-	UIColour(const Colour& blendFrom, const Colour& blendTo) : _blendFrom(blendFrom), _blendTo(blendTo), _isBlend(true) {}
+	UIColour(const Colour& primary, const Colour& secondary) : _primary(primary), _secondary(secondary), _tertiary(primary), _isBlend(true) {}
+	UIColour(const Colour& primary, const Colour& secondary, const Colour& tertiary) : _primary(primary), _secondary(secondary), _tertiary(tertiary), _isBlend(true) {}
 	~UIColour() {}
 
-	UIColour(const UIColour& other) : _isBlend(other._isBlend), _blendFrom(other._blendFrom), _blendTo(other._blendTo) {}
+	UIColour(const UIColour& other) : _isBlend(other._isBlend), _primary(other._primary), _secondary(other._secondary), _tertiary(other._tertiary) {}
 
 	UIColour& operator=(const UIColour& other)
 	{
 		_isBlend = other._isBlend;
-		_blendFrom = other._blendFrom;
-		_blendTo = other._blendTo;
+		_primary = other._primary;
+		_secondary = other._secondary;
+		_tertiary = other._tertiary;
 		
 		return *this;
 	}

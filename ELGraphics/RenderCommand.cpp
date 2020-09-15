@@ -43,8 +43,9 @@ void RCMDSetColour::Execute(RenderContext& ctx) const
 	if (_bBlend)
 	{
 		GLProgram::Current().SetBool(DefaultUniformVars::boolBlend, true);
-		GLProgram::Current().SetVec4(DefaultUniformVars::vec4BlendFrom, _colour);
-		GLProgram::Current().SetVec4(DefaultUniformVars::vec4BlendTo, _secondaryColour);
+		GLProgram::Current().SetVec4(DefaultUniformVars::vec4BlendPrimary, _colour);
+		GLProgram::Current().SetVec4(DefaultUniformVars::vec4BlendSecondary, _secondaryColour);
+		GLProgram::Current().SetVec4(DefaultUniformVars::vec4BlendTertiary, _tertiaryColour);
 	}
 	else
 	{

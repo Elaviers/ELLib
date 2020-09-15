@@ -91,10 +91,32 @@ void UISplitter::Render(RenderQueue& q) const
 	e.AddCommand(RCMDRenderMesh::PLANE);
 }
 
-bool UISplitter::OnMouseMove(float mouseX, float mouseY, bool blocked)
+bool UISplitter::OnKeyDown(bool blocked, EKeycode key)
+{
+	if (key == EKeycode::MOUSE_LEFT && _hover)
+	{
+		_drag = true;
+	}
+
+	return false;
+	//Always return false to allow pass through to multiple splitters
+}
+
+bool UISplitter::OnKeyUp(bool blocked, EKeycode key)
+{
+	if (key == EKeycode::MOUSE_LEFT && _drag)
+	{
+		_drag = false;
+	}
+
+	return false;
+	//Always return false to allow pass through to multiple splitters
+}
+
+bool UISplitter::OnMouseMove(bool blocked, float x, float y)
 {
 	//never blocking to allow multiple splitter overlap
-	UIRect::OnMouseMove(mouseX, mouseY, false);
+	UIRect::OnMouseMove(false, x, y);
 
 	if (_drag)
 	{
@@ -102,12 +124,12 @@ bool UISplitter::OnMouseMove(float mouseX, float mouseY, bool blocked)
 		{
 			if (_useAbsolute)
 			{
-				_bounds.y.absolute = mouseY - _bounds.y.relative * _parent->GetAbsoluteBounds().h - _absoluteBounds.h / 2.f;
+				_bounds.y.absolute = y - _bounds.y.relative * _parent->GetAbsoluteBounds().h - _absoluteBounds.h / 2.f;
 				_bounds.y.absolute = Maths::Clamp(_bounds.y.absolute, _min, _max);
 			}
 			else
 			{
-				_bounds.y.relative = (mouseY - _parent->GetAbsoluteBounds().y - _bounds.y.absolute - _absoluteBounds.h / 2.f) / _parent->GetAbsoluteBounds().h;
+				_bounds.y.relative = (y - _parent->GetAbsoluteBounds().y - _bounds.y.absolute - _absoluteBounds.h / 2.f) / _parent->GetAbsoluteBounds().h;
 				_bounds.y.relative = Maths::Clamp(_bounds.y.relative, _min, _max);
 			}
 
@@ -117,12 +139,12 @@ bool UISplitter::OnMouseMove(float mouseX, float mouseY, bool blocked)
 		{
 			if (_useAbsolute)
 			{
-				_bounds.x.absolute = mouseX - _bounds.x.relative * _parent->GetAbsoluteBounds().w - _absoluteBounds.w / 2.f;
+				_bounds.x.absolute = x - _bounds.x.relative * _parent->GetAbsoluteBounds().w - _absoluteBounds.w / 2.f;
 				_bounds.x.absolute = Maths::Clamp(_bounds.x.absolute, _min, _max);
 			}
 			else
 			{
-				_bounds.x.relative = (mouseX - _parent->GetAbsoluteBounds().x - _bounds.x.absolute - _absoluteBounds.w / 2.f) / _parent->GetAbsoluteBounds().w;
+				_bounds.x.relative = (x - _parent->GetAbsoluteBounds().x - _bounds.x.absolute - _absoluteBounds.w / 2.f) / _parent->GetAbsoluteBounds().w;
 				_bounds.x.relative = Maths::Clamp(_bounds.x.relative, _min, _max);
 			}
 
@@ -131,26 +153,4 @@ bool UISplitter::OnMouseMove(float mouseX, float mouseY, bool blocked)
 	}
 
 	return _hover;
-}
-
-bool UISplitter::OnMouseUp()
-{
-	if (_drag)
-	{
-		_drag = false;
-	}
-
-	return false;
-	//Always return false to allow pass through to multiple splitters
-}
-
-bool UISplitter::OnMouseDown()
-{
-	if (_hover)
-	{
-		_drag = true;
-	}
-
-	return false;
-	//Always return false to allow pass through to multiple splitters
 }

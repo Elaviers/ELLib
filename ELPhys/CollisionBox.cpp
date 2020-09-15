@@ -14,16 +14,16 @@ inline void FindT(const float &originComponent, const float &directionComponent,
 		if (originComponent == minComponent)
 			minT = 0.f;
 		else if (originComponent > minComponent)
-			minT = FLT_MAX;
-		else
 			minT = -FLT_MAX;
+		else
+			minT = FLT_MAX;
 
 		if (originComponent == maxComponent)
 			maxT = 0.f;
 		else if (originComponent > maxComponent)
-			maxT = FLT_MAX;
-		else
 			maxT = -FLT_MAX;
+		else
+			maxT = FLT_MAX;
 	}
 	else if (directionComponent > 0.f)
 	{

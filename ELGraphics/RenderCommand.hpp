@@ -128,15 +128,16 @@ class RCMDSetColour : public RenderCommand
 protected:
 	Colour _colour;
 	Colour _secondaryColour;
+	Colour _tertiaryColour;
 	bool _bBlend;
 
 public:
 	RCMDSetColour(const Colour& colour = Colour::White) : _colour(colour), _bBlend(false) {}
-	RCMDSetColour(const Colour& primary, const Colour& secondary) : _colour(primary), _secondaryColour(secondary), _bBlend(true) {}
+	RCMDSetColour(const Colour& primary, const Colour& secondary, const Colour& tertiary) : _colour(primary), _secondaryColour(secondary), _tertiaryColour(tertiary), _bBlend(true) {}
 	virtual ~RCMDSetColour() {}
 
 	void Set(const Colour& colour) { _colour = colour; _bBlend = false; }
-	void Set(const Colour& primary, const Colour& secondary) { _colour = primary; _secondaryColour = secondary; _bBlend = false; }
+	void Set(const Colour& primary, const Colour& secondary, const Colour& tertiary) { _colour = primary; _secondaryColour = secondary; _tertiaryColour = tertiary; _bBlend = false; }
 
 	virtual void Execute(RenderContext&) const override;
 };
