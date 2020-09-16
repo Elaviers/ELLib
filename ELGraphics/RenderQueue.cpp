@@ -47,11 +47,11 @@ void RenderQueue::Render(ERenderChannels channels, const MeshManager& meshManage
 	for (const QueueGroup& q : _queues)
 	{
 		for (const RenderEntry* entry : q.staticQueue)
-			if (entry->GetRenderChannels() & channels)
+			if ((entry->GetRenderChannels() & channels) != ERenderChannels::NONE)
 				entry->Render(ctx);
 
 		for (const RenderEntry* entry : q.dynamicQueue)
-			if (entry->GetRenderChannels() & channels)
+			if ((entry->GetRenderChannels() & channels) != ERenderChannels::NONE)
 				entry->Render(ctx);
 	}
 }

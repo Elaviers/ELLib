@@ -22,7 +22,7 @@ inline ENUMCLASS operator~(const ENUMCLASS& rc)						\
 	return ENUMCLASS(~(NUMERICALTYPE)rc);							\
 }																	\
 																	\
-inline bool operator&(const ENUMCLASS& a, const ENUMCLASS& b)		\
+inline ENUMCLASS operator&(const ENUMCLASS& a, const ENUMCLASS& b)	\
 {																	\
-	return (NUMERICALTYPE)a & (NUMERICALTYPE)b;						\
+	return ENUMCLASS((NUMERICALTYPE)a & (NUMERICALTYPE)b);			\
 }

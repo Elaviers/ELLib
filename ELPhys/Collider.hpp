@@ -94,7 +94,7 @@ public:
 	void SetChannels(ECollisionChannels channels)					{ _channels = channels; }
 	void AddChannels(ECollisionChannels channels)					{ _channels |= channels; }
 	void RemoveChannels(ECollisionChannels channels)				{ _channels = (ECollisionChannels)(_channels & (~channels)); }
-	bool CanCollideWithChannels(ECollisionChannels channels) const	{ return (_channels & channels) != 0; }
+	bool CanCollideWithChannels(ECollisionChannels channels) const	{ return (_channels & channels) != ECollisionChannels::NONE; }
 	bool CanCollideWith(const Collider& other) const				{ return CanCollideWithChannels(other._channels); }
 
 	bool IntersectsRay(const Transform& transform, const Ray&, ECollisionChannels rayChannels, RaycastResult&) const;
