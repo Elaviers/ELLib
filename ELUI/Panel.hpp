@@ -14,6 +14,7 @@ class UIPanel : public UIElement
 
 	Transform _transforms[9];
 
+	Vector2 _uvScaling;
 public:
 	UIPanel(UIElement *parent = nullptr) : UIElement(parent), _material(nullptr), _colour(Colour::White), _borderSize(0.f) {}
 	virtual ~UIPanel() {}

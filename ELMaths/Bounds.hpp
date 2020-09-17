@@ -20,12 +20,26 @@ struct Bounds
 	Vector3 centre;
 	float radius;
 
-	Bounds(const Vector3 &min, const Vector3 &max) : radius(0.f), min(min), max(max), centre((max - min) / 2.f) { RecalculateSphereBounds(); }
-	Bounds(const Vector3& extent = Vector3()) : radius(0.f), min(-1.f * extent), max(extent) { RecalculateSphereBounds(); }
-	Bounds(const float radius) : radius(radius), min(-radius, -radius, -radius), max(radius, radius, radius) {}
+	Bounds(const Vector3& extent, const Vector3& centre = Vector3()) :
+		centre(centre), 
+		radius(0.f), 
+		min(centre - extent), max(centre + extent) 
+	{ RecalculateSphereBounds(); }
+
+	Bounds(const Vector3& centre, float radius) : 
+		centre(centre), 
+		radius(radius), 
+		min(centre.x - radius, centre.y - radius, centre.z - radius), max(centre.x + radius, centre.y + radius, centre.z + radius) 
+	{}
+
+	Bounds() : min(), max(), centre(), radius(0.f) {}
+
+	static Bounds FromMinMax(const Vector3& min, const Vector3& max)
+	{
+		return Bounds((max - min) / 2.f, (max + min) / 2.f);
+	}
 
 	void RecalculateSphereBounds();
 
-	Vector3 GetCentre() const { return (min + max) / 2.f; }
 	Vector3 GetExtent() const { return (max - min) / 2.f; }
 };

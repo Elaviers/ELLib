@@ -1,4 +1,5 @@
 #pragma once
+#include <ELMaths/Vector2.hpp>
 
 struct MaterialParam
 {
@@ -13,7 +14,11 @@ struct MaterialParam
 		{
 			int row;
 			int column;
+
+			Vector2 uvScale;
 		} gridData;
 
 	};
+
+	MaterialParam() {}
 };

@@ -11,6 +11,8 @@ void UIPanel::Render(RenderQueue& q) const
 
 	if (!_material)
 	{
+		e.AddSetUVScale();
+		e.AddSetUVOffset();
 		e.AddSetTexture(RCMDSetTexture::Type::WHITE, 0);
 		e.AddSetTransform(_transforms[4].GetTransformationMatrix());
 		e.AddCommand(RCMDRenderMesh::PLANE);
@@ -22,35 +24,22 @@ void UIPanel::Render(RenderQueue& q) const
 		MaterialParam param;
 		param.type = MaterialParam::EType::GRID_PARAM;
 
+		//centre
+		param.gridData.uvScale = Vector2(1.f, 1.f);
+		param.gridData.row = param.gridData.column = 1;
+		_material->Apply(e, &param);
+		e.AddSetTransform(_transforms[4].GetTransformationMatrix());
+		e.AddCommand(RCMDRenderMesh::PLANE);
+
+		//Corners
 		param.gridData.row = param.gridData.column = 0;
 		_material->Apply(e, &param);
 		e.AddSetTransform(_transforms[0].GetTransformationMatrix());
-		e.AddCommand(RCMDRenderMesh::PLANE);
-		
-		param.gridData.column = 1;
-		_material->Apply(e, &param);
-		e.AddSetTransform(_transforms[1].GetTransformationMatrix());
 		e.AddCommand(RCMDRenderMesh::PLANE);
 
 		param.gridData.column = 2;
 		_material->Apply(e, &param);
 		e.AddSetTransform(_transforms[2].GetTransformationMatrix());
-		e.AddCommand(RCMDRenderMesh::PLANE);
-
-		param.gridData.row = 1;
-		param.gridData.column = 0;
-		_material->Apply(e, &param);
-		e.AddSetTransform(_transforms[3].GetTransformationMatrix());
-		e.AddCommand(RCMDRenderMesh::PLANE);
-
-		param.gridData.column = 1;
-		_material->Apply(e, &param);
-		e.AddSetTransform(_transforms[4].GetTransformationMatrix());
-		e.AddCommand(RCMDRenderMesh::PLANE);
-
-		param.gridData.column = 2;
-		_material->Apply(e, &param);
-		e.AddSetTransform(_transforms[5].GetTransformationMatrix());
 		e.AddCommand(RCMDRenderMesh::PLANE);
 
 		param.gridData.row = 2;
@@ -59,18 +48,44 @@ void UIPanel::Render(RenderQueue& q) const
 		e.AddSetTransform(_transforms[6].GetTransformationMatrix());
 		e.AddCommand(RCMDRenderMesh::PLANE);
 
+		param.gridData.column = 2;
+		_material->Apply(e, &param);
+		e.AddSetTransform(_transforms[8].GetTransformationMatrix());
+		e.AddCommand(RCMDRenderMesh::PLANE);
+
+		//X edges
+		param.gridData.uvScale = Vector2(_uvScaling.x, 1.f);
+
+		param.gridData.row = 0;
+		param.gridData.column = 1;
+		_material->Apply(e, &param);
+		e.AddSetTransform(_transforms[1].GetTransformationMatrix());
+		e.AddCommand(RCMDRenderMesh::PLANE);
+
+		param.gridData.row = 2;
 		param.gridData.column = 1;
 		_material->Apply(e, &param);
 		e.AddSetTransform(_transforms[7].GetTransformationMatrix());
 		e.AddCommand(RCMDRenderMesh::PLANE);
 
+		//Y edges
+		param.gridData.uvScale = Vector2(1.f, _uvScaling.y);
+
+		param.gridData.row = 1;
+		param.gridData.column = 0;
+		_material->Apply(e, &param);
+		e.AddSetTransform(_transforms[3].GetTransformationMatrix());
+		e.AddCommand(RCMDRenderMesh::PLANE);
+
 		param.gridData.column = 2;
 		_material->Apply(e, &param);
-		e.AddSetTransform(_transforms[8].GetTransformationMatrix());
+		e.AddSetTransform(_transforms[5].GetTransformationMatrix());
 		e.AddCommand(RCMDRenderMesh::PLANE);
 	}
 	else
 	{
+		e.AddSetUVScale();
+		e.AddSetUVOffset();
 		_material->Apply(e);
 		e.AddSetTransform(_transforms[4].GetTransformationMatrix());
 		e.AddCommand(RCMDRenderMesh::PLANE);
@@ -116,4 +131,7 @@ void UIPanel::_OnBoundsChanged()
 	_transforms[6].SetPosition(Vector3(x0,		y0,			_z));
 	_transforms[7].SetPosition(Vector3(centreX, y0,			_z));
 	_transforms[8].SetPosition(Vector3(x2,		y0,			_z));
+
+	_uvScaling.x = centreW / absBorderSize;
+	_uvScaling.y = centreH / absBorderSize;
 }

@@ -14,6 +14,7 @@ const PropertyCollection& MaterialGrid::GetProperties()
 	properties.AddCommand("texture", MemberCommandPtr<MaterialGrid>(&MaterialGrid::_CMD_texture));
 	properties.AddCommand("rows", MemberCommandPtr<MaterialGrid>(&MaterialGrid::_CMD_rows));
 	properties.AddCommand("columns", MemberCommandPtr<MaterialGrid>(&MaterialGrid::_CMD_columns));
+	properties.AddCommand("element", MemberCommandPtr<MaterialGrid>(&MaterialGrid::_CMD_element));
 	DO_ONCE_END;
 
 	return properties;
@@ -52,6 +53,22 @@ void MaterialGrid::_CMD_columns(const Buffer<String> &args, const Context& ctx)
 	_TryCalculateElements();
 }
 
+void MaterialGrid::_CMD_element(const Buffer<String>& args, const Context& ctx)
+{
+	if (args.GetSize() >= 5)
+	{
+		int r = args[0].ToInt();
+		int c = args[1].ToInt();
+
+		GridElement& element = GetElement(r, c);
+
+		element.textureOverride = ctx.GetPtr<TextureManager>()->Get(args[2], ctx);
+		element.scale.x = args[3].ToFloat();
+		element.scale.y = args[4].ToFloat();
+		element.offset.x = element.offset.y = 0.f;
+	}
+}
+
 void MaterialGrid::_TryCalculateElements()
 {
 	size_t rows = _rowHeights.GetSize();
@@ -72,8 +89,11 @@ void MaterialGrid::_TryCalculateElements()
 				size_t index = r * columns + c;
 				float w = (float)_columnWidths[c] / (float)_texture->GetWidth();
 
-				_elements[index].pos = Vector2(x, y);
-				_elements[index].size = Vector2(w, h);
+				if (!_elements[index].textureOverride)
+				{
+					_elements[index].offset = Vector2(x, y);
+					_elements[index].scale = Vector2(w, h);
+				}
 
 				x += w;
 			}
@@ -92,13 +112,25 @@ void MaterialGrid::Apply(RenderEntry& e, const MaterialParam *param) const
 	{
 		r = param->gridData.row;
 		c = param->gridData.column;
+
+		const GridElement& element = GetElement(r, c);
+
+		if (element.textureOverride)
+		{
+			e.AddSetTexture(*element.textureOverride, 0);
+			e.AddSetUVScale(param->gridData.uvScale * element.scale);
+		}
+		else if (_texture)
+		{
+			e.AddSetTexture(*_texture, 0);
+			e.AddSetUVScale(element.scale); //gotta stretch, can't use parent uvscale
+		}
+		else
+		{
+			e.AddSetTexture(RCMDSetTexture::Type::BLACK, 0);
+			e.AddSetUVScale();
+		}
+
+		e.AddSetUVOffset(element.offset);
 	}
-
-	const UVRect &uv = GetElement(r, c);
-
-	if (_texture) e.AddSetTexture(*_texture, 0);
-	else e.AddSetTexture(RCMDSetTexture::Type::BLACK, 0);
-
-	e.AddSetUVOffset(uv.pos);
-	e.AddSetUVScale(uv.size);
 }
