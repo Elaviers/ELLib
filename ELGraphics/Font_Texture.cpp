@@ -50,7 +50,7 @@ void FontTexture::_CMD_region(const Buffer<String>& args, const Context& ctx)
 	}
 }
 
-void FontTexture::_ReadText(const String & string, const Context& ctx)
+void FontTexture::ReadText(const String & string, const Context& ctx)
 {
 	Buffer<String> lines = string.Split("\r\n");
 

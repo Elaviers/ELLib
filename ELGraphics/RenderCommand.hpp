@@ -157,7 +157,7 @@ protected:
 
 public:
 	RCMDSetTexture(GLuint tex, uint16 unit) : _type(0), _tex(tex), _unit(unit) {}
-	RCMDSetTexture(Type type, uint16 unit) : _type((byte)type), _unit(unit) {}
+	RCMDSetTexture(Type type, uint16 unit) : _type((byte)type), _tex(0), _unit(unit) {}
 	RCMDSetTexture(const Texture& texture, uint16 unit) : _type(0), _tex(texture.GL().GetID()), _unit(unit) {}
 	virtual ~RCMDSetTexture() {}
 
@@ -196,7 +196,7 @@ protected:
 		LINE = 1, PLANE = 2, CUBE = 3, INV_CUBE = 4
 	};
 
-	RCMDRenderMesh(_Type type) : _type((byte)type) {}
+	RCMDRenderMesh(_Type type) : _type((byte)type), _mesh(nullptr) {}
 
 public:
 	RCMDRenderMesh(const Mesh& mesh) : _type(0), _mesh(&mesh) {}

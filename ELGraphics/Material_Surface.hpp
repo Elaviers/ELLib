@@ -32,5 +32,7 @@ public:
 
 	virtual void Apply(RenderEntry&, const MaterialParam* param = nullptr) const override;
 	
+	virtual bool SetDefaultTexture(const SharedPointer<const Texture>& texture) override { SetDiffuse(texture); return true; }
+
 	bool operator==(const MaterialSurface &other) { return _diffuse == other._diffuse && _normal == other._normal && _specular == other._specular; }
 };

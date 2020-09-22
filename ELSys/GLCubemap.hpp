@@ -5,8 +5,8 @@
 struct TextureData
 {
 	const byte* data;
-	int width;
-	int height;
+	unsigned int width;
+	unsigned int height;
 };
 
 class GLCubemap

@@ -17,6 +17,21 @@ Material* MaterialManager::_CreateResource(const Buffer<byte>& data, const Strin
 	return mat;
 }
 
+bool MaterialManager::_CreateAlternative(Material*& material, const String& name, const Context& ctx)
+{
+	if (material)
+	{
+		//The material has been created by an _all file
+		//Look in the texturemanager for a texture with the same name
+		
+		SharedPointer<const Texture> texture = ctx.GetPtr<TextureManager>()->Get(name, ctx);
+		if (texture && material->SetDefaultTexture(texture))
+			return true;
+	}
+
+	return false; //Can't do anything now
+}
+
 void MaterialManager::Initialise(const TextureManager& tm)
 {
 	_MapValue("white").SetPtr(new MaterialSurface(tm.White(), tm.UnitNormal(), tm.White()));

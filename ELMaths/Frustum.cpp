@@ -8,6 +8,7 @@ Vector3 ClosestPointOnPlane(const Vector3& planePoint, const Vector3& planeNorma
 bool Frustum::OverlapsSphere(const Vector3& centre, float radius) const
 {
 	//todo- This could surely be faster?!
+	//todo- Doesn't work very well, at least with iso camera
 
 	Vector3 position2centre = centre - position;
 
@@ -41,7 +42,6 @@ bool Frustum::OverlapsAABB(const Vector3& min, const Vector3& max) const
 		Vector3(max.x, max.y, min.z), 
 		max 
 	};
-
 	
 	for (int i = 0; i < 6; ++i)
 	{

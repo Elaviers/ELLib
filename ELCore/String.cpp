@@ -157,27 +157,27 @@ String String::SubString(size_t start, size_t end) const
 	return string;
 }
 
-int String::IndexOf(char c) const
+int String::IndexOf(char c, size_t start) const
 {
-	for (size_t i = 0; i < _length; ++i)
+	for (size_t i = start; i < _length; ++i)
 		if (_data[i] == c)
 			return (int)i;
 
 	return -1;
 }
 
-int String::LastIndexOf(char c) const
+int String::LastIndexOf(char c, size_t start) const
 {
-	for (size_t i = _length; i > 0; --i)
+	for (size_t i = start + 1; i > 0; --i)
 		if (_data[i - 1] == c)
 			return (int)(i - 1);
 
 	return -1;
 }
 
-int String::IndexOfAny(const char* chars) const
+int String::IndexOfAny(const char* chars, size_t start) const
 {
-	for (size_t i = 0; i < _length; ++i)
+	for (size_t i = start; i < _length; ++i)
 		for (const char* c = chars; *c != '\0'; ++c)
 			if (_data[i] == *c)
 				return (int)i;
@@ -185,9 +185,9 @@ int String::IndexOfAny(const char* chars) const
 	return -1;
 }
 
-int String::LastIndexOfAny(const char* chars) const
+int String::LastIndexOfAny(const char* chars, size_t start) const
 {
-	for (size_t i = _length; i > 0; --i)
+	for (size_t i = start + 1; i > 0; --i)
 		for (const char* c = chars; *c != '\0'; ++c)
 			if (_data[i - 1] == *c)
 				return (int)(i - 1);

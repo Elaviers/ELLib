@@ -7,7 +7,7 @@ void Projection::UpdateMatrix()
 {
 	if (_type == EProjectionType::PERSPECTIVE)
 	{
-		_matrix = Matrix4::ProjectionPerspective(_persp.vFOV * Maths::RADS_PER_DEG, _near, _far, (float)_dimensions.x / (float)_dimensions.y);
+		_matrix = Matrix4::ProjectionPerspective(_persp.vFOV * Maths::RADS_PER_DEG_F, _near, _far, (float)_dimensions.x / (float)_dimensions.y);
 	}
 	else
 	{

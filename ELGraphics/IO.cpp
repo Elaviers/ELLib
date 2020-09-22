@@ -26,7 +26,7 @@ bool IO::ReadPNGFile(const Buffer<byte>& data, Buffer<byte>& outData, unsigned i
 	return false;
 }
 
-Texture* IO::ReadPNGFile(const Buffer<byte> &data)
+Texture* IO::ReadPNGFile(const Buffer<byte> &data, int mip, int aniso)
 {
 	Texture* texture = nullptr;
 
@@ -39,7 +39,10 @@ Texture* IO::ReadPNGFile(const Buffer<byte> &data)
 	if (buffer)
 	{
 		if (bufferSize)
-			texture = new Texture(Buffer<byte>(buffer, bufferSize), width, height);
+		{
+			texture = new Texture();
+			texture->Change(buffer, width, height, mip, aniso);
+		}
 
 		free(buffer);
 	}

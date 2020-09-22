@@ -3,6 +3,7 @@
 #include <ELCore/Pair.hpp>
 
 namespace IO {
+	bool DirectoryExists(const char* path);
 	bool FileExists(const char* filename);
 
 	Buffer<byte> ReadFile(const char *filename, bool silent = false);

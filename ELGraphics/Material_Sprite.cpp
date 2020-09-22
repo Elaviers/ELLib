@@ -24,5 +24,6 @@ void MaterialSprite::CMD_texmgr(const Buffer<String>& args, const Context& ctx)
 
 void MaterialSprite::Apply(RenderEntry& e, const MaterialParam* param) const
 {
-	e.AddSetTexture(*_diffuse, 0);
+	if (_diffuse) e.AddSetTexture(*_diffuse, 0);
+	else e.AddSetTexture(RCMDSetTexture::Type::WHITE, 0);
 }

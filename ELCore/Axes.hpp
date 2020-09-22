@@ -3,23 +3,18 @@
 #undef Y
 #undef Z
 
-//Really a namespace.. oh well.
-class Axes
+enum class EAxis
 {
-public:
-	enum EAxis { X = 0, Y = 1, Z = 2 };
+	X = 0,
+	Y = 1,
+	Z = 2
+};
 
-private:
-	static EAxis _horizontalAxes[3];
-	static EAxis _verticalAxes[3];
-
-public:
-	Axes() = delete;
-	~Axes() = delete;
-
+namespace Axes
+{
 	//Returns the axis to horizontal to input, assuming simplest rotation
-	static int GetHorizontalAxis(EAxis axis) { return _horizontalAxes[(int)axis]; }
+	EAxis GetHorizontalAxis(EAxis axis);
 
 	//Returns the axis vertical to input, assuming simplest rotation
-	static int GetVerticalAxis(EAxis axis) { return _verticalAxes[(int)axis]; }
+	EAxis GetVerticalAxis(EAxis axis);
 };

@@ -85,8 +85,8 @@ struct WindowEvent
 		} rawInput;
 	} data;
 
-	WindowEvent() {}
-	WindowEvent(Type type) : type(type) {}
+#pragma warning(suppress: 26812) //Yes, I know the enum is unscoped.
+	WindowEvent(Type type = Type::NONE) : type(type), data() {}
 };
 
 enum class WindowFlags : uint16

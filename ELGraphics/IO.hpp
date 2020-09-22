@@ -6,7 +6,7 @@
 namespace IO
 {
 	bool ReadPNGFile(const Buffer<byte>& data, Buffer<byte>& outData, unsigned int& outWidth, unsigned int& outHeight);
-	Texture* ReadPNGFile(const Buffer<byte> &data);
+	Texture* ReadPNGFile(const Buffer<byte> &data, int maxMipLevels = 0, int maxAnisotropy = 0);
 
 	inline bool ReadPNGFile(const char* filename, Buffer<byte>& outData, unsigned int& outWidth, unsigned int& outHeight) { return ReadPNGFile(IO::ReadFile(filename), outData, outWidth, outHeight); }
 	inline Texture* ReadPNGFile(const char* filename) { return ReadPNGFile(IO::ReadFile(filename)); }

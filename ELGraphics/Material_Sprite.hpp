@@ -20,4 +20,6 @@ public:
 	virtual const PropertyCollection& GetProperties() override;
 
 	virtual void Apply(RenderEntry&, const MaterialParam* param = nullptr) const override;
+
+	virtual bool SetDefaultTexture(const SharedPointer<const Texture>& texture) override { SetDiffuse(texture); return true; }
 };

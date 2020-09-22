@@ -40,6 +40,8 @@ public:
 
 	virtual void Apply(RenderEntry&, const MaterialParam *param) const override;
 
+	virtual bool SetDefaultTexture(const SharedPointer<const Texture>& texture) override { SetDiffuse(texture); return true; }
+
 	const GridElement& GetElement(int r, int c) const { return _elements[r * _columnWidths.GetSize() + c]; }
 	GridElement& GetElement(int r, int c) { return _elements[r * _columnWidths.GetSize() + c]; }
 };

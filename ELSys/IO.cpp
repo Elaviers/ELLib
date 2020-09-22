@@ -3,13 +3,29 @@
 #include <ELSys/Debug.hpp>
 #include <Windows.h>
 
+bool IO::DirectoryExists(const char* path)
+{
+	DWORD attrib = ::GetFileAttributesA(path);
+	return attrib != INVALID_FILE_ATTRIBUTES;
+}
+
 bool IO::FileExists(const char* filename)
 {
+	DWORD attrib = ::GetFileAttributesA(filename);
+	return attrib != INVALID_FILE_ATTRIBUTES && attrib != FILE_ATTRIBUTE_DIRECTORY;
+
+	/* another way...
 	WIN32_FIND_DATAA fd;
 
 	HANDLE file = ::FindFirstFileA(filename, &fd);
+	if (file != INVALID_HANDLE_VALUE)
+	{
+		::FindClose(file);
+		return true;
+	}
 
-	return file != INVALID_HANDLE_VALUE;
+	return false;
+	*/
 }
 
 Buffer<byte> IO::ReadFile(const char *filename, bool silent)

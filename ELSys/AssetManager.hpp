@@ -19,11 +19,21 @@ private:
 
 protected:
 	virtual T* _CreateResource(const Buffer<byte>& data, const String& name, const String& extension, const Context&) = 0;
-	virtual void _ResourceRead(T& resource, const Buffer<byte>& data, const String& extension, const Context&)
+	virtual void _ResourceRead(T& resource, const Buffer<byte>& data, const String& extension, const Context& ctx)
 	{
-		ByteReader reader = data;
-		((Asset&)resource).Read(reader);
+		if (extension == ".txt")
+		{
+			((Asset&)resource).ReadText(String(data), ctx);
+		}
+		else
+		{
+			ByteReader reader = data;
+			((Asset&)resource).Read(reader);
+		}
 	}
+
+	//Called when the specified name could not be loaded
+	virtual bool _CreateAlternative(T*& resource, const String& name, const Context& ctx) { return false; }
 
 	//Called before deleting a resource
 	virtual void _DestroyResource(T& resource) {}
@@ -67,6 +77,17 @@ protected:
 public:
 	virtual void Initialise() {}
 
+	bool NameIsValid(const String& name)
+	{
+		if (name.GetLength() > 0 && name[name.GetLength() - 1] != '/')
+		{
+			int slash = name.LastIndexOf('/');
+			return name[slash >= 0 ? slash + 1 : 0] != '_';
+		}
+
+		return false;
+	}
+
 	void Refresh(const Context& ctx)
 	{
 		_DestroyAll();
@@ -92,44 +113,58 @@ public:
 		return _map.Set(name, SharedPointerData<T>(value, 0));
 	}
 
-	String GetFilename(const String& name) const
+	struct ResourcePathInfo
 	{
-		String extension = Utilities::GetExtension(name);
+		const String* path = nullptr; //Path chosen for the file (w/ trailing slash)
+		String extension; //(e.g. ".txt")
+		String fullpath; //Path + name + extension
+	};
 
-		if (extension.GetLength())
+	//info is an output variable and is only valid if function returns true
+	bool GetPath(const String& name, ResourcePathInfo &info) const
+	{
+		info.extension = Utilities::GetExtension(name);
+		if (info.extension.GetLength())
 		{
 			bool validExtension = false;
 			for (const String& ext : _extensions)
-				if (extension == ext)
+				if (info.extension == ext)
 				{
 					validExtension = true;
 					break;
 				}
 
-			if (!validExtension)
-				return "";
-
+			if (validExtension)
+			{
+				for (const String& path : _paths)
+				{
+					info.fullpath = path + name;
+					if (IO::FileExists(info.fullpath.GetData()))
+					{
+						info.path = &path;
+						return true;
+					}
+				}
+			}
+		}
+		else
+		{
 			for (const String& path : _paths)
 			{
-				String filepath = path + '/' + name;
-				if (IO::FileExists(filepath.GetData()))
-					return filepath;
-			}
-
-			return "";
-		}
-
-		for (const String& path : _paths)
-		{
-			for (const String& ext : _extensions)
-			{
-				String filepath = path + '/' + name + ext;
-				if (IO::FileExists(filepath.GetData()))
-					return filepath;
+				for (const String& ext : _extensions)
+				{
+					info.fullpath = path + name + ext;
+					if (IO::FileExists(info.fullpath.GetData()))
+					{
+						info.extension = ext;
+						info.path = &path;
+						return true;
+					}
+				}
 			}
 		}
 
-		return "";
+		return false;
 	}
 	
 	SharedPointer<T> Get(const String& name, const Context& ctx)
@@ -142,20 +177,41 @@ public:
 		if (existing && existing->GetPtr()) 
 			return SharedPointer<T>(*existing);
 
-		String filename = GetFilename(name);
-		if (filename.GetLength())
+		if (!NameIsValid(name))
+			return SharedPointer<T>();
+
+		T* resource = nullptr;
+		ResourcePathInfo info;
+		if (GetPath(name, info))
 		{
-			String extension = Utilities::GetExtension(filename);
-			T* resource;
-			
-			String preFile = filename.SubString(0, filename.LastIndexOf('/') + 1) + "_all.txt";
-			if (IO::FileExists(preFile.GetData()))
+			//Run any _all.txt files in preceding dirs & paths
+			for (const String& path : _paths)
 			{
-				resource = _CreateResource(IO::ReadFile(preFile.GetData()), lowerName, ".txt", ctx);
-				_ResourceRead(*resource, IO::ReadFile(filename.GetData()), extension, ctx);
+				int start = 0;
+				String searchPath = path;
+				do
+				{
+					String preFile = searchPath + "_all.txt";
+					if (IO::FileExists(preFile.GetData()))
+					{
+						if (resource) _ResourceRead(*resource, IO::ReadFile(preFile.GetData()), ".txt", ctx);
+						else resource = _CreateResource(IO::ReadFile(preFile.GetData()), lowerName, ".txt", ctx);
+					}
+
+					int stop = name.IndexOf('/', start);
+					if (stop == -1) stop = (int)name.GetLength(); //todo: casting size_t to int.. probably always gonna be fine though
+
+					searchPath += name.SubString(start, stop) + '/';
+					start = stop + 1;
+				} while (start < name.GetLength());
+
+				if (&path == info.path)
+					break;
 			}
-			else
-				resource = _CreateResource(IO::ReadFile(filename.GetData()), lowerName, extension, ctx);
+			
+			//..Then the resource
+			if (resource) _ResourceRead(*resource, IO::ReadFile(info.fullpath.GetData()), info.extension, ctx);
+			else resource = _CreateResource(IO::ReadFile(info.fullpath.GetData()), lowerName, info.extension, ctx);
 
 			if (resource)
 			{
@@ -167,6 +223,45 @@ public:
 
 				return SharedPointer<T>(_map.Set(lowerName, SharedPointerData<T>(resource, 0)));
 			}
+		}
+		else
+		{
+			//Okay, so there isn't a file for this specific resource...
+			//Let's just run every applicable _all.txt
+
+			for (const String& path : _paths)
+			{
+				int start = 0;
+				String searchPath = path;
+				do
+				{
+					String preFile = searchPath + "_all.txt";
+					if (IO::FileExists(preFile.GetData()))
+					{
+						if (resource) _ResourceRead(*resource, IO::ReadFile(preFile.GetData()), ".txt", ctx);
+						else resource = _CreateResource(IO::ReadFile(preFile.GetData()), lowerName, ".txt", ctx);
+					}
+
+					int stop = name.IndexOf('/', start);
+					if (stop == -1) stop = (int)name.GetLength(); //todo: casting size_t to int.. probably always gonna be fine though
+
+					searchPath += name.SubString(start, stop) + '/';
+					start = stop + 1;
+				} while (IO::DirectoryExists(searchPath.GetData()) && start < name.GetLength());
+			}
+
+			if (_CreateAlternative(resource, name, ctx))
+			{
+				if (existing)
+				{
+					existing->SetPtr(resource);
+					return SharedPointer<T>(*existing);
+				}
+
+				return SharedPointer<T>(_map.Set(lowerName, SharedPointerData<T>(resource, 0)));
+			}
+			else if (resource)
+				delete resource;
 		}
 
 		return SharedPointer<T>();
@@ -235,7 +330,7 @@ public:
 					for (const String& extension : _extensions)
 						if (ext == extension)
 						{
-							if (name[0] != '_' && results.IndexOf(name) == -1)
+							if (NameIsValid(name) && results.IndexOf(name) == -1)
 								results.OrderedAdd(name);
 
 							break;

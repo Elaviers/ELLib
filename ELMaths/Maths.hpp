@@ -16,6 +16,9 @@ namespace Maths
 	constexpr const double DEGS_PER_RAD = 180.0 / PI;
 	constexpr const double RADS_PER_DEG = PI / 180.0;
 
+	constexpr const float DEGS_PER_RAD_F = 180.f / PI_F;
+	constexpr const float RADS_PER_DEG_F = PI_F / 180.f;
+
 	template <typename T>
 	T Abs(const T& value) { return value < 0 ? -value : value; }
 

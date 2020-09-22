@@ -144,26 +144,26 @@ void RenderEntry::AddRing(const Vector3& centre, const Vector3& normal, float ra
 	}
 }
 
-void RenderEntry::AddGrid(const Transform& cameraTransform, const Projection& cameraProjection, Axes::EAxis plane, float gap, float limit, float offset, float z)
+void RenderEntry::AddGrid(const Transform& cameraTransform, const Projection& cameraProjection, EAxis plane, float gap, float limit, float offset, float z)
 {
 	Matrix4 transformX;
 	Matrix4 transformY;
 
-	int axisZ = plane;
-	int axisX = Axes::GetHorizontalAxis(plane);
-	int axisY = Axes::GetVerticalAxis(plane);
+	int axisZ = (int)plane;
+	int axisX = (int)Axes::GetHorizontalAxis(plane);
+	int axisY = (int)Axes::GetVerticalAxis(plane);
 
 	switch (plane)
 	{
-	case Axes::X:
+	case EAxis::X:
 		transformX = Matrix4::RotationY(90.f);
 		transformY = Matrix4::RotationX(90.f);
 		break;
-	case Axes::Y:
+	case EAxis::Y:
 		transformX = Matrix4::RotationX(90.f);
 		transformY = Matrix4::RotationZ(90.f);
 		break;
-	case Axes::Z:
+	case EAxis::Z:
 		transformY = Matrix4::RotationZ(90.f);
 		break;
 	}

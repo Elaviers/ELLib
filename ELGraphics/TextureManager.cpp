@@ -9,13 +9,10 @@ Texture* TextureManager::_CreateResource(const Buffer<byte>& data, const String&
 {
 	if (extension == ".png")
 	{
-		Texture* tex = IO::ReadPNGFile(data);
+		Texture* tex = IO::ReadPNGFile(data, _maxMipLevels, _maxAnisotropy);
 
 		if (tex == nullptr)
 			Debug::Error(CSTR("Could not load texture \"", name, '\"'));
-
-		if (tex && tex->IsValid())
-			tex->Create(_maxMipLevels, _maxAnisotropy);
 
 		return tex;
 	}
@@ -36,33 +33,37 @@ void TextureManager::_ResourceRead(Texture& texture, const Buffer<byte>& data, c
 		unsigned int w, h;
 		if (IO::ReadPNGFile(data, pngData, w, h))
 		{
-			texture.SetData(pngData, w, h);
-			texture.Create(_maxMipLevels, _maxAnisotropy);
+			texture.Change(pngData.Data(), w, h, _maxMipLevels, _maxAnisotropy);
 		}
 	}
 }
 
 void TextureManager::Initialise()
 {
-	_colours.black = new Texture(Buffer<byte>({ 0, 0, 0, 255 }), 1, 1);
-	_colours.white = new Texture(Buffer<byte>({ 255, 255, 255, 255 }), 1, 1);
-	_colours.grey = new Texture(Buffer<byte>({ 127, 127, 127, 255 }), 1, 1);
-	_colours.normalDefault = new Texture(Buffer<byte>({ 127, 127, 255, 255 }), 1, 1);
-
+	byte dataBlack[4] = { 0, 0, 0, 255 };
+	byte dataWhite[4] = { 255, 255, 255, 255 };
+	byte dataGrey[4] = { 127, 127, 127, 255 };
+	byte dataNormalDefault[4] = { 127, 127, 255, 255 };
+	
 	Texture::Info colourInfo;
 	colourInfo.aniso = 1;
 	colourInfo.mipLevels = 1;
 	colourInfo.minFilter = colourInfo.magFilter = GL_NEAREST;
+
+	_colours.black = new Texture();
+	_colours.white = new Texture();
+	_colours.grey = new Texture();
+	_colours.normalDefault = new Texture();
 
 	_colours.black->info = colourInfo;
 	_colours.white->info = colourInfo;
 	_colours.grey->info = colourInfo;
 	_colours.normalDefault->info = colourInfo;
 
-	_colours.black->Create();
-	_colours.white->Create();
-	_colours.grey->Create();
-	_colours.normalDefault->Create();
+	_colours.black->Change(dataBlack, 1, 1);
+	_colours.white->Change(dataWhite, 1, 1);
+	_colours.grey->Change(dataGrey, 1, 1);
+	_colours.normalDefault->Change(dataNormalDefault, 1, 1);
 
 	SharedPointerData<Texture>& dBlack = _MapValue("black"), & dWhite = _MapValue("white"), & dGrey = _MapValue("grey"), & dNormalDefault = _MapValue("unitnormal");
 

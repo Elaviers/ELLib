@@ -38,8 +38,8 @@ public:
 		(T)0, (T)0, (T)1, (T)0, 
 		(T)0, (T)0, (T)0, (T)1) {}
 
-	T* operator[](int row) { return _data + row * 4; }
-	const T* operator[](int row) const { return _data + row * 4; }
+	T* operator[](int row) { return &_data[row * 4]; }
+	const T* operator[](int row) const { return &_data[row * 4]; }
 
 	Matrix4T& operator+=(const Matrix4T& other)
 	{

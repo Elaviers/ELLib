@@ -23,14 +23,6 @@ class Asset
 protected:
 	Asset() {}
 
-	virtual void _ReadText(const String& string, const Context& ctx)
-	{
-		Buffer<String> lines = string.ToLower().Split("\r\n");
-		for (const String& line : lines)
-			String unused = GetProperties().HandleCommand(this, line, ctx);
-	}
-
-	virtual String _WriteText() const { return ""; }
 public:
 	virtual ~Asset() {}
 
@@ -45,13 +37,22 @@ public:
 	static T* FromText(const String &string, const Context& ctx)
 	{
 		Asset* ass = new T();
-		ass->_ReadText(string, ctx);
+		ass->ReadText(string, ctx);
 		return (T*)ass;
 	}
 
-	String GetAsText() const { return _WriteText();}
+	String GetAsText() const { return WriteText(); }
 
 	Buffer<byte> GetAsData() const;
+
+	virtual void ReadText(const String& string, const Context& ctx)
+	{
+		Buffer<String> lines = string.ToLower().Split("\r\n");
+		for (const String& line : lines)
+			String unused = GetProperties().HandleCommand(this, line, ctx);
+	}
+
+	virtual String WriteText() const { return ""; }
 
 	virtual void Read(ByteReader&) {}
 	virtual void Write(ByteWriter&) const {}

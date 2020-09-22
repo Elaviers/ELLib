@@ -21,7 +21,7 @@ class FontTexture : public Font
 	void _CMD_region(const Buffer<String>& args, const Context& ctx);
 
 protected:
-	virtual void _ReadText(const String&, const Context&) override;
+	virtual void ReadText(const String&, const Context&) override;
 
 public:
 	FontTexture() : _texture(nullptr) {}
