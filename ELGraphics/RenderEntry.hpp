@@ -77,7 +77,10 @@ public:
 	RCMDSetUVScale& AddSetUVScale(const Vector2& uvScale) { return _AddCommand<RCMDSetUVScale>(uvScale); }
 	RCMDSetUVScale& AddSetUVScale(Vector2&& uvScale = Vector2(1.f, 1.f)) { return _AddCommand<RCMDSetUVScale>(uvScale); }
 	RCMDSetColour& AddSetColour(const Colour& colour = Colour::White) { return _AddCommand<RCMDSetColour>(colour); }
+	RCMDSetColour& AddSetColourOverride(const Colour& colour = Colour::White) { return _AddCommand<RCMDSetColour>(colour, true); }
 	RCMDSetColour& AddSetColour(const Colour& primary, const Colour& secondary, const Colour& tertiary) { return _AddCommand<RCMDSetColour>(primary, secondary, tertiary); }
+	RCMDSetColour& AddSetColourOverride(const Colour& primary, const Colour& secondary, const Colour& tertiary) { return _AddCommand<RCMDSetColour>(primary, secondary, tertiary, true); }
+	RCMDPopColourOverride& AddPopColourOverride() { return _AddCommand<RCMDPopColourOverride>(); }
 	RCMDSetTexture& AddSetTexture(const Texture& texture, uint16 unit) { return _AddCommand<RCMDSetTexture>(texture, unit); }
 	RCMDSetTexture& AddSetTextureGL(GLuint tex, uint16 unit) { return _AddCommand<RCMDSetTexture>(tex, unit); }
 	RCMDSetTexture& AddSetTexture(RCMDSetTexture::Type type, uint16 unit) { return _AddCommand<RCMDSetTexture>(type, unit); }

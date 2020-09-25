@@ -7,7 +7,7 @@
 
 namespace PropertyFlags
 {
-	enum ELevelMessage
+	enum EPropertyFlags
 	{
 		READONLY = 0x01,
 		MODEL = 0x02,

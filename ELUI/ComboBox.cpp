@@ -52,7 +52,7 @@ bool UIComboBox::OnMouseMove(bool blocked, float x, float y)
 		return _hover;
 	}
 	
-	return b1 || b2;
+	return b1;
 }
 
 bool UIComboBox::OnKeyDown(bool blocked, EKeycode key)

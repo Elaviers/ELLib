@@ -27,10 +27,14 @@ extern PFNGLBINDBUFFERPROC			glBindBuffer;
 extern PFNGLBUFFERDATAPROC			glBufferData;
 
 //Frame Buffers
-extern PFNGLGENFRAMEBUFFERSPROC		glGenFrameBuffers;
-extern PFNGLBINDFRAMEBUFFERPROC		glBindFrameBuffer;
-extern PFNGLDELETEFRAMEBUFFERSPROC	glDeleteFrameBuffers;
-extern PFNGLFRAMEBUFFERTEXTURE2DPROC glFrameBufferTexture2D;
+extern PFNGLGENFRAMEBUFFERSPROC		glGenFramebuffers;
+extern PFNGLBINDFRAMEBUFFERPROC		glBindFramebuffer;
+extern PFNGLFRAMEBUFFERRENDERBUFFERPROC glFramebufferRenderbuffer;
+extern PFNGLFRAMEBUFFERTEXTUREPROC	glFramebufferTexture;
+extern PFNGLFRAMEBUFFERTEXTURE2DPROC glFramebufferTexture2D;
+extern PFNGLDRAWBUFFERSPROC			glDrawBuffers;
+extern PFNGLCHECKFRAMEBUFFERSTATUSPROC glCheckFramebufferStatus;
+extern PFNGLDELETEFRAMEBUFFERSPROC	glDeleteFramebuffers;
 
 //Programs
 extern PFNGLCREATEPROGRAMPROC		glCreateProgram;
@@ -53,6 +57,13 @@ extern PFNGLCOMPILESHADERPROC		glCompileShader;
 extern PFNGLTEXSTORAGE2DPROC		glTexStorage2D;
 extern PFNGLACTIVETEXTUREPROC		glActiveTexture;
 extern PFNGLGENERATEMIPMAPPROC		glGenerateMipmap;
+
+//Render Buffers
+extern PFNGLGENRENDERBUFFERSPROC	glGenRenderbuffers;
+extern PFNGLBINDRENDERBUFFERPROC	glBindRenderbuffer;
+extern PFNGLRENDERBUFFERSTORAGEPROC glRenderbufferStorage;
+extern PFNGLRENDERBUFFERSTORAGEMULTISAMPLEPROC glRenderbufferStorageMultisample;
+extern PFNGLDELETERENDERBUFFERSPROC	glDeleteRenderbuffers;
 
 //Uniform variables
 extern PFNGLGETACTIVEUNIFORMPROC	glGetActiveUniform;

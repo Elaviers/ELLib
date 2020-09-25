@@ -194,7 +194,7 @@
     <ClInclude Include="GL.hpp" />
     <ClInclude Include="GLContext.hpp" />
     <ClInclude Include="GLCubemap.hpp" />
-    <ClInclude Include="GLDepthMap.hpp" />
+    <ClInclude Include="GLFramebuffer.hpp" />
     <ClInclude Include="GLMeshRenderer.hpp" />
     <ClInclude Include="GLProgram.hpp" />
     <ClInclude Include="GLTexture.hpp" />
@@ -213,7 +213,7 @@
     <ClCompile Include="GL.cpp" />
     <ClCompile Include="GLContext.cpp" />
     <ClCompile Include="GLCubemap.cpp" />
-    <ClCompile Include="GLDepthMap.cpp" />
+    <ClCompile Include="GLFramebuffer.cpp" />
     <ClCompile Include="GLMeshRenderer.cpp" />
     <ClCompile Include="GLProgram.cpp" />
     <ClCompile Include="GLTexture.cpp" />

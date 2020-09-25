@@ -14,6 +14,8 @@ struct RenderContext
 	const TextureManager* textureManager;
 
 	int submittedLightCount;
+
+	bool activeColourOverride;
 };
 
 class RenderCommand
@@ -131,13 +133,24 @@ protected:
 	Colour _tertiaryColour;
 	bool _bBlend;
 
+	bool _override;
+
 public:
-	RCMDSetColour(const Colour& colour = Colour::White) : _colour(colour), _bBlend(false) {}
-	RCMDSetColour(const Colour& primary, const Colour& secondary, const Colour& tertiary) : _colour(primary), _secondaryColour(secondary), _tertiaryColour(tertiary), _bBlend(true) {}
+	RCMDSetColour(const Colour& colour = Colour::White, bool override = false) : _colour(colour), _bBlend(false), _override(override) {}
+	RCMDSetColour(const Colour& primary, const Colour& secondary, const Colour& tertiary, bool override = false) : _colour(primary), _secondaryColour(secondary), _tertiaryColour(tertiary), _bBlend(true), _override(override) {}
 	virtual ~RCMDSetColour() {}
 
-	void Set(const Colour& colour) { _colour = colour; _bBlend = false; }
-	void Set(const Colour& primary, const Colour& secondary, const Colour& tertiary) { _colour = primary; _secondaryColour = secondary; _tertiaryColour = tertiary; _bBlend = false; }
+	void Set(const Colour& colour, bool override = false) { _colour = colour; _bBlend = false; _override = override; }
+	void Set(const Colour& primary, const Colour& secondary, const Colour& tertiary, bool override = false) { _colour = primary; _secondaryColour = secondary; _tertiaryColour = tertiary; _bBlend = false; _override = override; }
+
+	virtual void Execute(RenderContext&) const override;
+};
+
+class RCMDPopColourOverride : public RenderCommand
+{
+public:
+	RCMDPopColourOverride() {}
+	virtual ~RCMDPopColourOverride() {}
 
 	virtual void Execute(RenderContext&) const override;
 };

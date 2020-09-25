@@ -23,6 +23,7 @@ public:
 	virtual void Apply(RenderEntry&, const MaterialParam* param = nullptr) const = 0;
 
 	virtual bool SetDefaultTexture(const SharedPointer<const Texture>& texture) { return false; }
+	virtual const SharedPointer<const Texture>& GetDefaultTexture() const { static SharedPointer<const Texture> null; return null; }
 
 	ERenderChannels GetRenderChannels() const { return _RenderChannels; }
 };

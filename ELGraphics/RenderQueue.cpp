@@ -42,7 +42,7 @@ void RenderQueue::Render(ERenderChannels channels, const MeshManager& meshManage
 		glUniform1fv(GLProgram::Current().GetUniformLocation(CSTR("Lights[", i, "].Radius")), 1, &zero);
 	}
 
-	RenderContext ctx = { &meshManager, &textureManager, 0 };
+	RenderContext ctx = { &meshManager, &textureManager, 0, false };
 
 	for (const QueueGroup& q : _queues)
 	{

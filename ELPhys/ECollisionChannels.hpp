@@ -9,7 +9,6 @@ enum class ECollisionChannels : byte
 	DYNAMIC =	0x02,		//Dynamic (movable) Geometry
 	PROP =		0x04,		//Physics / small object
 	PLAYER =	0x08,
-	EDITOR =	0x80,
 
 	SURFACE = STATIC | DYNAMIC | PROP | PLAYER
 };

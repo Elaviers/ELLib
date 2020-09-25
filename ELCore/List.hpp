@@ -226,7 +226,7 @@ class List
 			return nullptr;
 		}
 
-		bool RemoveChildrenWithValue(const T& value, const List& list)
+		bool RemoveChildrenWithValue(const T& value, const List& list, bool all)
 		{
 			bool success = false;
 			Node* current = this;
@@ -237,6 +237,9 @@ class List
 				{
 					current->_next = next->_next;
 					list._DeleteNode(next);
+
+					if (!all) return true;
+
 					success = true;
 
 					if (current->_next == nullptr)
@@ -600,7 +603,7 @@ public:
 		return Iterator(nullptr);
 	}
 
-	bool Remove(const T& value)
+	bool Remove(const T& value, bool all = true)
 	{
 		if (_first == nullptr) return false;
 		while (_first->Value() == value)
@@ -609,6 +612,8 @@ public:
 			_DeleteNode(_first);
 			_first = next;
 
+			if (!all) return true;
+
 			if (_first == nullptr)
 			{
 				_last = nullptr;
@@ -616,7 +621,7 @@ public:
 			}
 		}
 
-		bool success = _first->RemoveChildrenWithValue(value, *this);
+		bool success = _first->RemoveChildrenWithValue(value, *this, all);
 		_last = _FindLast();
 		return success;
 	}

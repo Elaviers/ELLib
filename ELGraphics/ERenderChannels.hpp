@@ -9,7 +9,8 @@ enum class ERenderChannels : byte
 	SKY			= 0x08,
 	EDITOR		= 0x10,
 
-	NONE		= 0
+	NONE		= 0,
+	ALL			= 0xff
 };
 
 #include <ELCore/MacroUtilities.hpp>

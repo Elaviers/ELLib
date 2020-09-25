@@ -42,6 +42,7 @@ public:
 	void Add(const String& item) { _listBox.Add(item); _UpdateListBounds(); }
 
 	bool GetReadOnly() const { return _readOnly; }
+	float GetListZ() const { return _listBox.GetZ(); }
 	float GetListBorderSize() const { return _listBox.GetBorderSize(); }
 	const SharedPointer<const Material>& GetListMaterial() const { return _listBox.GetMaterial(); }
 	const UIColour& GetListColour() const { return _listBox.GetColour(); }
@@ -55,6 +56,7 @@ public:
 	const UIColour& GetListSelectionColour() const { return _listBox.GetSelectionColour(); }
 
 	UIComboBox& SetReadOnly(bool readOnly) { _readOnly = readOnly; return *this; }
+	UIComboBox& SetListZ(float z) { _listBox.SetZ(z); return *this; }
 	UIComboBox& SetListBorderSize(float borderSize) { _listBox.SetBorderSize(borderSize); return *this; }
 	UIComboBox& SetListMaterial(const SharedPointer<const Material>& material) { _listBox.SetMaterial(material); return *this; }
 	UIComboBox& SetListColour(const UIColour& colour) { _listBox.SetColour(colour); return *this; }

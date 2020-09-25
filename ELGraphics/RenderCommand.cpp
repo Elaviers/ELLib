@@ -40,18 +40,29 @@ void RCMDSetUVScale::Execute(RenderContext& ctx) const
 
 void RCMDSetColour::Execute(RenderContext& ctx) const
 {
-	if (_bBlend)
+	if (!ctx.activeColourOverride)
 	{
-		GLProgram::Current().SetBool(DefaultUniformVars::boolBlend, true);
-		GLProgram::Current().SetVec4(DefaultUniformVars::vec4BlendPrimary, _colour);
-		GLProgram::Current().SetVec4(DefaultUniformVars::vec4BlendSecondary, _secondaryColour);
-		GLProgram::Current().SetVec4(DefaultUniformVars::vec4BlendTertiary, _tertiaryColour);
+		if (_bBlend)
+		{
+			GLProgram::Current().SetBool(DefaultUniformVars::boolBlend, true);
+			GLProgram::Current().SetVec4(DefaultUniformVars::vec4BlendPrimary, _colour);
+			GLProgram::Current().SetVec4(DefaultUniformVars::vec4BlendSecondary, _secondaryColour);
+			GLProgram::Current().SetVec4(DefaultUniformVars::vec4BlendTertiary, _tertiaryColour);
+		}
+		else
+		{
+			GLProgram::Current().SetBool(DefaultUniformVars::boolBlend, false);
+			GLProgram::Current().SetVec4(DefaultUniformVars::vec4Colour, _colour);
+		}
+
+		if (_override)
+			ctx.activeColourOverride = true;
 	}
-	else
-	{
-		GLProgram::Current().SetBool(DefaultUniformVars::boolBlend, false);
-		GLProgram::Current().SetVec4(DefaultUniformVars::vec4Colour, _colour);
-	}
+}
+
+void RCMDPopColourOverride::Execute(RenderContext& ctx) const
+{
+	ctx.activeColourOverride = false;
 }
 
 void RCMDSetTexture::Execute(RenderContext& ctx) const
