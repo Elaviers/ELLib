@@ -13,7 +13,8 @@ public:
 		byte mipLevels;
 		GLint minFilter;
 		GLint magFilter;
-		GLint wrap;
+		GLint wrapx;
+		GLint wrapy;
 
 		void CMD_min(const Buffer<String>& args, const Context&);
 		void CMD_mag(const Buffer<String>& args, const Context&);
@@ -25,7 +26,7 @@ public:
 			mipLevels = 8;
 			minFilter = GL_LINEAR_MIPMAP_LINEAR;
 			magFilter = GL_NEAREST;
-			wrap = GL_REPEAT;
+			wrapx = wrapy = GL_REPEAT;
 		}
 
 		Info()
@@ -67,9 +68,8 @@ public:
 		_glTexture.Create(_width, _height, data,
 			maxMipLevels ? Maths::Min(maxMipLevels, info.mipLevels) : info.mipLevels,
 			maxAnisotropy ? Maths::Min(maxAnisotropy, info.aniso) : info.aniso,
-			info.minFilter,
-			info.magFilter,
-			info.wrap);
+			info.minFilter, info.magFilter,
+			info.wrapx, info.wrapy);
 	}
 
 	void Bind(int unit) const

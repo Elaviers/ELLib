@@ -16,7 +16,8 @@ public:
 
 	static void SetCurrentUnit(byte unit) { glActiveTexture(GL_TEXTURE0 + unit); }
 
-	void Create(GLsizei width, GLsizei height, const GLvoid *data, GLint mipLevels, GLfloat maxAnisotropy, GLint minFilter, GLint magFilter, GLint wrap);
+	void Create(GLsizei width, GLsizei height, const GLvoid *data, GLint mipLevels, 
+		GLfloat maxAnisotropy, GLint minFilter, GLint magFilter, GLint wrapx, GLint wrapy);
 
 	void Bind(byte unit) const { SetCurrentUnit(unit); glBindTexture(GL_TEXTURE_2D, _id); }
 

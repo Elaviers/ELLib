@@ -31,15 +31,29 @@ void Texture::Info::CMD_mag(const Buffer<String>& args, const Context& ctx)
 	}
 }
 
+GLint StringToWrap(const String& stringin)
+{
+	String string = stringin.ToLower();
+	if (string == "repeat") return GL_REPEAT;
+	else if (string == "mirror") return GL_MIRRORED_REPEAT;
+	else if (string == "clamp") return GL_CLAMP_TO_EDGE;
+
+	return 0;
+}
+
 void Texture::Info::CMD_wrap(const Buffer<String>& args, const Context& ctx)
 {
-	if (args.GetSize() > 0)
+	if (args.GetSize() == 1)
 	{
-		String string = args[0].ToLower();
-
-		if (string == "repeat") wrap = GL_REPEAT;
-		else if (string == "mirror") wrap = GL_MIRRORED_REPEAT;
-		else if (string == "clamp") wrap = GL_CLAMP_TO_EDGE;
+		GLint wrap = StringToWrap(args[0]);
+		if (wrap) wrapx = wrapy = wrap;
+	}
+	else if (args.GetSize() > 0)
+	{
+		GLint wrap = StringToWrap(args[0]);
+		if (wrap) wrapx = wrap;
+		wrap = StringToWrap(args[1]);
+		if (wrap) wrapy = wrap;
 	}
 }
 
