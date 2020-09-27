@@ -31,6 +31,18 @@ void Texture::Info::CMD_mag(const Buffer<String>& args, const Context& ctx)
 	}
 }
 
+void Texture::Info::CMD_wrap(const Buffer<String>& args, const Context& ctx)
+{
+	if (args.GetSize() > 0)
+	{
+		String string = args[0].ToLower();
+
+		if (string == "repeat") wrap = GL_REPEAT;
+		else if (string == "mirror") wrap = GL_MIRRORED_REPEAT;
+		else if (string == "clamp") wrap = GL_CLAMP_TO_EDGE;
+	}
+}
+
 void Texture::_CMD_img(const Buffer<String>& args, const Context& ctx)
 {
 	if (args.GetSize() > 0)
@@ -64,6 +76,7 @@ const PropertyCollection& Texture::GetProperties()
 	properties.Add<byte>("mips", offsetof(Texture, info.mipLevels));
 	properties.AddCommand("min", MemberCommandPtr<Texture::Info>(&Texture::Info::CMD_min), offsetof(Texture, info));
 	properties.AddCommand("mag", MemberCommandPtr<Texture::Info>(&Texture::Info::CMD_mag), offsetof(Texture, info));
+	properties.AddCommand("wrap", MemberCommandPtr<Texture::Info>(&Texture::Info::CMD_wrap), offsetof(Texture, info));
 	properties.AddCommand("img", MemberCommandPtr<Texture>(&Texture::_CMD_img));
 	DO_ONCE_END;
 

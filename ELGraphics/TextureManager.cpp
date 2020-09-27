@@ -25,7 +25,7 @@ Texture* TextureManager::_CreateResource(const Buffer<byte>& data, const String&
 	return tex;
 }
 
-void TextureManager::_ResourceRead(Texture& texture, const Buffer<byte>& data, const String& extension, const Context&)
+void TextureManager::_ResourceRead(Texture& texture, const Buffer<byte>& data, const String& extension, const Context& ctx)
 {
 	if (extension == ".png")
 	{
@@ -36,6 +36,7 @@ void TextureManager::_ResourceRead(Texture& texture, const Buffer<byte>& data, c
 			texture.Change(pngData.Data(), w, h, _maxMipLevels, _maxAnisotropy);
 		}
 	}
+	else AssetManager<Texture>::_ResourceRead(texture, data, extension, ctx);
 }
 
 void TextureManager::Initialise()

@@ -13,9 +13,11 @@ public:
 		byte mipLevels;
 		GLint minFilter;
 		GLint magFilter;
+		GLint wrap;
 
 		void CMD_min(const Buffer<String>& args, const Context&);
 		void CMD_mag(const Buffer<String>& args, const Context&);
+		void CMD_wrap(const Buffer<String>& args, const Context&);
 
 		void SetDefault()
 		{
@@ -23,6 +25,7 @@ public:
 			mipLevels = 8;
 			minFilter = GL_LINEAR_MIPMAP_LINEAR;
 			magFilter = GL_NEAREST;
+			wrap = GL_REPEAT;
 		}
 
 		Info()
@@ -65,7 +68,8 @@ public:
 			maxMipLevels ? Maths::Min(maxMipLevels, info.mipLevels) : info.mipLevels,
 			maxAnisotropy ? Maths::Min(maxAnisotropy, info.aniso) : info.aniso,
 			info.minFilter,
-			info.magFilter);
+			info.magFilter,
+			info.wrap);
 	}
 
 	void Bind(int unit) const

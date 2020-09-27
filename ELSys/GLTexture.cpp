@@ -1,6 +1,6 @@
 #include "GLTexture.hpp"
 
-void GLTexture::Create(GLsizei width, GLsizei height, const GLvoid *data, GLint mipLevels, GLfloat aniso, GLint min, GLint mag)
+void GLTexture::Create(GLsizei width, GLsizei height, const GLvoid *data, GLint mipLevels, GLfloat aniso, GLint min, GLint mag, GLint wrap)
 {
 	glGenTextures(1, &_id);
 
@@ -17,8 +17,8 @@ void GLTexture::Create(GLsizei width, GLsizei height, const GLvoid *data, GLint 
 		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
 	}
 
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, wrap);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, wrap);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, min);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, mag);
 	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAX_ANISOTROPY, aniso);

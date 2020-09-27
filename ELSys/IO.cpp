@@ -28,6 +28,12 @@ bool IO::FileExists(const char* filename)
 	*/
 }
 
+bool IO::IsDirectory(const char* path)
+{
+	DWORD attrib = ::GetFileAttributesA(path);
+	return attrib == FILE_ATTRIBUTE_DIRECTORY;
+}
+
 Buffer<byte> IO::ReadFile(const char *filename, bool silent)
 {
 	Buffer<byte> buffer;

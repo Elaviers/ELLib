@@ -6,6 +6,8 @@ namespace IO {
 	bool DirectoryExists(const char* path);
 	bool FileExists(const char* filename);
 
+	bool IsDirectory(const char* path);
+
 	Buffer<byte> ReadFile(const char *filename, bool silent = false);
 	bool WriteFile(const char *filename, const byte *data, size_t dataLength);
 	inline bool WriteFile(const char* filename, const Buffer<byte>& buffer) { return WriteFile(filename, buffer.Data(), buffer.GetSize()); }

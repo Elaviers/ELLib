@@ -93,7 +93,7 @@ public:
 
 	bool operator==(const String &other) const { return _length == other._length && StringsEqual(_data, other._data); }
 	bool operator==(const char *other) const { return StringsEqual(_data, other); }
-	bool operator!=(const String &other) const { return _length == other._length && StringsInequal(_data, other._data); }
+	bool operator!=(const String &other) const { return _length != other._length || StringsInequal(_data, other._data); }
 	bool operator!=(const char *other) const { return StringsInequal(_data, other); }
 
 	String ToLower() const;

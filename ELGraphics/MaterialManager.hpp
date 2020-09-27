@@ -10,6 +10,8 @@ private:
 	virtual Material* _CreateResource(const Buffer<byte>& data, const String& name, const String& extension, const Context&) override;
 	virtual bool _CreateAlternative(Material*& material, const String& name, const Context&) override;
 
+	virtual Buffer<const AssetManagerBase*> _GetFallbackManagers(const Context&) const override;
+
 public:
 	MaterialManager() : AssetManager() {}
 	virtual ~MaterialManager() {}

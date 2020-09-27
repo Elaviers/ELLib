@@ -32,6 +32,11 @@ bool MaterialManager::_CreateAlternative(Material*& material, const String& name
 	return false; //Can't do anything now
 }
 
+Buffer<const AssetManagerBase*> MaterialManager::_GetFallbackManagers(const Context& ctx) const
+{
+	return { (const AssetManagerBase*)ctx.GetPtr<TextureManager>() };
+}
+
 void MaterialManager::Initialise(const TextureManager& tm)
 {
 	_MapValue("white").SetPtr(new MaterialSurface(tm.White(), tm.UnitNormal(), tm.White()));

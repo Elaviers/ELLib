@@ -8,15 +8,32 @@
 
 class Asset;
 
-template<typename T>
-class AssetManager
+class AssetManagerBase
 {
-private:
+protected:
 	Buffer<String> _paths;
-	Hashmap<String, SharedPointerData<T>> _map;
 
 	const Buffer<String> _extensions;
 
+	bool _fallbackAnywhere; //Allows the asset manager fallback even if _all.txt is not present for a subdir for an asset
+
+protected:
+	template <typename T>
+	friend class AssetManager;
+
+	AssetManagerBase(const Buffer<String>& extensions) : _extensions(extensions), _fallbackAnywhere(false) { _paths.Add(""); /*Root dir*/ }
+public:
+	virtual ~AssetManagerBase() {}
+
+	virtual void GetAllPossibleKeys(Buffer<String>& resultsOut, const Context& ctx, const String& path = "", bool recursive = false) const = 0;
+};
+
+template<typename T>
+class AssetManager : protected AssetManagerBase
+{
+private:
+	Hashmap<String, SharedPointerData<T>> _map;
+	
 protected:
 	virtual T* _CreateResource(const Buffer<byte>& data, const String& name, const String& extension, const Context&) = 0;
 	virtual void _ResourceRead(T& resource, const Buffer<byte>& data, const String& extension, const Context& ctx)
@@ -38,19 +55,14 @@ protected:
 	//Called before deleting a resource
 	virtual void _DestroyResource(T& resource) {}
 
+	//Returns a list of managers who's assets can be used to finalise an asset for this manager
+	virtual Buffer<const AssetManagerBase*> _GetFallbackManagers(const Context&) const { return {}; }
+	
 	//Extensions are in priority order (names that specify the extension override this)
-	AssetManager(const Buffer<String>& extensions = { ".txt" }) :
-		_extensions(extensions)
-	{ 
-		_paths.Add(""); //Root dir
-	}
-
+	AssetManager(const Buffer<String>& extensions = { ".txt" }) : AssetManagerBase(extensions) { }
 	AssetManager(const AssetManager&) = delete;
 
-	virtual ~AssetManager() 
-	{
-		_DestroyAll();
-	}
+	virtual ~AssetManager() { _DestroyAll(); }
 
 	void _DestroyAll()
 	{
@@ -77,7 +89,7 @@ protected:
 public:
 	virtual void Initialise() {}
 
-	bool NameIsValid(const String& name)
+	bool NameIsValid(const String& name) const
 	{
 		if (name.GetLength() > 0 && name[name.GetLength() - 1] != '/')
 		{
@@ -305,27 +317,113 @@ public:
 
 	const Buffer<String>& GetPaths() { return _paths; }
 
-	Buffer<String> GetAllPossibleKeys()
+	Buffer<String> GetAllPossibleKeys(const Context& ctx, const String& path = "", bool recursive = true) 
+	{ 
+		Buffer<String> b; 
+		GetAllPossibleKeys(b, ctx, path, recursive); 
+		return b;
+	}
+
+	virtual void GetAllPossibleKeys(Buffer<String>& resultsOut, const Context& ctx, const String& path = "", bool recursive = true) const override
 	{
-		Buffer<String> results;
-
-		Buffer<const String*> keys = _map.ToKBuffer();
-
-		for (size_t i = 0; i < keys.GetSize(); ++i)
-			results.OrderedAdd(*keys[i]);
-
-		for (const String& path : _paths)
+		for (const String* key : _map.ToKBuffer())
 		{
-			Buffer<String> filenames = IO::FindFilesInDirectoryRecursive(path.GetData(), "*.*");
-
-			for (const String& filename : filenames)
+			if (path.GetLength() > 0)
 			{
-				int extIndex = filename.IndexOf('.');
+				int slash = key->IndexOf('/');
+				if (slash < 0 || key->SubString(0, slash + 1) != path)
+					continue;
+			}
+
+			resultsOut.OrderedAdd(*key);
+		}
+
+		Buffer<const AssetManagerBase*> fallbacks = _GetFallbackManagers(ctx);
+		const Buffer<const AssetManagerBase*>* pfallbacks = &fallbacks;
+
+		if (_fallbackAnywhere)
+		{
+			for (const AssetManagerBase* f : fallbacks)
+				f->GetAllPossibleKeys(resultsOut, ctx, path, false);
+
+			pfallbacks = nullptr;
+		}
+		else
+		{
+			for (const String& p : _paths)
+			{
+				if (path.GetLength())
+				{
+					String check = p;
+
+					for (int i = 0;;)
+					{
+						if (IO::FileExists(CSTR(check, "_all.txt")))
+						{
+							for (const AssetManagerBase* f : fallbacks)
+								f->GetAllPossibleKeys(resultsOut, ctx, path, false);
+
+							pfallbacks = nullptr;
+							break;
+						}
+
+						int s = i;
+						i = path.IndexOf('/', s);
+						if (i < 0 || i >= path.GetLength() - 1)
+							break;
+
+						check += path.SubString(s, i) + '/';
+					}
+				}
+
+				_FindAllKeysForPath(p, path, resultsOut, pfallbacks, ctx, recursive);
+			}
+		}
+	}
+
+
+private:
+	void _FindAllKeysForPath(
+		const String& path, const String& dir, 
+		Buffer<String>& results, 
+		const Buffer<const AssetManagerBase*>* fallbacks,
+		const Context& ctx, 
+		bool recursive) const
+	{
+		String d = path + dir;
+
+		if (!IO::DirectoryExists(d.GetData()))
+			return;
+
+		if (fallbacks)
+		{
+			if (IO::FileExists(CSTR(d, "_all.txt")))
+			{
+				for (const AssetManagerBase* f : *fallbacks)
+					f->GetAllPossibleKeys(results, ctx, dir, true);
+
+				fallbacks = nullptr;
+			}
+		}
+
+		for (const String& filename : IO::FindFilesInDirectory(CSTR(d, "*.*")))
+		{
+			String f = dir + filename;
+			String full = path + f;
+
+			if (IO::IsDirectory(full.GetData()))
+			{
+				if (recursive)
+					_FindAllKeysForPath(path, f + '/', results, fallbacks, ctx, true);
+			}
+			else
+			{
+				int extIndex = f.IndexOf('.');
 				if (extIndex >= 0)
 				{
-					String filenamelower = filename.ToLower();
-					String name = filenamelower.SubString(0, extIndex);
-					String ext = filenamelower.SubString(extIndex, filenamelower.GetLength());
+					String fpath = f.ToLower();
+					String name = fpath.SubString(0, extIndex);
+					String ext = fpath.SubString(extIndex, fpath.GetLength());
 
 					for (const String& extension : _extensions)
 						if (ext == extension)
@@ -338,7 +436,5 @@ public:
 				}
 			}
 		}
-
-		return results;
 	}
 };

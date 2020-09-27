@@ -45,7 +45,16 @@ public:
 	virtual void TransferTo(const void* from, void* to, const Context& ctx) const {}
 	virtual String HandleCommand(void* obj, const Buffer<String>& args, const Context& ctx) const 
 	{ 
-		SetAsString(obj, args[0], ctx);
+		String combinedArgs;
+
+		for (size_t i = 0; i < args.GetSize(); ++i)
+		{
+			if (i > 0) combinedArgs += ' ';
+
+			combinedArgs += args[i];
+		}
+
+		SetAsString(obj, combinedArgs, ctx);
 		return GetName() + " : " + GetAsString(obj, ctx) + "\n";
 	}
 };
