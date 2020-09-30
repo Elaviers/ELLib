@@ -331,7 +331,7 @@ public:
 			if (path.GetLength() > 0)
 			{
 				int slash = key->IndexOf('/');
-				if (slash < 0 || key->SubString(0, slash + 1) != path)
+				if (slash < 0 || key->SubString(0, (size_t)slash + 1) != path)
 					continue;
 			}
 

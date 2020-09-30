@@ -152,4 +152,9 @@ namespace Collision
 		if (dot >= length) return b;
 		return a + d * dot;
 	}
+
+	Vector3 ClosestPointOnPlane(const Vector3& planePoint, const Vector3& normal, const Vector3& x)
+	{
+		return x + (planePoint - x).Dot(normal) * normal;
+	}
 }
