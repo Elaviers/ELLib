@@ -11,7 +11,7 @@ public:
 
 	COLLISIONSHAPE_FUNCS(CollisionBox)
 
-	void SetTransform(const Transform& transform)	{ _transform = transform; }
+	void SetPositionSize(const Transform& transform)	{ _transform = transform; }
 	void SetPosition(const Vector3& position)		{ _transform.SetPosition(position); }
 	void SetRotation(const Rotation& rotation)		{ _transform.SetRotation(rotation); }
 	void SetScale(const Vector3& scale)				{ _transform.SetScale(scale); }

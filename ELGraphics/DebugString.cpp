@@ -4,5 +4,5 @@
 
 void DebugString::Render(RenderQueue& q) const
 {
-	_font->RenderString(q.NewDynamicEntry(ERenderChannels::UNLIT), _string.GetData(), _transform);
+	_font->RenderString(q.CreateEntry(ERenderChannels::UNLIT), _string.GetData(), _transform);
 }

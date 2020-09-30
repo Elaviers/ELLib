@@ -6,7 +6,7 @@
 
 void UIPanel::Render(RenderQueue& q) const
 {
-	RenderEntry& e = q.NewDynamicEntry(ERenderChannels::UNLIT);
+	RenderEntry& e = q.CreateEntry(ERenderChannels::UNLIT);
 	_colour.Apply(e);
 
 	if (!_material)

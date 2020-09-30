@@ -38,13 +38,13 @@ void Skybox::Load(const char *faceFilenames[6], const Context& context)
 void Skybox::Render(RenderQueue& q) const
 {
 	{
-		RenderEntry& e = q.NewDynamicEntry(ERenderChannels::SKY);
+		RenderEntry& e = q.CreateEntry(ERenderChannels::SKY);
 		e.AddSetCubemap(_cubemap, 0);
 		e.AddCommand(RCMDRenderMesh::INV_CUBE);
 	}
 
 	{
-		RenderEntry& e = q.NewDynamicEntry(ERenderChannels::SURFACE, -1);
+		RenderEntry& e = q.CreateEntry(ERenderChannels::SURFACE, -1);
 		e.AddSetCubemap(_cubemap, 100);
 	}
 }

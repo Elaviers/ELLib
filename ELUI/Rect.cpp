@@ -10,7 +10,7 @@ void UIRect::_OnBoundsChanged()
 
 void UIRect::Render(RenderQueue& q) const
 {
-	RenderEntry& e = q.NewDynamicEntry(ERenderChannels::UNLIT, 0);
+	RenderEntry& e = q.CreateEntry(ERenderChannels::UNLIT, 0);
 	_colour.Apply(e);
 
 	if (_texture)

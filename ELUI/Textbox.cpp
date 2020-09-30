@@ -51,7 +51,7 @@ void UITextbox::Render(RenderQueue& q) const
 		t.Move(Vector3(caretX, t.GetScale().y / 2.f, 0.f));
 		t.SetScale(Vector3(_caretWidth, t.GetScale().y, 0.f));
 
-		RenderEntry& e = q.NewDynamicEntry(ERenderChannels::UNLIT, 0);
+		RenderEntry& e = q.CreateEntry(ERenderChannels::UNLIT, 0);
 		_caretColour.Apply(e);
 
 		e.AddSetTransform(t.GetTransformationMatrix());

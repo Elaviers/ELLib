@@ -6,7 +6,7 @@
 
 void DebugFrustum::Render(RenderQueue& q) const
 {
-	RenderEntry& e = q.NewDynamicEntry(ERenderChannels::EDITOR);
+	RenderEntry& e = q.CreateEntry(ERenderChannels::EDITOR);
 	e.AddSetColour(_colour);
 	e.AddSetLineWidth(_lineWidth);
 

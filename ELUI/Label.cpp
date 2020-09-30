@@ -11,7 +11,7 @@ void UILabel::Render(RenderQueue& q) const
 {
 	if (_font)
 	{
-		RenderEntry& e = q.NewDynamicEntry(ERenderChannels::UNLIT);
+		RenderEntry& e = q.CreateEntry(ERenderChannels::UNLIT);
 
 		if (_shadowOffset.x != 0.f && _shadowOffset.y != 0.f)
 		{

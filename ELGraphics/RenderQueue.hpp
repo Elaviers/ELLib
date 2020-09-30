@@ -12,18 +12,14 @@ class Projection;
 struct QueueGroup
 {
 	const int priority;
-	List<const RenderEntry*> staticQueue;
-	List<const RenderEntry*> dynamicQueue;
+	List<const RenderEntry*> queue;
 
 	QueueGroup(
 		int priority,
-		const NewHandler& staticNew,
-		const DeleteHandler& staticDelete,
-		const NewHandler& dynamicNew,
-		const DeleteHandler& dynamicDelete)
-		: priority(priority), staticQueue(staticNew, staticDelete), dynamicQueue(dynamicNew, dynamicDelete)
-	{
-	}
+		const NewHandler& newHandler,
+		const DeleteHandler& deleteHandler)
+		: priority(priority), queue(newHandler, deleteHandler)
+	{}
 };
 
 class RenderQueue
@@ -32,26 +28,21 @@ private:
 	typedef MultiPool<byte, sizeof(RenderEntry) * 32> _EntryPoolType;
 	typedef MultiPool<byte, sizeof(const RenderEntry*) * 32> _PtrPoolType;
 
-	_EntryPoolType _dynamicEntryPool;
-	_EntryPoolType _staticEntryPool;
-	_PtrPoolType _dynamicPtrPool;
-	_PtrPoolType _staticPtrPool;
+	_EntryPoolType _entryPool;
+	_PtrPoolType _ptrPool;
 
-	List<RenderEntry> _dynamicEntries;
-	List<RenderEntry> _staticEntries;
+	List<RenderEntry> _entries;
 	List<QueueGroup> _queues;
 	
-	QueueGroup& _GetQueue(int priority);
+	List<const RenderEntry*>& _GetQueue(int priority);
 
 public:
-	RenderQueue() : _dynamicEntries(NewHandler(&_dynamicEntryPool, &_EntryPoolType::NewArray), DeleteHandler(&_dynamicEntryPool, &_EntryPoolType::DeleteHandler)) {}
+	RenderQueue() : _entries(NewHandler(&_entryPool, &_EntryPoolType::NewArray), DeleteHandler(&_entryPool, &_EntryPoolType::DeleteHandler)) {}
 	~RenderQueue() {}
 
-	void ClearDynamicQueue();
+	void Clear();
 	void Render(ERenderChannels channels, const MeshManager& meshManager, const TextureManager& textureManager, int lightCount) const;
 
-	void AddStatic(const RenderEntry*, int priority = 0);
-	void RemoveStatic(const RenderEntry*, int priority = 0);
-	void AddDynamic(const RenderEntry*, int priority = 0);
-	RenderEntry& NewDynamicEntry(ERenderChannels renderChannels, int priority = 0);
+	void AddEntry(const RenderEntry*, int priority = 0);
+	RenderEntry& CreateEntry(ERenderChannels renderChannels, int priority = 0);
 };

@@ -51,7 +51,10 @@ public:
 		_newHandler(newHandler),
 		_deleteHandler(deleteHandler),
 		_renderChannels(renderChannels) {}
+	RenderEntry(const RenderEntry&) = delete;
 	~RenderEntry();
+
+	RenderEntry& operator=(const RenderEntry&) = delete;
 	
 	const ERenderChannels& GetRenderChannels() const { return _renderChannels; }
 
