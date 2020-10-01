@@ -44,13 +44,32 @@ void WindowFunctions::SetDefaultPixelFormat(HDC hdc)
 	Debug::Assert(SetPixelFormat(hdc, pfdId, &pfd), CSTR("SetPixelFormat returned FALSE (0x", String::FromInt(::GetLastError(), 2, 16), ")"));
 }
 
+WPARAM WindowFunctions::SplitKeyWPARAMLeftRight(WPARAM wparam)
+{
+	switch (wparam)
+	{
+	case VK_CONTROL:
+		return ::GetKeyState(VK_RCONTROL) & 0x8000 ? VK_RCONTROL : VK_LCONTROL;
+	case VK_SHIFT:
+		return ::GetKeyState(VK_RSHIFT) & 0x8000 ? VK_RSHIFT : VK_LSHIFT;
+	case VK_MENU:
+		return ::GetKeyState(VK_RMENU) & 0x8000 ? VK_RMENU : VK_LMENU;
+	}
+
+	return wparam;
+}
+
 HINSTANCE Window::_programInstance = NULL;
 LPCTSTR Window::_wclassDefault = TEXT("DEFAULTENGINEWINDOW");
 LPCTSTR Window::_wclassDummy = TEXT("DUMMY");
 
+LPCSTR iconResource = 0;
+
 void Window::_EnsureWindowClasses()
 {
 	DO_ONCE_BEGIN;
+	HICON icon = iconResource ? ::LoadIcon(_programInstance, iconResource) : ::LoadIcon(NULL, IDI_APPLICATION);
+
 	WNDCLASSEX windowClass = {};
 	windowClass.cbSize = sizeof(WNDCLASSEX);
 	windowClass.lpfnWndProc = ::DefWindowProc;
@@ -60,22 +79,28 @@ void Window::_EnsureWindowClasses()
 
 	windowClass.lpfnWndProc = _WindowsProc;
 	windowClass.hbrBackground = (HBRUSH)(COLOR_WINDOW + 1);
-	windowClass.hIcon = ::LoadIcon(NULL, IDI_APPLICATION);
-	windowClass.hIconSm = LoadIcon(NULL, IDI_APPLICATION);
+	windowClass.hIcon = icon;
+	windowClass.hIconSm = icon;
 	windowClass.hCursor = ::LoadCursor(NULL, IDC_ARROW);
 	windowClass.lpszClassName = _wclassDefault;
 	Debug::Assert(::RegisterClassEx(&windowClass), CSTR("Unable to register default window class (0x", String::FromInt(::GetLastError(), 2, 16), ")"));
 	DO_ONCE_END;
 }
 
+void Window::Win32SetIconResource(int resource)
+{
+	iconResource = MAKEINTRESOURCE(resource);
+}
+
 Window::Window() : _hwnd(NULL), _hdc(NULL), _eventList(NewHandler(&_eventPool, &_EventPoolType::NewArray), DeleteHandler(&_eventPool, &_EventPoolType::DeleteHandler))
 {
-	_EnsureWindowClasses();
 }
 
 
 void Window::Create(const char* title, const Window* parent, WindowFlags flags)
 {
+	_EnsureWindowClasses();
+
 	if (_hwnd)
 		::DestroyWindow(_hwnd);
 
@@ -132,21 +157,6 @@ bool Window::PollEvent(WindowEvent& out)
 }
 
 #include <ELCore/Buffer.hpp>
-
-WPARAM SplitKeyWPARAMLeftRight(WPARAM wparam)
-{
-	switch (wparam)
-	{
-	case VK_CONTROL:
-		return ::GetKeyState(VK_RCONTROL) & 0x8000 ? VK_RCONTROL : VK_LCONTROL;
-	case VK_SHIFT:
-		return ::GetKeyState(VK_RSHIFT) & 0x8000 ? VK_RSHIFT : VK_LSHIFT;
-	case VK_MENU:
-		return ::GetKeyState(VK_RMENU) & 0x8000 ? VK_RMENU : VK_RMENU;
-	}
-
-	return wparam;
-}
 
 LRESULT CALLBACK Window::_WindowsProc(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam)
 {
@@ -247,7 +257,7 @@ LRESULT CALLBACK Window::_WindowsProc(HWND hwnd, UINT msg, WPARAM wparam, LPARAM
 	case WM_KEYDOWN:
 	{
 		auto& e = *window->_eventList.Emplace(WindowEvent::KEYDOWN);
-		e.data.keyDown.key = (EKeycode)SplitKeyWPARAMLeftRight(wparam);
+		e.data.keyDown.key = (EKeycode)WindowFunctions::SplitKeyWPARAMLeftRight(wparam);
 		e.data.keyDown.isRepeat = lparam & (1 << 30);
 	}
 		break;
@@ -255,7 +265,7 @@ LRESULT CALLBACK Window::_WindowsProc(HWND hwnd, UINT msg, WPARAM wparam, LPARAM
 	case WM_KEYUP:
 	{
 		auto& e = *window->_eventList.Emplace(WindowEvent::KEYUP);
-		e.data.keyUp.key = (EKeycode)SplitKeyWPARAMLeftRight(wparam);
+		e.data.keyUp.key = (EKeycode)WindowFunctions::SplitKeyWPARAMLeftRight(wparam);
 	}
 		break;
 
@@ -270,7 +280,7 @@ LRESULT CALLBACK Window::_WindowsProc(HWND hwnd, UINT msg, WPARAM wparam, LPARAM
 	{
 		static Buffer<byte> buffer;
 
-		UINT size;
+		UINT size = 0;
 		GetRawInputData((HRAWINPUT)lparam, RID_INPUT, NULL, &size, sizeof(RAWINPUTHEADER));
 
 		if (buffer.GetSize() < size)

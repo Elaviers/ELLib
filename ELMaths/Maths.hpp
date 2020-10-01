@@ -73,10 +73,12 @@ namespace Maths
 
 	inline float Round(float x) 
 	{
-		int32 asInt = (int32)x;
-		float dec = x - asInt;
+		float trunc = (float)(int32)x;
+		float dec = x - trunc;
 
-		return dec >= .5f ? ((float)asInt + 1.f) : (float)asInt;
+		if (dec >= .5f) return trunc + 1.f;
+		else if (dec <= -.5f) return trunc - 1.f;
+		return trunc;
 	}
 
 	inline float Round(float x, float nearest)

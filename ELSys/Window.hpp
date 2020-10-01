@@ -13,6 +13,8 @@ namespace WindowFunctions
 	void RepositionHWND(HWND, uint16 x, uint16 y);
 
 	void SetDefaultPixelFormat(HDC hdc);
+
+	WPARAM SplitKeyWPARAMLeftRight(WPARAM wparam);
 }
 
 struct WindowEvent
@@ -121,6 +123,7 @@ protected:
 
 	//Yeah, that's right. This class is buddies with WinMain. :/
 
+	static LRESULT CALLBACK _WindowsProc(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam);
 public:
 	Window();
 
@@ -143,5 +146,5 @@ public:
 
 	bool PollEvent(WindowEvent& out);
 
-	static LRESULT CALLBACK _WindowsProc(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam);
+	static void Win32SetIconResource(int resource);
 };
