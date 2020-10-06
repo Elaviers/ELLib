@@ -2,6 +2,7 @@
 #include "Material_Grid.hpp"
 #include "Material_Surface.hpp"
 #include "Material_Sprite.hpp"
+#include "Material_Spritesheet.hpp"
 #include "TextureManager.hpp"
 #include <ELCore/MacroUtilities.hpp>
 
@@ -19,6 +20,8 @@ Material* Material::FromText(const String& text, const Context& ctx)
 			return Asset::FromText<MaterialGrid>(relevantData, ctx);
 		else if (firstLine == "sprite")
 			return Asset::FromText<MaterialSprite>(relevantData, ctx);
+		else if (firstLine == "spritesheet")
+			return Asset::FromText<MaterialSpritesheet>(relevantData, ctx);
 	}
 
 	return nullptr;

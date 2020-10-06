@@ -126,6 +126,9 @@
     <ClInclude Include="MaterialParam.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="Material_Spritesheet.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="ObjReader.cpp">
@@ -222,6 +225,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="RenderEntry.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Material_Spritesheet.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

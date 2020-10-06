@@ -5,9 +5,10 @@
 
 class MaterialSprite : public Material
 {
+protected:
 	SharedPointer<const Texture> _diffuse;
 
-	void CMD_texmgr(const Buffer<String>& args, const Context& ctx);
+	void _CMD_tex(const Buffer<String>& args, const Context& ctx);
 
 public:
 	MaterialSprite(const SharedPointer<const Texture>& diffuse = SharedPointer<const Texture>()) : Material(ERenderChannels::SPRITE), _diffuse(diffuse) {}

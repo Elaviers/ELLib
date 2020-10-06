@@ -184,6 +184,7 @@ inline Vector3 Support(
 	return v3;
 }
 
+//Note: not the best for very shallow overlaps (can have erroneous results due to division by incredibly small amounts) (can return NaN in its current incarnation)
 Vector3 EPA(
 	const Vector3 simplex[4],
 	const CollisionShape& shapeA, const Transform& tA,
@@ -246,6 +247,8 @@ Vector3 EPA(
 	return closestFaces.begin()->closestPointToOrigin;
 }
 
+//Overlap Query w/ EPA penetration solving
+//todo: touching result disabled for now due to instability in some cases
 EOverlapResult GJK(const CollisionShape& shapeA, const Transform& tA, const CollisionShape& shapeB, const Transform& tB, const LineSegment* pLineA, Vector3* out_PenetrationVector)
 {
 	//The simplex is a tetrahedron inside the minkowski difference
@@ -287,12 +290,7 @@ EOverlapResult GJK(const CollisionShape& shapeA, const Transform& tA, const Coll
 			//The simplex is a triangle that contains the origin in its respective space
 			//Look for the fourth support along the normal which is facing the origin
 
-			dir = (b - c).Cross(a - c);
-
-			//If cross product is not facing origin, flip it
-			if ((dir).Dot(-c) < 0.f)
-				dir *= -1.f;
-
+			dir = GetNormalForFace(b - c, a - c, -c);
 			break;
 		}
 		case 4:
@@ -302,17 +300,15 @@ EOverlapResult GJK(const CollisionShape& shapeA, const Transform& tA, const Coll
 			//The base's normal doesn't have to be checked as it is on the opposite side of the origin from the peak
 
 			//Edges
-			Vector3 dc = c - d;
+			Vector3 da = a - d;
 			Vector3 db = b - d;
+			Vector3 dc = c - d;
 
-			Vector3 bcd = dc.Cross(db);
-			float dot = bcd.Dot(d);
-
-			if (Maths::AlmostEquals(dot, 0.f, GJK_TOUCH_TOLERANCE))
-				return EOverlapResult::TOUCHING;
-
-			if (dot <= 0.f)
+			Vector3 bcd = GetNormalForFace(dc, db, -da);
+			float dotBCD = bcd.Dot(d);
+			if (dotBCD < 0.f)
 			{
+				//Origin is outside BCD
 				//Remove point A (0)
 				simplex[0] = simplex[1];
 				simplex[1] = simplex[2];
@@ -323,16 +319,11 @@ EOverlapResult GJK(const CollisionShape& shapeA, const Transform& tA, const Coll
 				break;
 			}
 
-			Vector3 da = simplex[0] - simplex[3];
-
-			Vector3 abd = db.Cross(da);
-			dot = abd.Dot(d);
-
-			if (Maths::AlmostEquals(dot, 0.f, GJK_TOUCH_TOLERANCE))
-				return EOverlapResult::TOUCHING;
-
-			if (dot <= 0.f)
+			Vector3 abd = GetNormalForFace(db, da, -dc);
+			float dotABD = abd.Dot(d);
+			if (dotABD < 0.f)
 			{
+				//Origin is outside ABD
 				//Remove point C (2)
 				simplex[2] = simplex[3];
 				i = 3;
@@ -341,14 +332,11 @@ EOverlapResult GJK(const CollisionShape& shapeA, const Transform& tA, const Coll
 				break;
 			}
 
-			Vector3 acd = da.Cross(dc);
-			dot = acd.Dot(d);
-
-			if (Maths::AlmostEquals(dot, 0.f, GJK_TOUCH_TOLERANCE))
-				return EOverlapResult::TOUCHING;
-
-			if (dot <= 0.f)
+			Vector3 acd = GetNormalForFace(da, dc, -db);
+			float dotACD = acd.Dot(d);
+			if (dotACD < 0.f)
 			{
+				//Origin is outside ACD
 				//Remove point B (1)
 				simplex[1] = simplex[2];
 				simplex[2] = simplex[3];
@@ -360,6 +348,9 @@ EOverlapResult GJK(const CollisionShape& shapeA, const Transform& tA, const Coll
 
 			if (out_PenetrationVector)
 				*out_PenetrationVector = EPA(simplex, shapeA, tA, shapeB, tB, pLineA);
+
+			if (dotBCD <= GJK_TOUCH_TOLERANCE || dotABD <= GJK_TOUCH_TOLERANCE || dotACD <= GJK_TOUCH_TOLERANCE)
+				return EOverlapResult::TOUCHING;
 
 			return EOverlapResult::OVERLAPPING;
 		}
@@ -377,35 +368,6 @@ EOverlapResult GJK(const CollisionShape& shapeA, const Transform& tA, const Coll
 
 	//Failsafe
 	return EOverlapResult::OVERLAPPING;
-}
-
-EOverlapResult Collider::Overlaps(const Transform& transform, const Collider& other, const Transform& otherTransform, const LineSegment* lineA, Vector3* out_PenetrationVector) const
-{
-	bool isTouching = false;
-
-	if (CanCollideWith(other))
-		for (size_t i = 0; i < GetShapeCount(); ++i)
-			for (size_t j = 0; j < other.GetShapeCount(); ++j)
-			{
-				const CollisionShape& shape = GetShape(i);
-				const CollisionShape& otherShape = other.GetShape(j);
-
-				float distanceSq = ((shape.GetTransform().GetPosition() + transform.GetPosition()) - (otherShape.GetTransform().GetPosition() + otherTransform.GetPosition())).LengthSquared();
-				float shapeRadius = shape.GetMaximumScaledRadius() * Maths::Min(transform.GetScale().GetData(), 3);
-				float otherShapeRadius = otherShape.GetMaximumScaledRadius() * Maths::Min(otherTransform.GetScale().GetData(), 3);
-				float combinedRadii = shapeRadius + otherShapeRadius;
-				if (true)
-				{
-					EOverlapResult result = GJK(shape, transform, otherShape, otherTransform, lineA, out_PenetrationVector);
-					if (result == EOverlapResult::OVERLAPPING)
-						return EOverlapResult::OVERLAPPING;
-
-					if (!isTouching && result == EOverlapResult::TOUCHING)
-						isTouching = true;
-				}
-			}
-
-	return isTouching ? EOverlapResult::TOUCHING : EOverlapResult::SEPERATE;
 }
 
 inline Vector2 Cartesian2Barycentric(const Vector3& p, const Vector3& a, const Vector3& b)
@@ -477,6 +439,7 @@ float GJKDist(
 	SimplexPoint& c = simplex[2];
 	SimplexPoint& d = simplex[3];
 
+	//minkowski points
 	const Vector3& mA = a.difference;
 	const Vector3& mB = b.difference;
 	const Vector3& mC = c.difference;
@@ -512,12 +475,7 @@ float GJKDist(
 		{
 			closestPoint = ClosestPointToOriginOnTriangle(mA, mB, mC);
 
-			////
-			dir = (mB - mC).Cross(mA - mC);
-
-			//If cross product is not facing origin, flip it
-			if ((dir).Dot(-mC) < 0.f)
-				dir *= -1.f;
+			dir = GetNormalForFace(mB - mC, mA - mC, -mC);
 			break;
 		}
 		case 4:
@@ -584,7 +542,7 @@ float GJKDist(
 		//Find new support point
 		if (pLineA)
 		{
-			Vector3 farthestLinePoint = (dir).Dot(pLineA->end - pLineA->start) > 0.f ? pLineA->end : pLineA->start;
+			Vector3 farthestLinePoint = dir.Dot(pLineA->end - pLineA->start) > 0.f ? pLineA->end : pLineA->start;
 
 			simplex[i] = SimplexPoint(farthestLinePoint + shapeA.GetFarthestPointInDirection(dir, tA), shapeB.GetFarthestPointInDirection(-dir, tB));
 		}
@@ -657,6 +615,62 @@ float GJKDist(
 #endif
 
 	return result;
+}
+
+EOverlapResult Collider::Overlaps(const Transform& transform, const Collider& other, const Transform& otherTransform, const LineSegment* lineA, Vector3* out_PenetrationVector) const
+{
+	if (CanCollideWith(other))
+	{
+		const float shallowContactRadius = 0.2f;
+		Transform shrinkT = transform;
+		Transform shrinkOT = transform;
+
+		shrinkT.SetScale(shrinkT.GetScale() * (1.f - shallowContactRadius));
+		shrinkOT.SetScale(shrinkOT.GetScale() * (1.f - shallowContactRadius));
+		bool isTouching = false;
+
+		Vector3 cpA;
+		Vector3 cpB;
+
+		for (size_t i = 0; i < GetShapeCount(); ++i)
+			for (size_t j = 0; j < other.GetShapeCount(); ++j)
+			{
+				const CollisionShape& shape = GetShape(i);
+				const CollisionShape& otherShape = other.GetShape(j);
+
+				float distanceSq = ((shape.GetTransform().GetPosition() + transform.GetPosition()) - (otherShape.GetTransform().GetPosition() + otherTransform.GetPosition())).LengthSquared();
+				float shapeRadius = shape.GetMaximumScaledRadius() * Maths::Max(transform.GetScale().GetData(), 3);
+				float otherShapeRadius = otherShape.GetMaximumScaledRadius() * Maths::Max(otherTransform.GetScale().GetData(), 3);
+				float combinedRadii = shapeRadius + otherShapeRadius;
+				if (distanceSq <= combinedRadii * combinedRadii)
+				{
+					//float d = GJKDist(shape, shrinkT, otherShape, shrinkOT, cpA, cpB, lineA);
+
+					//temp!!! todo!! GJKDist doesn't work properly!!!!!!!
+					if (true /*|| d <= shallowContactRadius*/)
+					{
+						EOverlapResult result = GJK(shape, transform, otherShape, otherTransform, lineA, out_PenetrationVector);
+						if (result == EOverlapResult::OVERLAPPING)
+							return EOverlapResult::OVERLAPPING;
+
+						if (!isTouching && result == EOverlapResult::TOUCHING)
+							isTouching = true;
+					}
+					/*
+					else if (d < shallowContactRadius * 2.f)
+					{
+						Debug::PrintLine(String::FromFloat(d, 0, 30).GetData());
+						*out_PenetrationVector = cpB - cpA;
+						return EOverlapResult::OVERLAPPING;
+					}
+					*/
+				}
+			}
+
+		return isTouching ? EOverlapResult::TOUCHING : EOverlapResult::SEPERATE;
+	}
+
+	return EOverlapResult::SEPERATE;
 }
 
 float Collider::MinimumDistanceTo(

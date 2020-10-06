@@ -1,5 +1,6 @@
 #include "CollisionCapsule.hpp"
 #include <ELMaths/Ray.hpp>
+#include <ELMaths/Vector2.hpp>
 
 //Basically just the ray intersection test from CollisionSphere.cpp :/
 inline bool SphereRayEntryTime(Vector3 rayStart, const Vector3& rayDir, float sphereRadius, float sphereTranslationY, float &outT)
@@ -107,10 +108,41 @@ inline Vector3 SphereRayExitPoint(float startY, const Vector3& dir,  float radiu
 
 Vector3 CollisionCapsule::GetFarthestPointInDirection(const Vector3& axisIn, const Transform& worldTransform) const
 {
+    Matrix4 transform = (_transform * worldTransform).GetTransformationMatrix();
     Vector3 axis = (Vector4(axisIn.Normalised(), 1.f) * Matrix4::Rotation(worldTransform.GetRotation().GetQuat().Inverse())).GetXYZ();
-
-    if (axis.y > 0.f)
-        return (Vector4(Vector3(0.f, _halfHeight - _radius, 0.f) + _radius * axis, 1.f) * (_transform * worldTransform).GetTransformationMatrix()).GetXYZ();
     
-    return (Vector4(Vector3(0.f, -_halfHeight + _radius, 0.f) + _radius * axis, 1.f) * (_transform * worldTransform).GetTransformationMatrix()).GetXYZ();
+    float xz2 = axis.x * axis.x + axis.z * axis.z;
+    if (xz2 < 0.0001f)
+    {
+        if (axis.y > 0.f)
+            return (Vector4(0.f, _halfHeight, 0.f, 1.f) * transform).GetXYZ();
+        
+        return (Vector4(0.f, -_halfHeight, 0.f, 1.f) * transform).GetXYZ();
+    }
+
+    /*
+        S = [0, 0]
+        
+        t = +|- sqrt(D.D * R^2 )
+            --------------------
+                    D.D
+    */
+
+    
+    float cylT = Maths::SquareRoot(xz2 * _radius * _radius) / xz2;
+    Vector3 cylPoint = axis * cylT;
+
+    if (cylPoint.y > _halfHeight - _radius)
+    {
+        //top hemi
+        return (Vector4(SphereRayExitPoint(_radius - _halfHeight, axis, _radius), 1.f) * transform).GetXYZ();
+    }
+    else if (cylPoint.y < _radius - _halfHeight)
+    {
+        //bottom hemi
+        return (Vector4(SphereRayExitPoint(_halfHeight - _radius, axis, _radius), 1.f) * transform).GetXYZ();
+    }
+
+    //on cylinder
+    return (Vector4(cylPoint, 1.f) * transform).GetXYZ();
 }

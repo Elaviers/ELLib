@@ -7,12 +7,12 @@ const PropertyCollection& MaterialSprite::GetProperties()
 {
 	static PropertyCollection properties;
 
-	DO_ONCE(properties.AddCommand("tex", MemberCommandPtr<MaterialSprite>(&MaterialSprite::CMD_texmgr)));
+	DO_ONCE(properties.AddCommand("tex", MemberCommandPtr<MaterialSprite>(&MaterialSprite::_CMD_tex)));
 
 	return properties;
 }
 
-void MaterialSprite::CMD_texmgr(const Buffer<String>& args, const Context& ctx)
+void MaterialSprite::_CMD_tex(const Buffer<String>& args, const Context& ctx)
 {
 	if (args.GetSize() > 0)
 	{

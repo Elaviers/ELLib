@@ -209,6 +209,7 @@
     <ClInclude Include="MaterialManager.hpp" />
     <ClInclude Include="Material_Grid.hpp" />
     <ClInclude Include="Material_Sprite.hpp" />
+    <ClInclude Include="Material_Spritesheet.hpp" />
     <ClInclude Include="Material_Surface.hpp" />
     <ClInclude Include="Mesh.hpp" />
     <ClInclude Include="MeshManager.hpp" />
@@ -244,6 +245,7 @@
     <ClCompile Include="MaterialManager.cpp" />
     <ClCompile Include="Material_Grid.cpp" />
     <ClCompile Include="Material_Sprite.cpp" />
+    <ClCompile Include="Material_Spritesheet.cpp" />
     <ClCompile Include="Material_Surface.cpp" />
     <ClCompile Include="Mesh.cpp" />
     <ClCompile Include="MeshManager.cpp" />
