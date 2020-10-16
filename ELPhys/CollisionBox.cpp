@@ -102,9 +102,13 @@ Vector3 CollisionBox::GetNormalForPoint(const Vector3& point, const Transform& w
 	return Vector3(0.f, 0.f, point.z > 0 ? 1.f : -1.f);
 }
 
-Vector3 CollisionBox::GetFarthestPointInDirection(const Vector3& axis, const Transform& worldTransform) const
+Vector3 CollisionBox::GetFarthestPointInDirection(const Vector3& axisIn, const Transform& worldTransform) const
 {
-	Vector3 points[8] = {
+	Transform ft = _transform * worldTransform;
+	Matrix4 transform = ft.GetTransformationMatrix();
+	Vector3 axis = (Vector4(axisIn, 0.f) * ft.GetInverseTransformationMatrix()).GetXYZ();
+
+	const static Vector3 points[8] = {
 		Vector3(-1, -1, -1),
 		Vector3(-1, -1, 1),
 		Vector3(-1, 1, -1),
@@ -115,21 +119,6 @@ Vector3 CollisionBox::GetFarthestPointInDirection(const Vector3& axis, const Tra
 		Vector3(1, 1, 1)
 	};
 
-	int index = -1;
-	float maxDot = 0.f;
-
-	Matrix4 fullTransform = (_transform * worldTransform).GetTransformationMatrix();
-	for (int i = 0; i < 8; ++i)
-	{
-		points[i] = (Vector4(points[i], 1.f) * fullTransform).GetXYZ();
-		
-		float dot = points[i].Dot(axis);
-		if (dot > maxDot || index < 0)
-		{
-			index = i;
-			maxDot = dot;
-		}
-	}
-
-	return points[index];
+	int octant = ((axis.x >= 0.f) << 2) | ((axis.y >= 0.f) << 1) | (axis.z >= 0.f);
+	return (Vector4(points[octant], 1.f) * transform).GetXYZ();
 }

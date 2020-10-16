@@ -108,11 +108,12 @@ inline Vector3 SphereRayExitPoint(float startY, const Vector3& dir,  float radiu
 
 Vector3 CollisionCapsule::GetFarthestPointInDirection(const Vector3& axisIn, const Transform& worldTransform) const
 {
-    Matrix4 transform = (_transform * worldTransform).GetTransformationMatrix();
-    Vector3 axis = (Vector4(axisIn.Normalised(), 1.f) * Matrix4::Rotation(worldTransform.GetRotation().GetQuat().Inverse())).GetXYZ();
-    
+    Transform ft = _transform * worldTransform;
+    Matrix4 transform = ft.GetTransformationMatrix();
+    Vector3 axis = (Vector4(axisIn, 0.f) * ft.GetInverseTransformationMatrix()).GetXYZ().Normalised();
+
     float xz2 = axis.x * axis.x + axis.z * axis.z;
-    if (xz2 < 0.0001f)
+    if (xz2 == 0.f)
     {
         if (axis.y > 0.f)
             return (Vector4(0.f, _halfHeight, 0.f, 1.f) * transform).GetXYZ();

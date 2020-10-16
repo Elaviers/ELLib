@@ -216,9 +216,7 @@ Vector3 EPA(
 		double newDot = ((Vector3T<double>)dir).Dot((Vector3T<double>)newPoint);
 		double oldDot = ((Vector3T<double>)dir).Dot((Vector3T<double>)closestFace.a);
 		if (newDot - oldDot <= EPA_TOLERANCE)
-		{
 			return closestFace.closestPointToOrigin;
-		}
 
 		List<Pair<Vector3>> edges(NewHandler(&pool, &PoolType::NewArray), DeleteHandler(&pool, &PoolType::DeleteHandler));
 
@@ -248,7 +246,6 @@ Vector3 EPA(
 }
 
 //Overlap Query w/ EPA penetration solving
-//todo: touching result disabled for now due to instability in some cases
 EOverlapResult GJK(const CollisionShape& shapeA, const Transform& tA, const CollisionShape& shapeB, const Transform& tB, const LineSegment* pLineA, Vector3* out_PenetrationVector)
 {
 	//The simplex is a tetrahedron inside the minkowski difference
@@ -639,10 +636,9 @@ EOverlapResult Collider::Overlaps(const Transform& transform, const Collider& ot
 				const CollisionShape& otherShape = other.GetShape(j);
 
 				float distanceSq = ((shape.GetTransform().GetPosition() + transform.GetPosition()) - (otherShape.GetTransform().GetPosition() + otherTransform.GetPosition())).LengthSquared();
-				float shapeRadius = shape.GetMaximumScaledRadius() * Maths::Max(transform.GetScale().GetData(), 3);
-				float otherShapeRadius = otherShape.GetMaximumScaledRadius() * Maths::Max(otherTransform.GetScale().GetData(), 3);
-				float combinedRadii = shapeRadius + otherShapeRadius;
-				if (distanceSq <= combinedRadii * combinedRadii)
+				float shapeRadius = shape.GetMaximumRadius() * Maths::Max(transform.GetScale().GetData(), 3);
+				float otherShapeRadius = otherShape.GetMaximumRadius() * Maths::Max(otherTransform.GetScale().GetData(), 3);
+				if (distanceSq <= shapeRadius * shapeRadius + otherShapeRadius * otherShapeRadius)
 				{
 					//float d = GJKDist(shape, shrinkT, otherShape, shrinkOT, cpA, cpB, lineA);
 
@@ -728,4 +724,16 @@ Pair<Vector3> Collider::GetShallowContactPoints(
 	}
 
 	return Pair<Vector3>();
+}
+
+float Collider::GetMaximumRadius() const
+{
+	float r = 0.f;
+	for (size_t i = 0; i < GetShapeCount(); ++i)
+	{
+		const CollisionShape& shape = GetShape(i);
+		r = Maths::Max(r, shape.GetTransform().GetPosition().Length() + shape.GetMaximumRadius());
+	}
+
+	return r;
 }

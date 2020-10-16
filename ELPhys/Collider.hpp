@@ -113,4 +113,6 @@ public:
 	Pair<Vector3> GetShallowContactPoints(
 		const Transform& transform, float shrink,
 		const Collider& other, const Transform& otherTransform, float otherShrink) const;
+
+	float GetMaximumRadius() const;
 };

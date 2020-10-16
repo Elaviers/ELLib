@@ -20,7 +20,7 @@ public:
 
 	virtual CollisionShape* Clone() const = 0;
 
-	virtual float GetMaximumScaledRadius() const = 0;
+	virtual float GetMaximumRadius() const = 0;
 
 	virtual bool IntersectsRay(const Ray&, RaycastResult&, const Transform& transform) const = 0;
 	virtual Vector3 GetNormalForPoint(const Vector3& point, const Transform& transform) const = 0;
