@@ -31,6 +31,25 @@ constexpr const double GJK_TOLERANCE = 1e-10;
 
 constexpr const double EPA_TOLERANCE = 1e-10;
 
+struct GJKInfo
+{
+	const CollisionShape& shapeA;
+	const CollisionShape& shapeB;
+	const Transform& transformA;
+	const Transform& transformB;
+
+	const LineSegment* sweepA = nullptr;
+
+	bool calculatePenetration = true;
+	Vector3 penetrationVector;
+
+	float expand = 0.f;
+
+	GJKInfo(const CollisionShape& shapeA, const CollisionShape& shapeB, const Transform& transformA, const Transform& transformB) :
+		shapeA(shapeA), shapeB(shapeB), transformA(transformA), transformB(transformB)
+	{}
+};
+
 //#define GJK_DEBUG 1
 #define GJK_MATHEMATICA_DEBUG 0
 
@@ -168,28 +187,26 @@ void InsertFace(List<Face>& closestFaces, const Face& face)
 	closestFaces.Add(face);
 }
 
-inline Vector3 Support(
-	const CollisionShape& shapeA, const Transform& tA,
-	const CollisionShape& shapeB, const Transform& tB,
-	const LineSegment* pLineA,
-	const Vector3& dir)
+inline Vector3 Support(const GJKInfo& info, const Vector3& dir)
 {
-	if (pLineA)
-	{
-		Vector3 farthestLinePoint = dir.Dot(pLineA->end - pLineA->start) > 0.f ? pLineA->end : pLineA->start;
-		return (farthestLinePoint + shapeA.GetFarthestPointInDirection(dir, tA)) - shapeB.GetFarthestPointInDirection(-dir, tB);
-	}
+	CollisionShape::OrientedPoint a = info.shapeA.GetFarthestPointInDirection(dir, info.transformA);
+	CollisionShape::OrientedPoint b = info.shapeB.GetFarthestPointInDirection(-dir, info.transformB);
 	
-	Vector3 v3 = shapeA.GetFarthestPointInDirection(dir, tA) - shapeB.GetFarthestPointInDirection(-dir, tB);
-	return v3;
+	if (info.sweepA)
+	{
+		Vector3 farthestLinePoint = dir.Dot(info.sweepA->end - info.sweepA->start) > 0.f ? info.sweepA->end : info.sweepA->start;
+		a.position += farthestLinePoint;
+	}
+
+	if (info.expand != 0.f)
+		return (a.position + a.normal * info.expand) - (b.position + b.normal * info.expand);
+
+	return a.position - b.position;
 }
 
 //Note: not the best for very shallow overlaps (can have erroneous results due to division by incredibly small amounts) (can return NaN in its current incarnation)
-Vector3 EPA(
-	const Vector3 simplex[4],
-	const CollisionShape& shapeA, const Transform& tA,
-	const CollisionShape& shapeB, const Transform& tB,
-	const LineSegment* pLineA = nullptr)
+//Not incredibly reliable right now...
+Vector3 EPA(const Vector3 simplex[4], const GJKInfo& info)
 {
 	typedef MultiPool<byte, 1000> PoolType;
 
@@ -211,7 +228,7 @@ Vector3 EPA(
 		Face& closestFace = *closestFaces.begin();
 		Vector3 dir = closestFace.normal;
 
-		Vector3 newPoint = Support(shapeA, tA, shapeB, tB, pLineA, dir);
+		Vector3 newPoint = Support(info, dir);
 
 		double newDot = ((Vector3T<double>)dir).Dot((Vector3T<double>)newPoint);
 		double oldDot = ((Vector3T<double>)dir).Dot((Vector3T<double>)closestFace.a);
@@ -246,7 +263,7 @@ Vector3 EPA(
 }
 
 //Overlap Query w/ EPA penetration solving
-EOverlapResult GJK(const CollisionShape& shapeA, const Transform& tA, const CollisionShape& shapeB, const Transform& tB, const LineSegment* pLineA, Vector3* out_PenetrationVector)
+EOverlapResult GJK(GJKInfo& info)
 {
 	//The simplex is a tetrahedron inside the minkowski difference
 	Vector3 simplex[4];
@@ -260,7 +277,7 @@ EOverlapResult GJK(const CollisionShape& shapeA, const Transform& tA, const Coll
 		{
 		case 0:
 			//First point, search along A->B
-			dir = (shapeB.GetTransform().GetPosition() + tB.GetPosition()) - (shapeA.GetTransform().GetPosition() + tA.GetPosition());
+			dir = (info.shapeB.GetTransform().GetPosition() + info.transformB.GetPosition()) - (info.shapeA.GetTransform().GetPosition() + info.transformA.GetPosition());
 
 			if (dir.LengthSquared() == 0.f)
 				dir = Vector3(1, 0, 0);
@@ -343,8 +360,8 @@ EOverlapResult GJK(const CollisionShape& shapeA, const Transform& tA, const Coll
 				break;
 			}
 
-			if (out_PenetrationVector)
-				*out_PenetrationVector = EPA(simplex, shapeA, tA, shapeB, tB, pLineA);
+			if (info.calculatePenetration)
+				info.penetrationVector = EPA(simplex, info);
 
 			if (dotBCD <= GJK_TOUCH_TOLERANCE || dotABD <= GJK_TOUCH_TOLERANCE || dotACD <= GJK_TOUCH_TOLERANCE)
 				return EOverlapResult::TOUCHING;
@@ -354,7 +371,7 @@ EOverlapResult GJK(const CollisionShape& shapeA, const Transform& tA, const Coll
 		}
 
 		//Find new support point
-		simplex[i] = Support(shapeA, tA, shapeB, tB, pLineA, dir);
+		simplex[i] = Support(info, dir);
 
 		//Fail if the new point did not go past the origin
 		if (simplex[i].Dot(dir) < 0.f)
@@ -410,10 +427,7 @@ Vector3 Cartesian2Barycentric(const Vector3& p, const Vector3& a, const Vector3&
 	return result;
 }
 
-float GJKDist(
-	const CollisionShape& shapeA, const Transform& tA,
-	const CollisionShape& shapeB, const Transform& tB,
-	Vector3& pointA, Vector3& pointB, const LineSegment* pLineA)
+float GJKDist(GJKInfo& info, Vector3& out_pointA, Vector3& out_pointB)
 {
 #if GJK_DEBUG
 	Debug::PrintLine("STARTING GJKDIST...");
@@ -451,7 +465,7 @@ float GJKDist(
 		{
 		case 0:
 			//First point, search along A->B
-			dir = (shapeB.GetTransform().GetPosition() + tB.GetPosition()) - (shapeA.GetTransform().GetPosition() + tA.GetPosition());
+			dir = (info.shapeB.GetTransform().GetPosition() + info.transformB.GetPosition()) - (info.shapeA.GetTransform().GetPosition() + info.transformA.GetPosition());
 
 			if (dir.LengthSquared() == 0.f)
 				dir = Vector3(1.f, 0.f, 0.f);
@@ -537,16 +551,19 @@ float GJKDist(
 		}
 
 		//Find new support point
-		if (pLineA)
-		{
-			Vector3 farthestLinePoint = dir.Dot(pLineA->end - pLineA->start) > 0.f ? pLineA->end : pLineA->start;
+		CollisionShape::OrientedPoint a = info.shapeA.GetFarthestPointInDirection(dir, info.transformA);
+		CollisionShape::OrientedPoint b = info.shapeB.GetFarthestPointInDirection(-dir, info.transformB);
 
-			simplex[i] = SimplexPoint(farthestLinePoint + shapeA.GetFarthestPointInDirection(dir, tA), shapeB.GetFarthestPointInDirection(-dir, tB));
-		}
-		else
+		if (info.sweepA)
 		{
-			simplex[i] = SimplexPoint(shapeA.GetFarthestPointInDirection(dir, tA), shapeB.GetFarthestPointInDirection(-dir, tB));
+			Vector3 farthestLinePoint = dir.Dot(info.sweepA->end - info.sweepA->start) > 0.f ? info.sweepA->end : info.sweepA->start;
+			a.position += farthestLinePoint;
 		}
+
+		if (info.expand != 0.f)
+			simplex[i] = SimplexPoint(a.position + a.normal * info.expand, b.position + b.normal * info.expand);
+		else
+			simplex[i] = SimplexPoint(a.position, b.position);
 
 #if GJK_DEBUG
 		Debug::PrintLine(CSTR("Current closest point is (", closestPoint, ")"));
@@ -584,23 +601,23 @@ float GJKDist(
 	{
 	case 1:
 	{
-		pointA = a.aSupport;
-		pointB = a.bSupport;
+		out_pointA = a.aSupport;
+		out_pointB = a.bSupport;
 		break;
 	}
 	case 2:
 	{
 		Vector2 bary = Cartesian2Barycentric(closestPoint, mA, mB);
-		pointA = a.aSupport * bary.x + b.aSupport * bary.y;
-		pointB = a.bSupport * bary.x + b.bSupport * bary.y;
+		out_pointA = a.aSupport * bary.x + b.aSupport * bary.y;
+		out_pointB = a.bSupport * bary.x + b.bSupport * bary.y;
 		break;
 	}
 	case 3:
 	case 4:
 	{
 		Vector3 bary = Cartesian2Barycentric(closestPoint, mA, mB, mC);
-		pointA = a.aSupport * bary.x + b.aSupport * bary.y + c.aSupport * bary.z;
-		pointB = a.bSupport * bary.x + b.bSupport * bary.y + c.bSupport * bary.z;
+		out_pointA = a.aSupport * bary.x + b.aSupport * bary.y + c.aSupport * bary.z;
+		out_pointB = a.bSupport * bary.x + b.bSupport * bary.y + c.bSupport * bary.z;
 		break;
 	}
 	}
@@ -619,11 +636,6 @@ EOverlapResult Collider::Overlaps(const Transform& transform, const Collider& ot
 	if (CanCollideWith(other))
 	{
 		const float shallowContactRadius = 0.2f;
-		Transform shrinkT = transform;
-		Transform shrinkOT = transform;
-
-		shrinkT.SetScale(shrinkT.GetScale() * (1.f - shallowContactRadius));
-		shrinkOT.SetScale(shrinkOT.GetScale() * (1.f - shallowContactRadius));
 		bool isTouching = false;
 
 		Vector3 cpA;
@@ -640,26 +652,38 @@ EOverlapResult Collider::Overlaps(const Transform& transform, const Collider& ot
 				float otherShapeRadius = otherShape.GetMaximumRadius() * Maths::Max(otherTransform.GetScale().GetData(), 3);
 				if (distanceSq <= shapeRadius * shapeRadius + otherShapeRadius * otherShapeRadius)
 				{
-					//float d = GJKDist(shape, shrinkT, otherShape, shrinkOT, cpA, cpB, lineA);
+					GJKInfo info(shape, otherShape, transform, otherTransform);
+					info.sweepA = lineA;
+					info.calculatePenetration = out_PenetrationVector != nullptr;
+					info.expand = -shallowContactRadius;
+
+					float d = GJKDist(info, cpA, cpB);
 
 					//temp!!! todo!! GJKDist doesn't work properly!!!!!!!
-					if (true /*|| d <= shallowContactRadius*/)
+					if (d < 0.0001f || d > shallowContactRadius * 2.f)
 					{
-						EOverlapResult result = GJK(shape, transform, otherShape, otherTransform, lineA, out_PenetrationVector);
+						info.expand = 0.f;
+						EOverlapResult result = GJK(info);
 						if (result == EOverlapResult::OVERLAPPING)
+						{
+							if (out_PenetrationVector)
+								*out_PenetrationVector = info.penetrationVector;
+							
 							return EOverlapResult::OVERLAPPING;
+						}
 
 						if (!isTouching && result == EOverlapResult::TOUCHING)
 							isTouching = true;
 					}
-					/*
-					else if (d < shallowContactRadius * 2.f)
+					else
 					{
-						Debug::PrintLine(String::FromFloat(d, 0, 30).GetData());
-						*out_PenetrationVector = cpB - cpA;
+						Vector3 pd = (cpB - cpA).Normalise();
+
+						if (out_PenetrationVector)
+							*out_PenetrationVector = pd * (shallowContactRadius * 2.f - d);
+						
 						return EOverlapResult::OVERLAPPING;
 					}
-					*/
 				}
 			}
 
@@ -681,8 +705,10 @@ float Collider::MinimumDistanceTo(
 		for (size_t i = 0; i < GetShapeCount(); ++i)
 			for (size_t j = 0; j < GetShapeCount(); ++j)
 			{
-				float dist = GJKDist(GetShape(i), transform, other.GetShape(j), otherTransform, a, b, pLineA);
+				GJKInfo info(GetShape(i), other.GetShape(j), transform, otherTransform);
+				info.sweepA = pLineA;
 
+				float dist = GJKDist(info, a, b);
 				if (minDist < 0.f || dist < minDist)
 				{
 					out_PointA = a;
@@ -690,7 +716,6 @@ float Collider::MinimumDistanceTo(
 
 					if (dist <= 0.f)
 						return 0.f;
-
 
 					minDist = dist;
 				}

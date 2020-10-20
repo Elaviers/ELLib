@@ -473,6 +473,7 @@ public:
 	ConstIterator end() const	{ return ConstIterator(nullptr); }
 
 	size_t GetSize() const		{ return _first ? _first->GetChildCount() + 1 : 0; }
+	bool IsEmpty() const		{ return _first == nullptr; }
 
 	Iterator Add(const T& value)
 	{

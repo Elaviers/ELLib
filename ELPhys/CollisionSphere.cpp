@@ -74,11 +74,14 @@ Vector3 CollisionSphere::GetNormalForPoint(const Vector3& point, const Transform
 	return (point - (_transform * worldTransform).GetPosition()).Normalise();
 }
 
-Vector3 CollisionSphere::GetFarthestPointInDirection(const Vector3& axisIn, const Transform& worldTransform) const
+CollisionShape::OrientedPoint CollisionSphere::GetFarthestPointInDirection(const Vector3& axisIn, const Transform& worldTransform) const
 {
 	Transform ft = _transform * worldTransform;
 	Matrix4 transform = ft.GetTransformationMatrix();
 	Vector3 axis = (Vector4(axisIn, 0.f) * ft.GetInverseTransformationMatrix()).GetXYZ().Normalised();
 
-	return (Vector4(axis * _radius, 1.f) * transform).GetXYZ();
+	CollisionShape::OrientedPoint point;
+	point.position = (Vector4(axis * _radius, 1.f) * transform).GetXYZ();
+	point.normal = (point.position - worldTransform.GetPosition()).Normalised();
+	return point;
 }

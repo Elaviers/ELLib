@@ -106,7 +106,7 @@ inline Vector3 SphereRayExitPoint(float startY, const Vector3& dir,  float radiu
     return dir * sphereExit;
 }
 
-Vector3 CollisionCapsule::GetFarthestPointInDirection(const Vector3& axisIn, const Transform& worldTransform) const
+CollisionShape::OrientedPoint CollisionCapsule::GetFarthestPointInDirection(const Vector3& axisIn, const Transform& worldTransform) const
 {
     Transform ft = _transform * worldTransform;
     Matrix4 transform = ft.GetTransformationMatrix();
@@ -115,10 +115,15 @@ Vector3 CollisionCapsule::GetFarthestPointInDirection(const Vector3& axisIn, con
     float xz2 = axis.x * axis.x + axis.z * axis.z;
     if (xz2 == 0.f)
     {
+        CollisionShape::OrientedPoint point;
+
         if (axis.y > 0.f)
-            return (Vector4(0.f, _halfHeight, 0.f, 1.f) * transform).GetXYZ();
-        
-        return (Vector4(0.f, -_halfHeight, 0.f, 1.f) * transform).GetXYZ();
+            point.position = (Vector4(0.f, _halfHeight, 0.f, 1.f) * transform).GetXYZ();
+        else 
+            point.position = (Vector4(0.f, -_halfHeight, 0.f, 1.f) * transform).GetXYZ();
+
+        point.normal = (point.position - worldTransform.GetPosition()).Normalise();
+        return point;
     }
 
     /*
@@ -136,14 +141,22 @@ Vector3 CollisionCapsule::GetFarthestPointInDirection(const Vector3& axisIn, con
     if (cylPoint.y > _halfHeight - _radius)
     {
         //top hemi
-        return (Vector4(SphereRayExitPoint(_radius - _halfHeight, axis, _radius), 1.f) * transform).GetXYZ();
+        CollisionShape::OrientedPoint point;
+        point.position = (Vector4(SphereRayExitPoint(_radius - _halfHeight, axis, _radius), 1.f) * transform).GetXYZ();
+        point.normal = point.position - (worldTransform.GetPosition() + worldTransform.GetUpVector() * (_halfHeight - _radius));
+        point.normal.Normalise();
+        return point;
     }
     else if (cylPoint.y < _radius - _halfHeight)
     {
         //bottom hemi
-        return (Vector4(SphereRayExitPoint(_halfHeight - _radius, axis, _radius), 1.f) * transform).GetXYZ();
+        CollisionShape::OrientedPoint point;
+        point.position = (Vector4(SphereRayExitPoint(_halfHeight - _radius, axis, _radius), 1.f) * transform).GetXYZ();
+        point.normal = point.position - (worldTransform.GetPosition() - worldTransform.GetUpVector() * (_halfHeight - _radius));
+        point.normal.Normalise();
+        return point;
     }
 
     //on cylinder
-    return (Vector4(cylPoint, 1.f) * transform).GetXYZ();
+    return { (Vector4(cylPoint, 1.f) * transform).GetXYZ(), (Vector4(axis.x, 0.f, axis.z, 0.f) * transform).GetXYZ().Normalised() };
 }
