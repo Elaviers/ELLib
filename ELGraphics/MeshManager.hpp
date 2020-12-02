@@ -6,7 +6,7 @@ class MeshManager : public AssetManager<Mesh>
 {
 private:
 	virtual Mesh* _CreateResource(const Buffer<byte>&, const String&, const String&, const Context&) override;
-	
+
 	Mesh_Static* _line = nullptr;
 	Mesh_Static* _cube = nullptr;
 	Mesh_Static* _invCube = nullptr;

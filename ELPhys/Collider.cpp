@@ -19,17 +19,21 @@ bool Collider::IntersectsRay(const Transform& transform, const Ray& ray, ECollis
 	return false;
 }
 
-constexpr const int GJK_MAX_ITERATIONS = 50;
+constexpr const int GJK_MAX_ITERATIONS = 100;
 
 constexpr const int EPA_MAX_ITERATIONS = 250;
+
+constexpr const int GJKDIST_MAX_ITERATIONS = 100;
 
 //GJK will terminate if the dot product between a point and an edge normal is lower than this
 constexpr const float GJK_TOUCH_TOLERANCE = 0.001f;
 
 //GJKDist will terminate if a the dot product between an existing point and the direction and the dot product between the new point and the direction is lower than this
-constexpr const double GJK_TOLERANCE = 1e-10;
+constexpr const double GJK_TOLERANCE = 1e-50;
 
-constexpr const double EPA_TOLERANCE = 1e-10;
+constexpr const double EPA_TOLERANCE = 1e-50;
+
+constexpr const double GJKDIST_TOLERANCE = 1e-50;
 
 struct GJKInfo
 {
@@ -459,7 +463,7 @@ float GJKDist(GJKInfo& info, Vector3& out_pointA, Vector3& out_pointB)
 	Vector3 closestPoint;
 	Vector3 dir;
 	int i = 0;
-	for (int iteration = 0; iteration < GJK_MAX_ITERATIONS; ++iteration)
+	for (int iteration = 0; iteration < GJKDIST_MAX_ITERATIONS; ++iteration)
 	{
 		switch (i)
 		{
@@ -584,7 +588,7 @@ float GJKDist(GJKInfo& info, Vector3& out_pointA, Vector3& out_pointB)
 			{
 				double dotP = ((Vector3T<double>)dir).Dot(simplex[j].difference);
 
-				if (dotD - dotP <= GJK_TOLERANCE)
+				if (dotD - dotP <= GJKDIST_TOLERANCE)
 				{
 					stopIterating = true;
 					break;
@@ -677,17 +681,30 @@ EOverlapResult Collider::Overlaps(const Transform& transform, const Collider& ot
 					}
 					else
 					{
+						float pa = shallowContactRadius * 2.f - d;
 						Vector3 pd = (cpB - cpA).Normalise();
 
+						if (pa < 0.0001f)
+						{
+							isTouching = true;
+							continue;
+						}
+
 						if (out_PenetrationVector)
-							*out_PenetrationVector = pd * (shallowContactRadius * 2.f - d);
+							*out_PenetrationVector = pd * pa;
 						
 						return EOverlapResult::OVERLAPPING;
 					}
 				}
 			}
 
-		return isTouching ? EOverlapResult::TOUCHING : EOverlapResult::SEPERATE;
+		if (isTouching)
+		{
+			if (out_PenetrationVector)
+				*out_PenetrationVector = Vector3();
+
+			return EOverlapResult::TOUCHING;
+		}
 	}
 
 	return EOverlapResult::SEPERATE;

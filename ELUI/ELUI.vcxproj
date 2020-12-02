@@ -201,6 +201,7 @@
     <ClInclude Include="Panel.hpp" />
     <ClInclude Include="Rect.hpp" />
     <ClInclude Include="Splitter.hpp" />
+    <ClInclude Include="TabBook.hpp" />
     <ClInclude Include="Textbox.hpp" />
     <ClInclude Include="TextButton.hpp" />
     <ClInclude Include="Toolbar.hpp" />
@@ -217,6 +218,7 @@
     <ClCompile Include="Panel.cpp" />
     <ClCompile Include="Rect.cpp" />
     <ClCompile Include="Splitter.cpp" />
+    <ClCompile Include="TabBook.cpp" />
     <ClCompile Include="Textbox.cpp" />
     <ClCompile Include="Toolbar.cpp" />
   </ItemGroup>

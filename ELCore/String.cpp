@@ -143,7 +143,7 @@ Buffer<String> String::Split(const char *delimiters) const
 */
 String String::SubString(size_t start, size_t end) const
 {
-	if (start > _length)
+	if (start > _length || start >= end)
 		return "";
 
 	if (end > _length)
@@ -159,18 +159,51 @@ String String::SubString(size_t start, size_t end) const
 
 int String::IndexOf(char c, size_t start) const
 {
-	for (size_t i = start; i < _length; ++i)
-		if (_data[i] == c)
-			return (int)i;
+	if (start < _length)
+		for (size_t i = start; i < _length; ++i)
+			if (_data[i] == c)
+				return (int)i;
 
 	return -1;
 }
 
 int String::LastIndexOf(char c, size_t start) const
 {
-	for (size_t i = start + 1; i > 0; --i)
-		if (_data[i - 1] == c)
-			return (int)(i - 1);
+	if (start < _length)
+		for (size_t i = start + 1; i > 0; --i)
+			if (_data[i - 1] == c)
+				return (int)(i - 1);
+
+	return -1;
+}
+
+int String::IndexOf(const char* string, size_t start) const
+{
+	if (start < _length && string[0] != '\0')
+	{
+		const size_t len = StringLength(string);
+		const size_t stop = (_length - len) + 1;
+		for (size_t i = start; i < stop; ++i)
+			if (_data[i] == string[0])
+				if (StringsEqualN(_data + i, string, len))
+					return (int)i;
+	}
+
+	return -1;
+}
+
+int String::LastIndexOf(const char* string, size_t start) const
+{
+	if (start < _length)
+	{
+		const size_t len = StringLength(string);
+		const size_t last = len - 1;
+		if (len <= _length)
+			for (size_t i = (start - len) + 2; i > 0; --i)
+				if (_data[i - 1] == string[0])
+					if (StringsEqualN(_data + i - 1, string, len))
+						return (int)(i - 1);
+	}
 
 	return -1;
 }
@@ -193,6 +226,28 @@ int String::LastIndexOfAny(const char* chars, size_t start) const
 				return (int)(i - 1);
 
 	return -1;
+}
+
+////
+
+String String::Replace(const char* a, const char* b) const
+{
+	int end = IndexOf(a);
+	if (end < 0)
+		return String(*this);
+
+	size_t skip = StringLength(a);
+	String result = SubString(0, end) + b;
+
+	int start = end + skip;
+	while ((end = IndexOf(a, start)) > 0)
+	{
+		result += SubString(start, end) + b;
+		start = end + skip;
+	}
+
+	result += SubString(start);
+	return result;
 }
 
 ////
@@ -434,53 +489,6 @@ float String::ToFloat() const
 	return (float)atof(_data);
 }
 
-/*
-Vector2 String::ToVector2() const
-{
-	Buffer<String> tokens = Split(",");
-	Vector2 result;
-
-	if (tokens.GetSize() >= 1)
-		result.x = tokens[0].ToFloat();
-	if (tokens.GetSize() >= 2)
-		result.y = tokens[1].ToFloat();
-
-	return result;
-}
-
-Vector3 String::ToVector3() const
-{
-	Buffer<String> tokens = Split(",");
-	Vector3 result;
-
-	if (tokens.GetSize() >= 1)
-		result.x = tokens[0].ToFloat();
-	if (tokens.GetSize() >= 2)
-		result.y = tokens[1].ToFloat();
-	if (tokens.GetSize() >= 3)
-		result.z = tokens[2].ToFloat();
-
-	return result;
-}
-
-Vector4 String::ToVector4() const
-{
-	Buffer<String> tokens = Split(",");
-	Vector4 result;
-
-	if (tokens.GetSize() >= 1)
-		result.x = tokens[0].ToFloat();
-	if (tokens.GetSize() >= 2)
-		result.y = tokens[1].ToFloat();
-	if (tokens.GetSize() >= 3)
-		result.z = tokens[2].ToFloat();
-	if (tokens.GetSize() >= 4)
-		result.w = tokens[3].ToFloat();
-
-	return result;
-}
-*/
-
 ////Conversion
 
 const char* ALPHA = "0123456789ABCDEFGHIJKLMNOP";
@@ -567,44 +575,6 @@ String String::FromFloat(double number, unsigned int minimum, unsigned int maxDe
 	return whole_string;
 }
 
-/*
-String String::From(const Vector2 &vector, unsigned int minimum, unsigned int maxDecimal, byte base)
-{
-	const char *seperator = ", ";
-	return From(vector.x, minimum, maxDecimal, base) + seperator + From(vector.y, minimum, maxDecimal, base);
-}
-
-String String::From(const Vector3 &vector, unsigned int minimum, unsigned int maxDecimal, byte base)
-{
-	const char *seperator = ", ";
-	return From(vector.x, minimum, maxDecimal, base) + seperator + From(vector.y, minimum, maxDecimal, base) + seperator + From(vector.z, minimum, maxDecimal, base);
-}
-
-String String::From(const Vector4& vector, unsigned int minimum, unsigned int maxDecimal, byte base)
-{
-	const char* seperator = ", ";
-	return From(vector.x, minimum, maxDecimal, base) + seperator + From(vector.y, minimum, maxDecimal, base) + seperator + From(vector.z, minimum, maxDecimal, base) + seperator + From(vector.w, minimum, maxDecimal, base);
-}
-
-String String::From(const Matrix4& matrix, unsigned minimum, unsigned int maxDecimal, byte base)
-{
-	String result;
-	const char* rowSeperator = ", ";
-	const char* columnSeperator = "\n";
-	for (int r = 0; r < 4; ++r)
-		for (int c = 0; c < 4; ++c)
-		{
-			result += From(matrix[r][c], minimum, maxDecimal, base);
-			if (r < 3)
-				result += rowSeperator;
-			else if (c < 3)
-				result += columnSeperator;
-		}
-
-	return result;
-}
-*/
-
 String String::FromWide(const wchar_t *string)
 {
 	size_t i = 0;
@@ -678,4 +648,23 @@ bool StringContains(const char *string, const char *phrase)
 	}
 
 	return false;
+}
+
+bool StringsInequalN(const char* a, const char* b, size_t n)
+{
+	for (int i = 0; i < n; ++i)
+	{
+		if (a[i] != b[i])
+			return true;
+
+		if (a[i] == '\0')
+			return true;  //Consider strings inequal if we get to the end before n is reached
+	}
+
+	return false;
+}
+
+bool StringsEqualN(const char* a, const char* b, size_t n)
+{
+	return !StringsInequalN(a, b, n);
 }

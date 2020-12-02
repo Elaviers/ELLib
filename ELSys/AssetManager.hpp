@@ -6,8 +6,6 @@
 #include <ELCore/SharedPointer.hpp>
 #include <ELCore/String.hpp>
 
-class Asset;
-
 class AssetManagerBase
 {
 protected:
@@ -16,7 +14,6 @@ protected:
 	const Buffer<String> _extensions;
 
 	bool _fallbackAnywhere; //Allows the asset manager fallback even if _all.txt is not present for a subdir for an asset
-
 protected:
 	template <typename T>
 	friend class AssetManager;
@@ -28,6 +25,8 @@ public:
 	virtual void GetAllPossibleKeys(Buffer<String>& resultsOut, const Context& ctx, const String& path = "", bool recursive = false) const = 0;
 };
 
+#include <ELCore/Asset.hpp>
+
 template<typename T>
 class AssetManager : protected AssetManagerBase
 {
@@ -35,17 +34,21 @@ private:
 	Hashmap<String, SharedPointerData<T>> _map;
 	
 protected:
-	virtual T* _CreateResource(const Buffer<byte>& data, const String& name, const String& extension, const Context&) = 0;
+	virtual T* _CreateResource(const Buffer<byte>& data, const String& name, const String& extension, const Context& ctx) = 0;
 	virtual void _ResourceRead(T& resource, const Buffer<byte>& data, const String& extension, const Context& ctx)
 	{
-		if (extension == ".txt")
+		Asset* asset = dynamic_cast<Asset*>(&resource);
+		if (asset)
 		{
-			((Asset&)resource).ReadText(String(data), ctx);
-		}
-		else
-		{
-			ByteReader reader = data;
-			((Asset&)resource).Read(reader);
+			if (extension == ".txt")
+			{
+				asset->ReadText(String(data), ctx);
+			}
+			else
+			{
+				ByteReader reader = data;
+				asset->Read(reader);
+			}
 		}
 	}
 

@@ -1,4 +1,5 @@
 #pragma once
+#include "Concepts.hpp"
 #include "FunctionPointer.hpp"
 #include <initializer_list>
 
@@ -261,6 +262,60 @@ class List
 		const Node* GetNodeBeforeChild(const Node* node) const	{ return (const Node*)(const_cast<Node*>(this)->GetNodeBeforeChild(node)); }
 		const Node* GetNodeAtDepth(size_t depth) const			{ return (const Node*)(const_cast<Node*>(this)->GetNodeAtDepth(depth)); }
 		const Node* GetDeepestNode() const						{ return (const Node*)(const_cast<Node*>(this)->GetDeepestNode()); }
+
+		//delegate stuff
+		template<typename F>
+		requires Concepts::Function<F, void, Node&>
+			void ForEach(F function)
+		{
+			for (Node* node = this; node; node = node->_next)
+				function(*node);
+		}
+
+		template<typename P>
+		requires Concepts::Predicate<P, const T&>
+		bool Contains(P predicate) //Finds first child that matches the predicate
+		{
+			for (Node* node = this; node; node = node->_next)
+				if (predicate(node->_value))
+					return true;
+
+			return false;
+		}
+
+		template<typename P>
+		requires Concepts::Predicate<P, const T&>
+		bool RemoveChildren(P predicate, const List& list, bool all) //Removes children that pass the predicate
+		{
+			bool success = false;
+			Node* current = this;
+			Node* next = _next;
+			while (next)
+			{
+				if (predicate(next->_value))
+				{
+					current->_next = next->_next;
+					list._DeleteNode(next);
+
+					if (!all) return true;
+
+					success = true;
+
+					if (current->_next == nullptr)
+						return true;
+
+					current = current->_next;
+					next = current->_next;
+				}
+				else
+				{
+					current = next;
+					next = current->_next;
+				}
+			}
+
+			return success;
+		}
 	};
 
 public:
@@ -621,8 +676,45 @@ public:
 				return true;
 			}
 		}
-
+		
 		bool success = _first->RemoveChildrenWithValue(value, *this, all);
+		_last = _FindLast();
+		return success;
+	}
+
+	template<typename P>
+	requires Concepts::Predicate<P, const T&>
+	bool Contains(P predicate) //Returns true if any elements pass the predicate
+	{
+		if (_first)
+		{
+			return _first->Contains(predicate);
+		}
+
+		return false;
+	}
+
+	template<typename P>
+	requires Concepts::Predicate<P, const T&>
+	bool Remove(P predicate, bool all = true) //Removes elements that pass the predicate
+	{
+		if (_first == nullptr) return false;
+		while (predicate(_first->Value()))
+		{
+			Node* next = _first->Next();
+			_DeleteNode(_first);
+			_first = next;
+
+			if (!all) return true;
+
+			if (_first == nullptr)
+			{
+				_last = nullptr;
+				return true;
+			}
+		}
+
+		bool success = _first->RemoveChildren(predicate, *this, all);
 		_last = _FindLast();
 		return success;
 	}

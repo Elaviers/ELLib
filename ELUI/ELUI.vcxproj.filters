@@ -57,6 +57,9 @@
     <ClInclude Include="Element.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="TabBook.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Rect.cpp">
@@ -96,6 +99,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="Panel.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="TabBook.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

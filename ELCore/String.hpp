@@ -12,6 +12,9 @@ bool StringsEqual_CaseInsensitive(const char *a, const char *b);
 bool StringsInequal(const char *a, const char *b);
 bool StringContains(const char* string, const char* phrase);
 
+bool StringsEqualN(const char* a, const char* b, size_t n);
+bool StringsInequalN(const char* a, const char* b, size_t n);
+
 inline char LowerChar(char c)
 {
 	if (c <= 'Z' && c >= 'A')
@@ -57,20 +60,26 @@ public:
 	//start is inclusive, end is exclusive
 	String SubString(size_t start, size_t end) const;
 	String SubString(size_t start) const	{ return SubString(start, _length); }
+
 	int IndexOf(char, size_t start = 0) const;
-	int LastIndexOf(char c) const { return LastIndexOf(c, _length - 1); }
 	int LastIndexOf(char, size_t start) const;
+	int IndexOf(const char*, size_t start = 0) const;
+	int LastIndexOf(const char*, size_t start) const;
+
 	int IndexOfAny(const char* possibleChars, size_t start = 0) const;
-	int LastIndexOfAny(const char* possibleChars) const { return LastIndexOfAny(possibleChars, _length - 1); }
 	int LastIndexOfAny(const char* possibleChars, size_t start) const;
+
+	int LastIndexOf(char c) const { return LastIndexOf(c, _length - 1); }
+	int LastIndexOf(const char* string) const { return LastIndexOf(string, _length - 1); }
+	int LastIndexOfAny(const char* possibleChars) const { return LastIndexOfAny(possibleChars, _length - 1); }
+
+	String Replace(const char* src, const char* with) const;
 
 	void Clear()							{ _SetLength(0); }
 	void Shrink(size_t amount)				{ _SetLength(_length - amount); }
 	void ShrinkTo(size_t length)			{ if (length < _length) _SetLength(length); }
 
 	char& Insert(char c, size_t position);
-
-	void Lower();
 
 	String& operator=(const String&);
 	String& operator=(String&&) noexcept;
@@ -96,6 +105,7 @@ public:
 	bool operator!=(const String &other) const { return _length != other._length || StringsInequal(_data, other._data); }
 	bool operator!=(const char *other) const { return StringsInequal(_data, other); }
 
+	void Lower();
 	String ToLower() const;
 
 	bool ToBool() const;
