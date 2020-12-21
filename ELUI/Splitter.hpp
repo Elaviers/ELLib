@@ -16,8 +16,6 @@ class UISplitter : public UIRect
 	float _max;
 	bool _useAbsolute;
 
-	virtual void _OnBoundsChanged() override;
-
 public:
 	Event<UISplitter&> onDragged;
 
@@ -58,6 +56,7 @@ public:
 	UISplitter& SetMax(float max) { _max = max; return *this; }
 	UISplitter& SetUseAbsolute(bool useAbsolute) { _useAbsolute = useAbsolute; return *this; }
 
+	virtual void UpdateBounds() override;
 	virtual void Render(RenderQueue&) const override;
 
 	virtual bool OnKeyUp(bool blocked, EKeycode) override;

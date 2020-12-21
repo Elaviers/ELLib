@@ -16,11 +16,6 @@ protected:
 
 	UIPanel _panel;
 
-	virtual void _OnBoundsChanged() override
-	{
-		_panel.UpdateAbsoluteBounds();
-	}
-
 public:
 	Event<UIButton&> onPressed;
 
@@ -60,6 +55,12 @@ public:
 
 	virtual void OnHoverStart() override;
 	virtual void OnHoverStop() override;
+
+	virtual void UpdateBounds() override
+	{
+		UIElement::UpdateBounds();
+		_panel.UpdateBounds();
+	}
 
 	virtual void Render(RenderQueue& q) const override
 	{

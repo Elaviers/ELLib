@@ -274,13 +274,13 @@ class List
 
 		template<typename P>
 		requires Concepts::Predicate<P, const T&>
-		bool Contains(P predicate) //Finds first child that matches the predicate
+		Node* FirstWhere(P predicate) //Finds first child that matches the predicate
 		{
 			for (Node* node = this; node; node = node->_next)
 				if (predicate(node->_value))
-					return true;
+					return node;
 
-			return false;
+			return nullptr;
 		}
 
 		template<typename P>
@@ -322,6 +322,7 @@ public:
 	class Iterator
 	{
 		friend List;
+		friend class ConstIterator;
 		Node* _node;
 
 	public:
@@ -372,6 +373,7 @@ public:
 
 	public:
 		ConstIterator(const Node* node) : _node(node) {}
+		ConstIterator(const Iterator& iterator) : _node(iterator._node) {}
 
 		bool IsValid() const		{ return _node != nullptr; }
 
@@ -684,14 +686,22 @@ public:
 
 	template<typename P>
 	requires Concepts::Predicate<P, const T&>
-	bool Contains(P predicate) //Returns true if any elements pass the predicate
+	Iterator FirstWhere(P predicate) //Returns true if any elements pass the predicate
 	{
 		if (_first)
 		{
-			return _first->Contains(predicate);
+			return _first->FirstWhere(predicate);
 		}
 
-		return false;
+		return Iterator();
+	}
+
+	template<typename P>
+	requires Concepts::Predicate<P, const T&>
+	ConstIterator FirstWhere(P predicate) const //Returns true if any elements pass the predicate
+	{
+		Iterator it = const_cast<List*>(this)->FirstWhere(predicate);
+		return ConstIterator(it);
 	}
 
 	template<typename P>

@@ -17,7 +17,7 @@ public:
 		float a;
 	};
 
-	Colour() : _data(0, 0, 0, 1) {}
+	Colour() : _data(0.f, 0.f, 0.f, 1.f) {}
 	Colour(const Vector4& data) : _data(data) {}
 	Colour(float r, float g, float b, float a = 1.f) : _data(r, g, b, a) {}
 	Colour(byte r, byte g, byte b, byte a = 255) : _data(r / 255.f, g / 255.f, b / 255.f, a / 255.f) {}
@@ -45,6 +45,6 @@ public:
 
 	static Colour FromColourCode(const char* colourCode);
 
-	static Colour Invisible, Black, Grey, White, Red, Green, Blue, Yellow, Pink, Cyan;
+	static const Colour Invisible, Black, Grey, White, Red, Green, Blue, Yellow, Pink, Cyan;
 };
 	

@@ -1,6 +1,6 @@
 #pragma once
 #include "AssetManager.hpp"
-#include "TextProvider.hpp"
+#include <ELCore/TextProvider.hpp>
 
 class TextManager : public AssetManager<TextProvider>
 {

@@ -2,6 +2,7 @@
 #include "Element.hpp"
 #include "Colour.hpp"
 #include <ELCore/SharedPointer.hpp>
+#include <ELCore/Text.hpp>
 #include <ELMaths/Transform.hpp>
 #include <ELMaths/Vector2.hpp>
 #include <ELGraphics/Font.hpp>
@@ -11,7 +12,7 @@ enum class ETextAlignment { CENTRE, LEFT, RIGHT };
 class UILabel : public UIElement
 {
 	SharedPointer<const Font> _font;
-	String _string;
+	Text _text;
 
 	UIColour _colour;
 	UIColour _shadowColour;
@@ -25,15 +26,14 @@ class UILabel : public UIElement
 	float _margin;
 
 	void _UpdateShadowTransform();
-	virtual void _OnBoundsChanged() override;
 
 public:
-	UILabel(UIElement *parent) : 
+	UILabel(UIElement *parent = nullptr) : 
 		UIElement(parent), _font(nullptr), _colour(Colour::White), _shadowOffset(2.f, -2.f), _shadowColour(Colour::Black), _margin(4.f), _alignment(ETextAlignment::LEFT) {}
 	virtual ~UILabel() {}
 
 	const SharedPointer<const Font>& GetFont() const { return _font; }
-	const String& GetString() const { return _string; }
+	const Text& GetText() const { return _text; }
 	const UIColour& GetColour() const { return _colour; }
 	const Transform& GetRenderTransform() const { return _transform; }
 	const Vector2& GetShadowOffset() const { return _shadowOffset; }
@@ -41,13 +41,14 @@ public:
 	const ETextAlignment& GetAlignment() const { return _alignment; }
 	float GetMargin() const { return _margin; }
 
-	UILabel& SetFont(const SharedPointer<const Font>& font) { _font = font; _OnBoundsChanged(); return *this; }
-	UILabel& SetString(const String& string) { _string = string; _OnBoundsChanged(); return *this; }
+	UILabel& SetFont(const SharedPointer<const Font>& font) { _font = font; UpdateBounds(); return *this; }
+	UILabel& SetText(const Text& text) { _text = text; UpdateBounds(); return *this; }
 	UILabel& SetColour(const UIColour& colour) { _colour = colour; return *this; }
 	UILabel& SetShadowOffset(const Vector2& offset) { _shadowOffset = offset; _UpdateShadowTransform(); return *this; }
 	UILabel& SetShadowColour(const UIColour& colour) { _shadowColour = colour; return *this; }
-	UILabel& SetAlignment(ETextAlignment alignment) { _alignment = alignment; _OnBoundsChanged(); return *this; }
-	UILabel& SetMargin(float margin) { _margin = margin; _OnBoundsChanged(); return *this; }
+	UILabel& SetAlignment(ETextAlignment alignment) { _alignment = alignment; UpdateBounds(); return *this; }
+	UILabel& SetMargin(float margin) { _margin = margin; UpdateBounds(); return *this; }
 
+	virtual void UpdateBounds() override;
 	virtual void Render(RenderQueue&) const override;
 };

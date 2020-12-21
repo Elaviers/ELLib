@@ -36,7 +36,7 @@ public:
 	UIToolbar(UIElement* parent = nullptr) : UIContainer(parent), _borderSize(0.f), _buttonW(64.f), _buttonGap(8.f), _nextButtonX(0.f) {}
 	virtual ~UIToolbar() {}
 
-	void AddButton(const String& name, const SharedPointer<const Texture>& texture, uint16 userData);
+	void AddButton(const Text& name, const SharedPointer<const Texture>& texture, uint16 userData);
 
 	void SelectByUserData(uint16 userData);
 

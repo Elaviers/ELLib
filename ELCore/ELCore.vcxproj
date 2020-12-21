@@ -198,6 +198,8 @@
     <ClInclude Include="SharedPointer.hpp" />
     <ClInclude Include="StackAllocator.hpp" />
     <ClInclude Include="String.hpp" />
+    <ClInclude Include="Text.hpp" />
+    <ClInclude Include="TextProvider.hpp" />
     <ClInclude Include="Tracker.hpp" />
     <ClInclude Include="Types.hpp" />
     <ClInclude Include="Utilities.hpp" />
@@ -214,6 +216,8 @@
     <ClCompile Include="SharedPointer.cpp" />
     <ClCompile Include="StackAllocator.cpp" />
     <ClCompile Include="String.cpp" />
+    <ClCompile Include="Text.cpp" />
+    <ClCompile Include="TextProvider.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

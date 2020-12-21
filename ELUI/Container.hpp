@@ -9,8 +9,6 @@ protected:
 
 	Buffer<UIElement*> _children;
 
-	virtual void _OnBoundsChanged();
-
 	virtual void _OnChildGained(UIElement *child) override;
 	virtual void _OnChildLost(UIElement *child) override;
 
@@ -26,6 +24,7 @@ public:
 
 	virtual void FocusElement(UIElement*) override;
 
+	virtual void UpdateBounds() override;
 	virtual void Render(RenderQueue&) const override;
 	virtual void Update(float deltaTime) override;
 	

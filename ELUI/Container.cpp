@@ -46,16 +46,17 @@ void UIContainer::FocusElement(UIElement* element)
 		child->FocusElement(element);
 }
 
+void UIContainer::UpdateBounds()
+{
+	UIElement::UpdateBounds();
+	for (UIElement* child : _children)
+		child->UpdateBounds();
+}
+
 void UIContainer::Render(RenderQueue& q) const
 { 
 	for (UIElement* child : _children)
 		child->Render(q);
-}
-
-void UIContainer::_OnBoundsChanged()
-{
-	for (UIElement* child : _children)
-		child->UpdateAbsoluteBounds();
 }
 
 bool UIContainer::OnKeyUp(bool blocked, EKeycode key)

@@ -22,14 +22,8 @@ protected:
 	void _UpdateListBounds();
 
 	void _StopSelecting();
-
-	virtual void _OnBoundsChanged()
-	{
-		UITextButton::_OnBoundsChanged();
-		_listBox.UpdateAbsoluteBounds();
-	}
 public:
-	Event<UIComboBox&> onStringChanged;
+	Event<UIComboBox&> onSelectionChanged;
 
 	UIComboBox(UIElement* parent = nullptr) : UITextButton(parent), _listBox(this), _selecting(false), _readOnly(false)
 	{
@@ -39,7 +33,7 @@ public:
 
 	virtual ~UIComboBox() {}
 
-	void Add(const String& item) { _listBox.Add(item); _UpdateListBounds(); }
+	void Add(const Text& item) { _listBox.Add(item); _UpdateListBounds(); }
 
 	bool GetReadOnly() const { return _readOnly; }
 	float GetListZ() const { return _listBox.GetZ(); }
@@ -68,6 +62,12 @@ public:
 	UIComboBox& SetListTextAlignment(ETextAlignment alignment) { _listBox.SetTextAlignment(alignment); return *this; }
 	UIComboBox& SetListTextMargin(float margin) { _listBox.SetTextMargin(margin); return *this; }
 	UIComboBox& SetListSelectionColour(const UIColour& colour) { _listBox.SetSelectionColour(colour); return *this; }
+
+	virtual void UpdateBounds()
+	{
+		UITextButton::UpdateBounds();
+		_listBox.UpdateBounds();
+	}
 
 	virtual void Render(RenderQueue& q) const override
 	{

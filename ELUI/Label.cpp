@@ -7,30 +7,15 @@ void UILabel::_UpdateShadowTransform()
 	_shadowTransform.Move(Vector3(_shadowOffset.x, _shadowOffset.y, 0.f));
 }
 
-void UILabel::Render(RenderQueue& q) const
+void UILabel::UpdateBounds()
 {
-	if (_font)
-	{
-		RenderEntry& e = q.CreateEntry(ERenderChannels::UNLIT);
+	UIElement::UpdateBounds();
 
-		if (_shadowOffset.x != 0.f && _shadowOffset.y != 0.f)
-		{
-			_shadowColour.Apply(e);
-			_font->RenderString(e, _string.GetData(), _shadowTransform);
-		}
-
-		_colour.Apply(e);
-		_font->RenderString(e, _string.GetData(), _transform);
-	}
-}
-
-void UILabel::_OnBoundsChanged()
-{
 	if (_font)
 	{
 		float availableW = _absoluteBounds.w - _margin * 2.f;
 		float availableH = _absoluteBounds.h - _margin * 2.f;
-		float w = _font->CalculateStringWidth(_string.GetData(), _absoluteBounds.h);
+		float w = _font->CalculateStringWidth(_text.ToString().GetData(), _absoluteBounds.h);
 
 		float fontSize = availableH;
 		if (w > availableW)
@@ -38,7 +23,7 @@ void UILabel::_OnBoundsChanged()
 			float scale = availableW / w;
 			fontSize *= scale;
 			w *= scale;
-			w = _font->CalculateStringWidth(_string.GetData(), fontSize);
+			w = _font->CalculateStringWidth(_text.ToString().GetData(), fontSize);
 
 			//todo: String width scaling not linear with font size, I'll have to clip it to the textbox like a sane person
 		}
@@ -46,7 +31,7 @@ void UILabel::_OnBoundsChanged()
 		float x;
 		switch (_alignment)
 		{
-		case ETextAlignment::LEFT: 
+		case ETextAlignment::LEFT:
 			x = _absoluteBounds.x + _margin;
 			break;
 		case ETextAlignment::RIGHT:
@@ -63,4 +48,21 @@ void UILabel::_OnBoundsChanged()
 	}
 
 	_UpdateShadowTransform();
+}
+
+void UILabel::Render(RenderQueue& q) const
+{
+	if (_font)
+	{
+		RenderEntry& e = q.CreateEntry(ERenderChannels::UNLIT);
+
+		if (_shadowOffset.x != 0.f && _shadowOffset.y != 0.f)
+		{
+			_shadowColour.Apply(e);
+			_font->RenderString(e, _text.ToString().GetData(), _shadowTransform);
+		}
+
+		_colour.Apply(e);
+		_font->RenderString(e, _text.ToString().GetData(), _transform);
+	}
 }

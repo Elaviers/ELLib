@@ -33,6 +33,9 @@ public:
 
 	virtual ~MaterialGrid() {}
 
+	int GetRowCount() const { return _rowHeights.GetSize(); }
+	int GetColumnCount() const { return _columnWidths.GetSize(); }
+
 	const SharedPointer<const Texture>& GetTexture() const { return _texture; }
 	void SetDiffuse(const SharedPointer<const Texture>& texture) { _texture = texture; }
 

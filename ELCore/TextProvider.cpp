@@ -3,7 +3,7 @@
 Text TextProvider::Get(const String& key) const
 {
 	const String* value = _strings.Get(key);
-	return value ? Text(value) : Text(nullptr);
+	return value ? Text(value) : Text(String::Concat('[', key, ']'));
 }
 
 void TextProvider::Set(const String& key, const String& value)

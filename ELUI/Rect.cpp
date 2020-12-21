@@ -2,8 +2,9 @@
 #include <ELGraphics/RenderCommand.hpp>
 #include <ELGraphics/RenderQueue.hpp>
 
-void UIRect::_OnBoundsChanged()
+void UIRect::UpdateBounds()
 {
+	UIElement::UpdateBounds();
 	_transform.SetPosition(Vector3(_absoluteBounds.x + _absoluteBounds.w / 2.f, _absoluteBounds.y + _absoluteBounds.h / 2.f, _z));
 	_transform.SetScale(Vector3(_absoluteBounds.w, _absoluteBounds.h, 0.f));
 }

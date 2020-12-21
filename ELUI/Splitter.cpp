@@ -3,8 +3,10 @@
 #include <ELGraphics/RenderCommand.hpp>
 #include <ELGraphics/RenderQueue.hpp>
 
-void UISplitter::_OnBoundsChanged()
+void UISplitter::UpdateBounds()
 {
+	UIRect::UpdateBounds();
+
 	_transform.SetPosition(Vector3(_absoluteBounds.x + _absoluteBounds.w / 2.f, _absoluteBounds.y + _absoluteBounds.h / 2.f, _z));
 	
 	if (_isHorizontal)
@@ -133,7 +135,7 @@ bool UISplitter::OnMouseMove(bool blocked, float x, float y)
 				_bounds.y.relative = Maths::Clamp(_bounds.y.relative, _min, _max);
 			}
 
-			UpdateAbsoluteBounds();
+			UpdateBounds();
 		}
 		else
 		{
@@ -148,7 +150,7 @@ bool UISplitter::OnMouseMove(bool blocked, float x, float y)
 				_bounds.x.relative = Maths::Clamp(_bounds.x.relative, _min, _max);
 			}
 
-			UpdateAbsoluteBounds();
+			UpdateBounds();
 		}
 	}
 

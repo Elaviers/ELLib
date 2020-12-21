@@ -25,7 +25,6 @@ public:
 	UIRect& SetTexture(const SharedPointer<const Texture>& texture) { _texture = texture; return *this; }
 	UIRect& SetColour(const UIColour& colour) { _colour = colour; return *this; }
 
+	virtual void UpdateBounds() override;
 	virtual void Render(RenderQueue&) const override;
-
-	virtual void _OnBoundsChanged() override;
 };

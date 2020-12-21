@@ -5,7 +5,7 @@ void UIListBox::_UpdateLabels()
 	size_t i = 1;
 	for (UILabel& label : _labels)
 	{
-		label.SetBounds(0.f, UICoord(1.f, i * -_itemHeight), 1.f, UICoord(0.f, _itemHeight));
+		label.SetBounds(UIBounds(0.f, UICoord(1.f, i * -_itemHeight), 1.f, UICoord(0.f, _itemHeight)));
 		label.SetFont(_font);
 		label.SetColour(_textColour);
 		label.SetShadowColour(_textShadowColour);
@@ -16,17 +16,17 @@ void UIListBox::_UpdateLabels()
 	}
 }
 
-void UIListBox::Add(const String& item)
+void UIListBox::Add(const Text& item)
 {
 	size_t index = _labels.GetSize() + 1;
 
 	UILabel& newLabel = *_labels.Emplace(this);
-	newLabel.SetBounds(0.f, UICoord(1.f, index * -_itemHeight), 1.f, UICoord(0.f, _itemHeight));
+	newLabel.SetBounds(UIBounds(0.f, UICoord(1.f, index * -_itemHeight), 1.f, UICoord(0.f, _itemHeight)));
 	newLabel.SetFont(_font);
 	newLabel.SetColour(_textColour);
 	newLabel.SetShadowColour(_textShadowColour);
 	newLabel.SetShadowOffset(_textShadowOffset);
-	newLabel.SetString(item);
+	newLabel.SetText(item);
 }
 
 bool UIListBox::OnKeyDown(bool blocked, EKeycode key)
@@ -68,7 +68,7 @@ bool UIListBox::OnMouseMove(bool blocked, float x, float y)
 	else if (_selectedLabel)
 	{
 		_selectedLabel = nullptr;
-		_selectionBox.SetBounds(0.f, 0.f, 0.f, 0.f);
+		_selectionBox.SetBounds(UIBounds(0.f, 0.f, 0.f, 0.f));
 	}
 
 	return _hover;

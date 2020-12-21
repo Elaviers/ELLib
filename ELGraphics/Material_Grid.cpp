@@ -105,15 +105,9 @@ void MaterialGrid::_TryCalculateElements()
 
 void MaterialGrid::Apply(RenderEntry& e, const MaterialParam *param) const
 {
-	int r = 0;
-	int c = 0;
-
 	if (param && param->type == MaterialParam::EType::GRID_PARAM)
 	{
-		r = param->gridData.row;
-		c = param->gridData.column;
-
-		const GridElement& element = GetElement(r, c);
+		const GridElement& element = GetElement(param->gridData.row, param->gridData.column);
 
 		if (element.textureOverride)
 		{
@@ -130,7 +124,7 @@ void MaterialGrid::Apply(RenderEntry& e, const MaterialParam *param) const
 			e.AddSetTexture(RCMDSetTexture::Type::BLACK, 0);
 			e.AddSetUVScale();
 		}
-
+		
 		e.AddSetUVOffset(element.offset);
 	}
 }

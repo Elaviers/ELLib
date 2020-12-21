@@ -23,13 +23,6 @@ class UIListBox : public UIElement
 
 	void _UpdateLabels();
 
-	virtual void _OnBoundsChanged() override
-	{
-		_panel.UpdateAbsoluteBounds();
-		for (UILabel& label : _labels)
-			label.UpdateAbsoluteBounds();
-	}
-
 public:
 	Event<UILabel&> onSelectionChanged;
 	Event<UILabel&> onSelectionSubmitted;
@@ -42,7 +35,7 @@ public:
 
 	const List<UILabel>& GetItems() const { return _labels; }
 
-	void Add(const String& item);
+	void Add(const Text& item);
 
 	float GetBorderSize() const { return _panel.GetBorderSize(); }
 	const SharedPointer<const Material>& GetMaterial() const { return _panel.GetMaterial(); }
@@ -68,6 +61,14 @@ public:
 	UIListBox& SetTextAlignment(ETextAlignment alignment) { _textAlignment = alignment; _UpdateLabels(); return *this; }
 	UIListBox& SetTextMargin(float margin) { _textMargin = margin; _UpdateLabels(); return *this; }
 	UIListBox& SetSelectionColour(const UIColour& colour) { _selectionBox.SetColour(colour); return *this; }
+
+	virtual void UpdateBounds() override
+	{
+		UIElement::UpdateBounds();
+		_panel.UpdateBounds();
+		for (UILabel& label : _labels)
+			label.UpdateBounds();
+	}
 
 	virtual void Render(RenderQueue& q) const override
 	{

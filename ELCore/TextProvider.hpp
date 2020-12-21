@@ -1,5 +1,5 @@
 #pragma once
-#include <ELCore/Hashmap.hpp>
+#include "Hashmap.hpp"
 #include "Text.hpp"
 
 class TextProvider

@@ -30,8 +30,6 @@ protected:
 	float _caretPeriod;
 	UIColour _caretColour;
 
-	virtual void _OnBoundsChanged() override;
-
 	void _OnFocusLost(UIElement& element) { _selectionRect.SetW(0.f); }
 
 	void _ResetCaretBlink();
@@ -63,7 +61,7 @@ public:
 	UITextbox& SetCaretOffset(float offset) { _caretOffset = offset; return *this; }
 	UITextbox& SetMaterial(const SharedPointer<const Material>& material) { _panel.SetMaterial(material); return *this; }
 	UITextbox& SetColour(const UIColour& colour) { _panel.SetColour(colour);  return *this; }
-	UITextbox& SetString(const String& string) { _label.SetString(string); onStringChanged(*this); return *this; }
+	UITextbox& SetText(const Text& text) { _label.SetText(text); onStringChanged(*this); return *this; }
 	UITextbox& SetTextColour(const UIColour& colour) { _label.SetColour(colour);  return *this; }
 	UITextbox& SetTextShadowColour(const UIColour& colour) { _label.SetShadowColour(colour); return *this; }
 	UITextbox& SetTextShadowOffset(const Vector2& offset) { _label.SetShadowOffset(offset); return *this; }
@@ -78,7 +76,7 @@ public:
 	float GetCaretOffset() const { return _caretOffset; }
 	const SharedPointer<const Material>& GetMaterial() const { return _panel.GetMaterial(); }
 	const UIColour& GetColour() const { return _panel.GetColour(); }
-	const String& GetString() const { return _label.GetString(); }
+	const Text& GetText() const { return _label.GetText(); }
 	const UIColour& GetTextColour() const { return _label.GetColour(); }
 	const UIColour& GetTextShadowColour() const { return _label.GetShadowColour(); }
 	const Vector2& GetTextShadowOffset() const { return _label.GetShadowOffset(); }
@@ -87,6 +85,7 @@ public:
 	float GetBorderSize() const { return _panel.GetBorderSize(); }
 	const UIColour& GetSelectionColour() const { return _selectionRect.GetColour(); }
 
+	virtual void UpdateBounds() override;
 	virtual void Render(RenderQueue&) const override;
 	virtual void Update(float deltaTime) override;
 

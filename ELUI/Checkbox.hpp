@@ -17,12 +17,6 @@ class UICheckbox : public UIElement
 	UIColour _colourFalse;
 	UIColour _colourTrue;
 
-	virtual void _OnBoundsChanged() override
-	{
-		_button.UpdateAbsoluteBounds();
-		_image.UpdateAbsoluteBounds();
-	}
-
 	void _OnButtonPressed(UIButton&) { Toggle(); };
 
 public:
@@ -77,6 +71,13 @@ public:
 	UICheckbox& SetColourHold(const UIColour& colour) { _button.SetColourHold(colour); return *this; }
 	UICheckbox& SetMaterial(const SharedPointer<const Material>& material) { _button.SetMaterial(material); return *this; }
 	UICheckbox& SetBorderSize(float borderSize) { _button.SetBorderSize(borderSize); return *this; }
+
+	virtual void UpdateBounds() override
+	{
+		UIElement::UpdateBounds();
+		_button.UpdateBounds();
+		_image.UpdateBounds();
+	}
 
 	virtual void Render(RenderQueue& q) const override
 	{

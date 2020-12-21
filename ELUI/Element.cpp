@@ -1,10 +1,42 @@
 #include "Element.hpp"
 #include "Container.hpp"
 
+UIElement::UIElement(UIElement* parent) : _parent(parent), _markedForDelete(false), _hasFocus(false), _focusOnClick(true), _hover(false), _z(0.f), _cursor(ECursor::DEFAULT)
+{
+	onFocusGained += FunctionPointer<void, UIElement&>(this, &UIElement::_SetFocus);
+	onFocusLost += FunctionPointer<void, UIElement&>(this, &UIElement::_ClearFocus);
+
+	if (_parent)
+	{
+		UpdateBounds();
+		_parent->_OnChildGained(this);
+	}
+}
+
+UIElement::~UIElement()
+{
+	if (_parent)
+		_parent->_OnChildLost(this);
+}
+
+UIElement& UIElement::SetParent(UIElement* parent)
+{
+	if (_parent)
+		_parent->_OnChildLost(this);
+
+	_parent = parent;
+	UpdateBounds();
+
+	if (_parent)
+		_parent->_OnChildGained(this);
+
+	return *this;
+}
+
 UIElement& UIElement::SetZ(float z)
 {
 	_z = z; 
-	UpdateAbsoluteBounds(); 
+	UpdateBounds(); 
 	
 	UIContainer* p = dynamic_cast<UIContainer*>(_parent);
 	if (p) p->_SortChildren();
@@ -32,14 +64,14 @@ void UIElement::FocusElement(UIElement* element)
 		onFocusLost(*this);
 }
 
-void UIElement::UpdateAbsoluteBounds()
+void UIElement::UpdateBounds()
 {
 	if (_parent)
 	{
-		_absoluteBounds.x = _parent->_absoluteBounds.x + (_parent->_absoluteBounds.w * _bounds.x.relative) + _bounds.x.absolute;
-		_absoluteBounds.y = _parent->_absoluteBounds.y + (_parent->_absoluteBounds.h * _bounds.y.relative) + _bounds.y.absolute;
-		_absoluteBounds.w = _parent->_absoluteBounds.w * _bounds.w.relative + _bounds.w.absolute;
-		_absoluteBounds.h = _parent->_absoluteBounds.h * _bounds.h.relative + _bounds.h.absolute;
+		_absoluteBounds.x = _parent->_clientBounds.x + (_parent->_clientBounds.w * _bounds.x.relative) + _bounds.x.absolute;
+		_absoluteBounds.y = _parent->_clientBounds.y + (_parent->_clientBounds.h * _bounds.y.relative) + _bounds.y.absolute;
+		_absoluteBounds.w = _parent->_clientBounds.w * _bounds.w.relative + _bounds.w.absolute;
+		_absoluteBounds.h = _parent->_clientBounds.h * _bounds.h.relative + _bounds.h.absolute;
 	}
 	else
 	{
@@ -49,7 +81,12 @@ void UIElement::UpdateAbsoluteBounds()
 		_absoluteBounds.h = _bounds.h.relative + _bounds.h.absolute;
 	}
 
-	_OnBoundsChanged();
+	_UpdateClientBounds();
+}
+
+void UIElement::_UpdateClientBounds()
+{
+	_clientBounds = _absoluteBounds;
 }
 
 bool UIElement::OnKeyDown(bool blocked, EKeycode key)

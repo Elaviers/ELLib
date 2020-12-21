@@ -18,16 +18,16 @@ void UIComboBox::_OnPressed(UIButton& button)
 
 void UIComboBox::_OnSelectionSubmitted(UILabel& label)
 {
-	SetString(label.GetString());
+	SetText(label.GetText());
 	_StopSelecting();
 
-	onStringChanged(*this);
+	onSelectionChanged(*this);
 }
 
 void UIComboBox::_UpdateListBounds()
 {
 	float h = _listBox.GetItemHeight() * _listBox.GetItems().GetSize();
-	_listBox.SetBounds(0.f, UICoord(1.f, -h - _absoluteBounds.h), 1.f, UICoord(0.f, h));
+	_listBox.SetBounds(UIBounds(0.f, UICoord(1.f, -h - _absoluteBounds.h), 1.f, UICoord(0.f, h)));
 }
 
 bool UIComboBox::OnMouseMove(bool blocked, float x, float y)
