@@ -16,6 +16,9 @@ struct RenderContext
 	int submittedLightCount;
 
 	bool activeColourOverride;
+
+	Matrix4 inverseView_NoTranslation;
+	Matrix4 inverseView_NoTranslation_NoXYRotation;
 };
 
 class RenderCommand
@@ -73,18 +76,30 @@ public:
 	virtual void Execute(RenderContext&) const override;
 };
 
-class RCMDSetTransform : public RenderCommand
+class RCMDSetMat4 : public RenderCommand
 {
+public:
+	enum class Type
+	{
+		TRANSFORM,
+		TRANSFORM_CAMERAFACING,
+		TRANSFORM_CAMERAFACING_Y,
+
+		VIEW,
+		PROJECTION
+	};
+
 protected:
+	Type _type;
 	Matrix4 _matrix;
 
 public:
-	RCMDSetTransform(const Matrix4& matrix) : _matrix(matrix) {}
-	RCMDSetTransform(Matrix4&& matrix) : _matrix(matrix) {}
-	virtual ~RCMDSetTransform() {}
+	RCMDSetMat4(Type type, const Matrix4& matrix) : _type(type), _matrix(matrix) {}
+	RCMDSetMat4(Type type, Matrix4&& matrix) : _type(type), _matrix(matrix) {}
+	virtual ~RCMDSetMat4() {}
 
-	void Set(const Matrix4& matrix) { _matrix = matrix; }
-	void Set(Matrix4&& matrix) { _matrix = matrix; }
+	void Set(Type type, const Matrix4& matrix) { _type = type; _matrix = matrix; }
+	void Set(Type type, Matrix4&& matrix) { _type = type; _matrix = matrix; }
 
 	virtual void Execute(RenderContext&) const override;
 };
@@ -279,4 +294,24 @@ public:
 	static const RCMDSetDepthFunc NOTEQUAL;
 	static const RCMDSetDepthFunc GEQUAL;
 	static const RCMDSetDepthFunc ALWAYS;
+};
+
+class RCMDViewport : public RenderCommand
+{
+protected:
+	int32 _x;
+	int32 _y;
+	int32 _width;
+	int32 _height;
+
+public:
+	RCMDViewport(int32 x, int32 y, int32 width, int32 height) : _x(x), _y(y), _width(width), _height(height) {}
+	virtual ~RCMDViewport() {}
+
+	void Set(int32 x, int32 y, int32 width, int32 height)
+	{
+		_x = x; _y = y; _width = width; _height = height;
+	}
+
+	virtual void Execute(RenderContext&) const override;
 };

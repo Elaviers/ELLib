@@ -93,7 +93,7 @@ void RenderEntry::AddLine(const Vector3& a, const Vector3& b)
 	t.SetScale(Vector3(0, (b - a).Length(), 0));
 
 	Vector3 dir = (b - a).Normalise();
-	t.SetRotation(Vector3(90 + Maths::ArcSineDegrees(dir.y), Maths::ArcTangentDegrees2(dir.x, dir.z), 0.f));
+	t.SetRotation(Vector3(90 + Maths::RadiansToDegrees(Maths::ArcSin(dir.y)), Maths::RadiansToDegrees(Maths::ArcTan2(dir.x, dir.z)), 0.f));
 
 	AddSetTransform(t.MakeTransformationMatrix());
 	AddCommand(RCMDRenderMesh::LINE);
@@ -134,8 +134,8 @@ void RenderEntry::AddRing(const Vector3& centre, const Vector3& normal, float ra
 	for (int i = 0; i < segments; ++i)
 	{
 		angle += angStep;
-		x2 = Maths::Cosine(angle);
-		y2 = Maths::Sine(angle);
+		x2 = Maths::Cos(angle);
+		y2 = Maths::Sin(angle);
 
 		AddLine(centre + r * x1 + u * y1, centre + r * x2 + u * y2);
 

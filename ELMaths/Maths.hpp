@@ -119,47 +119,35 @@ namespace Maths
 		return result;
 	}
 
+	template<typename T>
+	inline T RadiansToDegrees(T radians) { return (T)DEGS_PER_RAD * radians; }
 
-	float Sine(float radians);
-	float Cosine(float radians);
-	float Tangent(float radians);
-	float ArcSine(float x);
-	float ArcCosine(float x);
-	float ArcTangent(float x);
+	template<typename T>
+	inline T DegreesToRadians(T degrees) { return (T)RADS_PER_DEG * degrees; }
 
-	inline float SineDegrees(float degrees) { return Sine((float)RADS_PER_DEG * degrees); };
-	inline float CosineDegrees(float degrees) { return Cosine((float)RADS_PER_DEG * degrees); };
-	inline float TangentDegrees(float degrees) { return Tangent((float)RADS_PER_DEG * degrees); };
-	inline float ArcSineDegrees(float x) { return (float)DEGS_PER_RAD * ArcSine(x); }
-	inline float ArcCoineDegrees(float x) { return (float)DEGS_PER_RAD * ArcCosine(x); }
-	inline float ArcTangentDegrees(float x) { return (float)DEGS_PER_RAD * ArcTangent(x); }
-
-	float ArcTangentDegrees2(float y, float x);
-
-	double SineD(double radians);
-	double CosineD(double radians);
-	double TangentD(double radians);
-	double ArcSineD(double x);
-	double ArcCosineD(double x);
-	double ArcTangentD(double x);
-
-	inline double SineDegreesD(double degrees) { return SineD(RADS_PER_DEG * degrees); };
-	inline double CosineDegreesD(double degrees) { return CosineD(RADS_PER_DEG * degrees); };
-	inline double TangentDegreesD(double degrees) { return TangentD(RADS_PER_DEG * degrees); };
-	inline double ArcSineDegreesD(double x) { return DEGS_PER_RAD * ArcSineD(x); }
-	inline double ArcCoineDegreesD(double x) { return DEGS_PER_RAD * ArcCosineD(x); }
-	inline double ArcTangentDegreesD(double x) { return DEGS_PER_RAD * ArcTangentD(x); }
+	float Sin(float radians);
+	double Sin(double radians);
+	float Cos(float radians);
+	double Cos(double radians);
+	float Tan(float radians);
+	double Tan(double radians);
 	
+	float ArcSin(float x);
+	double ArcSin(double x);
+	float ArcCos(float x);
+	double ArcCos(double x);
+	float ArcTan(float x);
+	double ArcTan(double x);
+	float ArcTan2(float y, float x);
+	double ArcTan2(double y, double x);
+
 	inline float SmallestAngularDiff(float to, float from)
 	{
 		if (to == from) return 0.f;
 
 		float diff = to - from;
-		while (diff > 180.f)
-			diff -= 360.f;
-		while (diff < -180.f)
-			diff += 360.f;
-
+		while (diff > 180.f) diff -= 360.f;
+		while (diff < -180.f) diff += 360.f;
 		return diff;
 	}
 

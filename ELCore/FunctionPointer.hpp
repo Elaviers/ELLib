@@ -121,7 +121,7 @@ class FunctionPointer
 		//_PtrData is a placeholder...
 		FunctionCallerMember<_PtrData>		fptrMember;
 
-		Union(const FunctionCallerStatic& _static) : fptrStatic(_static) {}
+		Union(const FunctionCallerStatic& staticBuffer) : fptrStatic(staticBuffer) {}
 
 		template<typename T>
 		Union(const FunctionCallerMember<T>& _member) : fptrMember()

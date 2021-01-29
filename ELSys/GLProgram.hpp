@@ -29,6 +29,7 @@ namespace DefaultUniformVars
 	constexpr const char *vec4BlendTertiary = "BlendTertiary";
 
 	constexpr const char *intCubemap = "Cubemap";
+	constexpr const char *intSkybox = "Skybox";
 
 	constexpr const char *boolIsFont = "IsFont";
 

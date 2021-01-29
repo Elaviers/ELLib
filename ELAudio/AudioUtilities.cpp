@@ -33,7 +33,7 @@ float LanczosKernel(float x, unsigned int filterSize)
 
 	if (x < filterSize && x >= -(int)filterSize)
 	{
-		return ((float)filterSize * Maths::Sine(Maths::PI_F * x) * Maths::Sine(Maths::PI_F * x / (float)filterSize)) / (Maths::PI_F * Maths::PI_F * x * x);
+		return ((float)filterSize * Maths::Sin(Maths::PI_F * x) * Maths::Sin(Maths::PI_F * x / (float)filterSize)) / (Maths::PI_F * Maths::PI_F * x * x);
 	}
 
 	return 0.f;

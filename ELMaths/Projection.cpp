@@ -23,7 +23,7 @@ Vector2 Projection::_GetZPlaneDimensions() const
 	if (_type == EProjectionType::ORTHOGRAPHIC)
 		return _dimensions;
 
-	float planeHeightAtZ = 2.f / Maths::TangentDegrees(90.f - _persp.vFOV / 2.f);
+	float planeHeightAtZ = 2.f / Maths::Tan(Maths::DegreesToRadians(90.f - _persp.vFOV / 2.f));
 
 	return Vector2(((float)_dimensions.x / (float)_dimensions.y) * planeHeightAtZ, planeHeightAtZ);
 }

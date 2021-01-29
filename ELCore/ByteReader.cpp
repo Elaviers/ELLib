@@ -1,13 +1,14 @@
 #include "ByteReader.hpp"
-#include "Types.hpp"
+#include "IEEE754.hpp"
 
 bool ByteReader::SetIndex(size_t index)
 {
 	_index = index;
 
-	if (_index < _buffer.GetSize())
+	if (_buffer) _bufferSize = _buffer->GetSize();
+	if (_index < _bufferSize)
 	{
-		_pointer = &_buffer[_index];
+		_pointer = _buffer ? &(*_buffer)[_index] : _rawBuffer + _index;
 		return true;
 	}
 
@@ -22,7 +23,8 @@ bool ByteReader::IncrementIndex(size_t amount)
 
 size_t ByteReader::GetRemainingSpace()
 {
-	return _buffer.GetSize() == 0 ? 0 : (_buffer.GetSize() - _index);
+	if (_buffer) _bufferSize = _buffer->GetSize();
+	return _bufferSize > _index ? 0 : (_bufferSize - _index);
 }
 
 size_t ByteReader::Read(byte* dest, size_t amount)
@@ -81,7 +83,7 @@ uint32 ByteReader::Peek_uint32()
 
 uint32 ByteReader::Read_uint32()
 {
-	uint16 value = Peek_uint32();
+	uint32 value = Peek_uint32();
 	IncrementIndex(4);
 	return value;
 }
@@ -100,21 +102,12 @@ uint32 ByteReader::Read_uint32_little()
 
 float ByteReader::Peek_float()
 {
-	//Todo- Proper IEEE 754 conversion
-
-	union
-	{
-		//yucky stuff
-		byte bytes[4];
-
-		float value;
-	};
-
-	bytes[0] = _pointer[0];
-	bytes[1] = _pointer[1];
-	bytes[2] = _pointer[2];
-	bytes[3] = _pointer[3];
-	return value;
+	Float_IEEE754_U u;
+	u.bytes[0] = _pointer[3];
+	u.bytes[1] = _pointer[2];
+	u.bytes[2] = _pointer[1];
+	u.bytes[3] = _pointer[0];
+	return u.binary32.ToFloat();
 }
 
 float ByteReader::Read_float()

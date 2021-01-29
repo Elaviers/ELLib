@@ -73,8 +73,8 @@ public:
 
 	RCMDSetBool& AddSetIsFont(bool isFont) { return _AddCommand<RCMDSetBool>(RCMDSetBool::Type::FONT, isFont); }
 	RCMDSetFloat& AddSetLineWidth(float lineWidth) { return _AddCommand<RCMDSetFloat>(RCMDSetFloat::Type::LINE_WIDTH, lineWidth); }
-	RCMDSetTransform& AddSetTransform(const Matrix4& matrix) { return _AddCommand<RCMDSetTransform>(matrix); }
-	RCMDSetTransform& AddSetTransform(Matrix4&& matrix) { return _AddCommand<RCMDSetTransform>(matrix); }
+	RCMDSetMat4& AddSetMat4(RCMDSetMat4::Type type, const Matrix4& matrix) { return _AddCommand<RCMDSetMat4>(type, matrix); }
+	RCMDSetMat4& AddSetMat4(RCMDSetMat4::Type type, Matrix4&& matrix) { return _AddCommand<RCMDSetMat4>(type, matrix); }
 	RCMDSetUVOffset& AddSetUVOffset(const Vector2& uvOffset) { return _AddCommand<RCMDSetUVOffset>(uvOffset); }
 	RCMDSetUVOffset& AddSetUVOffset(Vector2&& uvOffset = Vector2()) { return _AddCommand<RCMDSetUVOffset>(uvOffset); }
 	RCMDSetUVScale& AddSetUVScale(const Vector2& uvScale) { return _AddCommand<RCMDSetUVScale>(uvScale); }
@@ -93,6 +93,11 @@ public:
 	RCMDSetSkinningMatrices& AddSetSkinningMatrices(const Buffer<Matrix4>& matrices) { return _AddCommand<RCMDSetSkinningMatrices>(matrices); }
 	RCMDSetSkinningMatrices& AddSetSkinningMatrices(const Buffer<Matrix4>* matrices) { return _AddCommand<RCMDSetSkinningMatrices>(matrices); }
 	RCMDLight& AddLight(const Vector3& position, const Vector3& colour, float radius) { return _AddCommand<RCMDLight>(position, colour, radius); }
+	RCMDViewport& AddSetViewport(int32 x, int32 y, int32 width, int32 height) { return _AddCommand<RCMDViewport>(x, y, width, height); }
+
+	//Utility
+	inline RCMDSetMat4& AddSetTransform(const Matrix4& transform) { return _AddCommand<RCMDSetMat4>(RCMDSetMat4::Type::TRANSFORM, transform); }
+	inline RCMDSetMat4& AddSetTransform(Matrix4&& transform) { return _AddCommand<RCMDSetMat4>(RCMDSetMat4::Type::TRANSFORM, transform); }
 
 	void AddLine(const Vector3& a, const Vector3& b);
 	void AddBox(const Vector3& p1, const Vector3& p2);

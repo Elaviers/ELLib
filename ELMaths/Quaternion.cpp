@@ -3,12 +3,12 @@
 
 Quaternion::Quaternion(const Vector3& axis, float angle)
 {
-	Vector3 a = axis * Maths::SineDegrees(angle / 2.f);
+	Vector3 a = axis * Maths::Sin(Maths::DegreesToRadians(angle / 2.f));
 
 	_x = a.x;
 	_y = a.y;
 	_z = a.z;
-	_w = Maths::CosineDegrees(angle / 2.f);
+	_w = Maths::Cos(Maths::DegreesToRadians(angle / 2.f));
 }
 
 Quaternion Quaternion::FromEulerZYX(const Vector3& euler)
@@ -33,9 +33,9 @@ Vector3 Quaternion::ToEulerYXZ() const
 {
 	//ZXY
 	return Vector3(
-		Maths::ArcSineDegrees(2.f * (_y * _z + _x * _w)),
-		Maths::ArcTangentDegrees2(2.f * (_x * _z - _y * _w), 1.f - 2.f * (_x * _x + _y * _y)),
-		Maths::ArcTangentDegrees2(-2.f * (_x * _y - _z * _w), 1.f - 2.f * (_x * _x + _z * _z))
+		Maths::RadiansToDegrees(Maths::ArcSin(2.f * (_y * _z + _x * _w))),
+		Maths::RadiansToDegrees(Maths::ArcTan2(2.f * (_x * _z - _y * _w), 1.f - 2.f * (_x * _x + _y * _y))),
+		Maths::RadiansToDegrees(Maths::ArcTan2(-2.f * (_x * _y - _z * _w), 1.f - 2.f * (_x * _x + _z * _z)))
 	);
 }
 

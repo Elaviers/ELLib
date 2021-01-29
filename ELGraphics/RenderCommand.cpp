@@ -23,9 +23,54 @@ void RCMDSetFloat::Execute(RenderContext& ctx) const
 	}
 }
 
-void RCMDSetTransform::Execute(RenderContext& ctx) const
+void RCMDSetMat4::Execute(RenderContext& ctx) const
 {
-	GLProgram::Current().SetMatrix4(DefaultUniformVars::mat4Model, _matrix);
+	switch (_type)
+	{
+	case Type::TRANSFORM:
+		GLProgram::Current().SetMatrix4(DefaultUniformVars::mat4Model, _matrix);
+		break;
+	case Type::VIEW:
+		GLProgram::Current().SetMatrix4(DefaultUniformVars::mat4View, _matrix);
+		ctx.inverseView_NoTranslation = _matrix.Inverse3x3();
+
+		{
+			Vector3 fv = (Vector4(0.f, 0.f, 1.f, 0.f) * ctx.inverseView_NoTranslation).GetXYZ();
+
+			float angle;
+			if (fv.y >= -0.5f && fv.y <= 0.5f)
+			{
+				Vector2 u(fv.z, fv.x);
+				u.Normalise();
+				angle = Maths::ArcTan2(u.y, u.x);
+			}
+			else
+			{
+				Vector3 uv = (Vector4(0.f, 1.f, 0.f, 0.f) * ctx.inverseView_NoTranslation).GetXYZ();
+				Vector2 u(uv.z, uv.x);
+				u.Normalise();
+				angle = Maths::ArcTan2(u.y, u.x);
+				if (fv.y > 0.f)
+					angle += Maths::PI_F;
+			}
+
+			ctx.inverseView_NoTranslation_NoXYRotation = Matrix4::RotationY(Maths::RadiansToDegrees(angle));
+		}
+
+		break;
+	case Type::PROJECTION:
+		GLProgram::Current().SetMatrix4(DefaultUniformVars::mat4Projection, _matrix);
+		break;
+
+	case Type::TRANSFORM_CAMERAFACING:
+		GLProgram::Current().SetMatrix4(DefaultUniformVars::mat4Model, _matrix * ctx.inverseView_NoTranslation);
+		break;
+	case Type::TRANSFORM_CAMERAFACING_Y:
+	{
+		GLProgram::Current().SetMatrix4(DefaultUniformVars::mat4Model, _matrix * ctx.inverseView_NoTranslation_NoXYRotation);
+		break;
+	}
+	}
 }
 
 void RCMDSetUVOffset::Execute(RenderContext& ctx) const
@@ -150,6 +195,11 @@ void RCMDLight::Execute(RenderContext& ctx) const
 void RCMDSetDepthFunc::Execute(RenderContext& ctx) const
 {
 	glDepthFunc(_depthFunc);
+}
+
+void RCMDViewport::Execute(RenderContext& ctx) const
+{
+	glViewport(_x, _y, _width, _height);
 }
 
 const RCMDSetDepthFunc RCMDSetDepthFunc::NEVER(GL_NEVER);

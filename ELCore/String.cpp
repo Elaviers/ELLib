@@ -239,7 +239,7 @@ String String::Replace(const char* a, const char* b) const
 	size_t skip = StringLength(a);
 	String result = SubString(0, end) + b;
 
-	int start = end + skip;
+	size_t start = end + skip;
 	while ((end = IndexOf(a, start)) > 0)
 	{
 		result += SubString(start, end) + b;
