@@ -23,3 +23,12 @@ void GLTexture::Create(GLsizei width, GLsizei height, const GLvoid *data, GLint 
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, mag);
 	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAX_ANISOTROPY, aniso);
 }
+
+void GLTexture::Modify(GLint mip, GLsizei x, GLsizei y, GLsizei width, GLsizei height, const GLvoid* data)
+{
+	if (_id)
+	{
+		glBindTexture(GL_TEXTURE_2D, _id);
+		glTexSubImage2D(GL_TEXTURE_2D, mip, x, y, width, height, GL_RGBA, GL_UNSIGNED_BYTE, data);
+	}
+}

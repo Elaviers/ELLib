@@ -33,7 +33,7 @@ void TextureManager::_ResourceRead(Texture& texture, const Buffer<byte>& data, c
 		unsigned int w, h;
 		if (IO::ReadPNGFile(data, pngData, w, h))
 		{
-			texture.Change(pngData.Data(), w, h, _maxMipLevels, _maxAnisotropy);
+			texture.Create(pngData.Data(), w, h, _maxMipLevels, _maxAnisotropy);
 		}
 	}
 	else AssetManager<Texture>::_ResourceRead(texture, data, extension, ctx);
@@ -61,10 +61,10 @@ void TextureManager::Initialise()
 	_colours.grey->info = colourInfo;
 	_colours.normalDefault->info = colourInfo;
 
-	_colours.black->Change(dataBlack, 1, 1);
-	_colours.white->Change(dataWhite, 1, 1);
-	_colours.grey->Change(dataGrey, 1, 1);
-	_colours.normalDefault->Change(dataNormalDefault, 1, 1);
+	_colours.black->Create(dataBlack, 1, 1);
+	_colours.white->Create(dataWhite, 1, 1);
+	_colours.grey->Create(dataGrey, 1, 1);
+	_colours.normalDefault->Create(dataNormalDefault, 1, 1);
 
 	SharedPointerData<Texture>& dBlack = _MapValue("black"), & dWhite = _MapValue("white"), & dGrey = _MapValue("grey"), & dNormalDefault = _MapValue("unitnormal");
 

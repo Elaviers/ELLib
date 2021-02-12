@@ -51,6 +51,7 @@ bool ByteWriter::Write(const byte* data, size_t size)
 	if (EnsureSpace(size))
 	{
 		Utilities::CopyBytes(data, _pointer, size);
+		IncrementIndex(size);
 		return true;
 	}
 
@@ -137,6 +138,28 @@ bool ByteWriter::Write_float(float value)
 		_pointer[2] = u.bytes[1];
 		_pointer[3] = u.bytes[0];
 		IncrementIndex(4);
+		return true;
+	}
+
+	return false;
+}
+
+bool ByteWriter::Write_double(double value)
+{
+	Double_IEEE754_U u(Double_IEEE754::FromDouble(value));
+
+	//The bytes are in little-endian order but I like things big-endian for IO
+	if (EnsureSpace(8))
+	{
+		_pointer[0] = u.bytes[7];
+		_pointer[1] = u.bytes[6];
+		_pointer[2] = u.bytes[5];
+		_pointer[3] = u.bytes[4];
+		_pointer[4] = u.bytes[3];
+		_pointer[5] = u.bytes[2];
+		_pointer[6] = u.bytes[1];
+		_pointer[7] = u.bytes[0];
+		IncrementIndex(8);
 		return true;
 	}
 

@@ -4,8 +4,8 @@ namespace Debug
 {
 	void Break();
 
-	void Print(const char* message);
-	void PrintLine(const char *message);
+	void Print(const char* message, const char* tag = "[DEBUG] ");
+	void PrintLine(const char *message, const char* tag = "[DEBUG] ");
 	void Error(const char *message);
 	void FatalError(const char *message);
 

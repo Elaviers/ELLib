@@ -55,6 +55,7 @@ extern PFNGLCOMPILESHADERPROC		glCompileShader;
 
 //Textures
 extern PFNGLTEXSTORAGE2DPROC		glTexStorage2D;
+extern PFNGLTEXTURESUBIMAGE2DPROC	glTextureSubImage2D;
 extern PFNGLACTIVETEXTUREPROC		glActiveTexture;
 extern PFNGLGENERATEMIPMAPPROC		glGenerateMipmap;
 

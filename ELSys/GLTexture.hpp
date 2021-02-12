@@ -19,6 +19,8 @@ public:
 	void Create(GLsizei width, GLsizei height, const GLvoid *data, GLint mipLevels, 
 		GLfloat maxAnisotropy, GLint minFilter, GLint magFilter, GLint wrapx, GLint wrapy);
 
+	void Modify(GLint mip, GLsizei x, GLsizei y, GLsizei width, GLsizei height, const GLvoid* data);
+
 	void Bind(byte unit) const { SetCurrentUnit(unit); glBindTexture(GL_TEXTURE_2D, _id); }
 
 	void Delete() { glDeleteTextures(1, &_id); }

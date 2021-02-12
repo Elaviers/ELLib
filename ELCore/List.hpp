@@ -266,7 +266,7 @@ class List
 		//delegate stuff
 		template<typename F>
 		requires Concepts::Function<F, void, Node&>
-			void ForEach(F function)
+		void ForEach(F function)
 		{
 			for (Node* node = this; node; node = node->_next)
 				function(*node);

@@ -23,7 +23,7 @@ def copy_headers(src: str, dest: str):
             except ValueError: pass
 
 wd: str = os.getcwd()
-dirs = ['ELAudio', 'ELCore', 'ELGraphics', 'ELMaths', 'ELPhys', 'ELSys', 'ELUI']
+dirs = ['ELAudio', 'ELCore', 'ELGraphics', 'ELMaths', 'ELNet', 'ELPhys', 'ELSys', 'ELUI']
 destDirName = 'Headers'
 
 if len(sys.argv) <= 1:

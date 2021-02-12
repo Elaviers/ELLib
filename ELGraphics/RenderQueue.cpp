@@ -31,13 +31,13 @@ void RenderQueue::Clear()
 	_ptrPool.Clear();
 }
 
-void RenderQueue::Render(ERenderChannels channels, const MeshManager& meshManager, const TextureManager& textureManager, int lightCount) const
+void RenderQueue::Render(ERenderChannels channels, const MeshManager* meshManager, const TextureManager* textureManager, int lightCount) const
 {
 	const float zero = 1.f;
 	for (int i = 0; i < lightCount; ++i)
 		glUniform1fv(GLProgram::Current().GetUniformLocation(CSTR("Lights[", i, "].Radius")), 1, &zero);
 
-	RenderContext ctx = { &meshManager, &textureManager, 0, false };
+	RenderContext ctx = { meshManager, textureManager, 0, false };
 
 	for (const QueueGroup& q : _queues)
 		for (const RenderEntry* entry : q.queue)

@@ -17,7 +17,7 @@ public:
 	GLContext() : _id(0) {}
 	GLContext(const GLContext&) = delete;
 	GLContext(GLContext&& other) noexcept : _id(other._id) { other._id = 0; }
-	~GLContext() {}
+	~GLContext() { Delete(); }
 
 	void CreateDummyAndUse();
 	void Delete();

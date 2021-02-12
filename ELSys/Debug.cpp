@@ -1,5 +1,6 @@
 #include "Debug.hpp"
 #include <ELCore/String.hpp>
+#include <iostream>
 #include <Windows.h>
 
 namespace Debug
@@ -9,25 +10,35 @@ namespace Debug
 		::DebugBreak();
 	}
 
-	void Print(const char* string)
+	void Print(const char* string, const char* tag)
 	{
-		::OutputDebugStringA(string);
+		::OutputDebugStringA(CSTR(tag, string));
+
+		if (tag)
+			std::cout << tag << string;
+		else
+			std::cout << string;
 	}
 
-	void PrintLine(const char *string)
+	void PrintLine(const char* string, const char* tag)
 	{
-		::OutputDebugStringA(CSTR(string, '\n'));
+		::OutputDebugStringA(CSTR(tag, string, '\n'));
+
+		if (tag)
+			std::cout << tag << string << '\n';
+		else
+			std::cout << string << '\n';
 	}
 
-	void Error(const char *string)
+	void Error(const char* string)
 	{
-		PrintLine(CSTR("ERROR: ", string));
+		PrintLine(string, "[ERROR] ");
 		Message(string, "Error");
 	}
 
-	void FatalError(const char *string)
+	void FatalError(const char* string)
 	{
-		PrintLine(CSTR("FATAL ERROR! ", '\"', string, '\"'));
+		PrintLine(string, "[FATAL] ");
 		Message(string, "Fatal Error");
 
 		Break();
@@ -38,5 +49,6 @@ namespace Debug
 	void Message(const char* message, const char* title)
 	{
 		::MessageBoxA(NULL, message, title, MB_OK);
+		PrintLine(message, "[MESSAGE] ");
 	}
 }

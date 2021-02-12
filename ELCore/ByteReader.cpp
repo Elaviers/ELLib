@@ -40,7 +40,7 @@ size_t ByteReader::Read(byte* dest, size_t amount)
 	return amount;
 }
 
-byte ByteReader::Peek_byte()
+byte ByteReader::Peek_byte() const
 {
 	return *_pointer;
 }
@@ -52,7 +52,7 @@ byte ByteReader::Read_byte()
 	return value;
 }
 
-uint16 ByteReader::Peek_uint16()
+uint16 ByteReader::Peek_uint16() const
 {
 	return (_pointer[0] << 8) + _pointer[1];
 }
@@ -64,7 +64,7 @@ uint16 ByteReader::Read_uint16()
 	return value;
 }
 
-uint16 ByteReader::Peek_uint16_little()
+uint16 ByteReader::Peek_uint16_little() const
 {
 	return _pointer[0] + (_pointer[1] << 8);
 }
@@ -76,7 +76,7 @@ uint16 ByteReader::Read_uint16_little()
 	return value;
 }
 
-uint32 ByteReader::Peek_uint32()
+uint32 ByteReader::Peek_uint32() const
 {
 	return (_pointer[0] << 24) + (_pointer[1] << 16) + (_pointer[2] << 8) + _pointer[3];
 }
@@ -88,7 +88,7 @@ uint32 ByteReader::Read_uint32()
 	return value;
 }
 
-uint32 ByteReader::Peek_uint32_little()
+uint32 ByteReader::Peek_uint32_little() const
 {
 	return _pointer[0] + (_pointer[1] << 8) + (_pointer[2] << 16) + (_pointer[3] << 24);
 }
@@ -100,7 +100,7 @@ uint32 ByteReader::Read_uint32_little()
 	return value;
 }
 
-float ByteReader::Peek_float()
+float ByteReader::Peek_float() const
 {
 	Float_IEEE754_U u;
 	u.bytes[0] = _pointer[3];
@@ -114,5 +114,26 @@ float ByteReader::Read_float()
 {
 	float value = Peek_float();
 	IncrementIndex(4);
+	return value;
+}
+
+double ByteReader::Peek_double() const
+{
+	Double_IEEE754_U u;
+	u.bytes[0] = _pointer[7];
+	u.bytes[1] = _pointer[6];
+	u.bytes[2] = _pointer[5];
+	u.bytes[3] = _pointer[4];
+	u.bytes[4] = _pointer[3];
+	u.bytes[5] = _pointer[2];
+	u.bytes[6] = _pointer[1];
+	u.bytes[7] = _pointer[0];
+	return u.binary64.ToDouble();
+}
+
+double ByteReader::Read_double()
+{
+	double value = Peek_double();
+	IncrementIndex(8);
 	return value;
 }

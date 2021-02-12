@@ -35,6 +35,7 @@ public:
 	bool Write_uint32(uint32 value);
 	bool Write_uint32_little(uint32 value);
 	bool Write_float(float value);
+	bool Write_double(double value);
 	bool Write_cstr(const char* string);
 
 	//todo: "return true"... really..?
@@ -43,6 +44,7 @@ public:
 	template <> bool Write(uint16 x) { return Write_uint16(x); }
 	template <> bool Write(uint32 x) { return Write_uint32(x); }
 	template <> bool Write(float x) { return Write_float(x); }
+	template <> bool Write(double x) { return Write_double(x); }
 	template <> bool Write(const char* x) { return Write_cstr(x); }
 };
 

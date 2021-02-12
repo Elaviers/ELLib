@@ -21,6 +21,16 @@ namespace Maths
 	template <>
 	Quaternion Lerp(const Quaternion& from, const Quaternion& to, float alpha) { return Quaternion::Lerp(from, to, alpha); }
 
+	double Exp(double x)
+	{
+		return exp(x);
+	}
+
+	float Exp(float x)
+	{
+		return expf(x);
+	}
+
 	double Sin(double radians)
 	{
 		return sin(radians);

@@ -4,4 +4,6 @@
 namespace Time
 {
 	uint32 GetRandSeed();
+
+	void Sleep(int millis);
 }

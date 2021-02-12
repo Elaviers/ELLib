@@ -41,7 +41,7 @@ Texture* IO::ReadPNGFile(const Buffer<byte> &data, int mip, int aniso)
 		if (bufferSize)
 		{
 			texture = new Texture();
-			texture->Change(buffer, width, height, mip, aniso);
+			texture->Create(buffer, width, height, mip, aniso);
 		}
 
 		free(buffer);

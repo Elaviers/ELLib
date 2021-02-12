@@ -41,7 +41,7 @@ public:
 	~RenderQueue() {}
 
 	void Clear();
-	void Render(ERenderChannels channels, const MeshManager& meshManager, const TextureManager& textureManager, int lightCount) const;
+	void Render(ERenderChannels channels, const MeshManager* meshManager, const TextureManager* textureManager, int lightCount) const;
 
 	void AddEntry(const RenderEntry*, int priority = 0);
 	RenderEntry& CreateEntry(ERenderChannels renderChannels, int priority = 0);

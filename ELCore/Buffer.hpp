@@ -25,16 +25,19 @@ private:
 
 	size_t _size;
 
-	byte* _CreateNewArray(size_t newSize) const 
+	byte* _CreateNewArray(size_t newSize) const
 	{
 		if (_handlerNew.IsCallable())
 			return _handlerNew(sizeof(T) * newSize);
 
-		return new byte[sizeof(T) * newSize]; 
+		return new byte[sizeof(T) * newSize];
 	}
 
 	void _DeleteData()
 	{
+		for (size_t i = 0; i < _size; ++i)
+			_elements[i].~T();
+
 		if (_handlerDelete.IsCallable())
 			_handlerDelete(_data);
 		else
@@ -42,7 +45,7 @@ private:
 	}
 
 	template <typename S>
-	void _Quicksort(size_t first, size_t last, S (*func)(const T&))
+	void _Quicksort(size_t first, size_t last, S(*func)(const T&))
 	{
 		if (first >= last)
 			return;
@@ -94,7 +97,7 @@ public:
 			new (_elements + i) T(other[i]);
 	}
 
-	Buffer(const T* data, size_t size) : _size(size) 
+	Buffer(const T* data, size_t size) : _size(size)
 	{
 		_data = _CreateNewArray(_size);
 
@@ -104,29 +107,22 @@ public:
 
 	Buffer(const NewHandler& newHandler, const DeleteHandler& deleteHandler) : Buffer(), _handlerNew(newHandler), _handlerDelete(deleteHandler) {}
 
-	Buffer(Buffer&& other) noexcept : _data(other._data), _size(other._size)
+	Buffer(Buffer&& other) noexcept : _data(nullptr), _size(0)
 	{
-		other._data = nullptr;
-		other._size = 0;
-
-		if (other._handlerNew != _handlerNew || other._handlerDelete != _handlerDelete)
-			operator=((const Buffer&)*this);
+		operator=(std::move(other));
 	}
 
-	~Buffer() 
+	~Buffer()
 	{
-		for (size_t i = 0; i < _size; ++i)
-			_elements[i].~T();
-
 		_DeleteData();
 	}
 
-	size_t GetSize() const	{ return _size; }
-	T* Data()				{ return _elements; }
-	const T* Data() const	{ return _elements; }
+	size_t GetSize() const { return _size; }
+	const T* Data() const { return _elements; }
+	T* Data() { return _elements; }
 
-	T& operator[](size_t index)				{ return _elements[index]; }
-	const T& operator[](size_t index) const	{ return _elements[index]; }
+	T& operator[](size_t index) { return _elements[index]; }
+	const T& operator[](size_t index) const { return _elements[index]; }
 
 	T& Last() { return _elements[_size - 1]; }
 	const T& Last() const { return _elements[_size - 1]; }
@@ -136,60 +132,61 @@ public:
 		if (_size == size)
 			return;
 
-		byte* newData;
+		byte* newData = nullptr;
 		if (size != 0)
 		{
-			for (size_t i = size; i < _size; ++i)
-				_elements[i].~T();
-
 			newData = _CreateNewArray(size);
 			auto minSize = size < _size ? size : _size;
-			Utilities::CopyBytes(_data, newData, minSize * sizeof(T));
+			for (size_t i = 0; i < minSize; ++i)
+				new (newData + sizeof(T) * i) T(std::move(_elements[i]));
 
 			for (size_t i = minSize; i < size; ++i)
 				new (newData + sizeof(T) * i) T();
 		}
-		else
-			newData = nullptr;
 
 		_DeleteData();
 		_data = newData;
 		_size = size;
 	}
 
-	T& Add(const T& item)
-	{
-		SetSize(_size + 1);
-		return *new (_elements + _size - 1) T(item);
-	}
-
-	T& Add(T&& item)
-	{
-		SetSize(_size + 1);
-		return *new (_elements + _size - 1) T(std::move(item));
-	}
-
 	template <typename... Args>
 	T& Emplace(const Args&... args)
 	{
-		SetSize(_size + 1);
+		byte* newData = _CreateNewArray(_size + 1);
+		for (size_t i = 0; i < _size; ++i)
+			new (newData + sizeof(T) * i) T(std::move(_elements[i]));
+
+		_DeleteData();
+		_data = newData;
+		++_size;
 		return *new (_elements + _size - 1) T(args...);
 	}
 
-	void Clear() { SetSize(0); }
+	T& Add(const T& item) { return Emplace(item); }
+	T& Add(T&& item) { return Emplace(item); }
+
+	void Clear()
+	{
+		_DeleteData();
+		_data = nullptr;
+		_size = 0;
+	}
 
 	void Append(size_t elements) { SetSize(_size + elements); }
 
-	T* Insert(const T &item, size_t pos)
+	T* Insert(const T& item, size_t pos)
 	{
 		if (pos > _size) return nullptr;
 
-		byte *newData = _CreateNewArray(_size + 1);
-		Utilities::CopyBytes(_data, newData, pos * sizeof(T));
-		Utilities::CopyBytes(_data + pos * sizeof(T), newData + (pos + 1) * sizeof(T), (_size - pos) * sizeof(T));
+		byte* newData = _CreateNewArray(_size + 1);
+		for (size_t i = 0; i < pos; ++i)
+			new (newData + sizeof(T) * i) T(std::move(_elements[i]));
 
 		new (newData + sizeof(T) * pos) T(item);
-		
+
+		for (size_t i = pos + 1; i <= _size; ++i)
+			new (newData + sizeof(T) * i) T(std::move(_elements[i]));
+
 		_DeleteData();
 		_data = newData;
 		_size++;
@@ -197,7 +194,7 @@ public:
 		return &_elements[pos];
 	}
 
-	T& OrderedAdd(const T &item)
+	T& OrderedAdd(const T& item)
 	{
 		for (size_t i = 0; i < _size; ++i)
 			if (_elements[i] > item)
@@ -214,15 +211,19 @@ public:
 			_elements[index].~T();
 
 			byte* newData = _CreateNewArray(_size);
-			Utilities::CopyBytes(_data, newData, index * sizeof(T));
-			Utilities::CopyBytes(_data + (index + 1) * sizeof(T), newData + index * sizeof(T), (_size - index) * sizeof(T));
+
+			for (size_t i = 0; i < index; ++i)
+				new (newData + sizeof(T) * i) T(std::move(_elements[i]));
+
+			for (size_t i = index; i < _size; ++i)
+				new (newData + sizeof(T) * i) T(std::move(_elements[i + 1]));
 
 			_DeleteData();
 			_data = newData;
 		}
 	}
 
-	void Remove(const T &item)
+	void Remove(const T& item)
 	{
 		for (size_t i = 0; i < _size;)
 		{
@@ -238,7 +239,7 @@ public:
 		Buffer result;
 		result._size = _size + 1;
 		result._data = _CreateNewArray(result._size);
-		
+
 		for (size_t i = 0; i < _size; ++i)
 			new (result._elements + i) T(_elements[i]);
 
@@ -280,14 +281,17 @@ public:
 
 	Buffer& operator=(Buffer&& other) noexcept
 	{
+		if (other._handlerNew != _handlerNew || other._handlerDelete != _handlerDelete)
+		{
+			operator=((const Buffer&)other);
+			other.Clear();
+			return *this;
+		}
+
 		_data = other._data;
 		_size = other._size;
 		other._data = nullptr;
 		other._size = 0;
-
-		if (other._handlerNew != _handlerNew || other._handlerDelete != _handlerDelete)
-			operator=((const Buffer&)*this);
-
 		return *this;
 	}
 
@@ -318,7 +322,7 @@ public:
 	const T* end() const { return _size ? (_elements + _size) : nullptr; }
 
 	template <typename S>
-	void Sort(S (*func)(const T&))
+	void Sort(S(*func)(const T&))
 	{
 		if (_size >= 2)
 			_Quicksort(0, _size - 1, func);

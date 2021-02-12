@@ -59,7 +59,7 @@ public:
 	uint32 GetWidth() const { return _width; }
 	uint32 GetHeight() const { return _height; }
 
-	void Change(const byte* data, uint32 w, uint32 h, byte maxMipLevels = 0, byte maxAnisotropy = 0)
+	void Create(const byte* data, uint32 w, uint32 h, byte maxMipLevels = 0, byte maxAnisotropy = 0)
 	{
 		_width = w;
 		_height = h;
@@ -70,6 +70,12 @@ public:
 			maxAnisotropy ? Maths::Min(maxAnisotropy, info.aniso) : info.aniso,
 			info.minFilter, info.magFilter,
 			info.wrapx, info.wrapy);
+	}
+
+	//Modifies region of mip
+	void Modify(int mip, uint32 x, uint32 y, uint32 w, uint32 h, const byte* data)
+	{
+		_glTexture.Modify(mip, x, y, w, h, data);
 	}
 
 	void Bind(int unit) const

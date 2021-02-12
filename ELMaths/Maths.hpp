@@ -13,6 +13,9 @@ namespace Maths
 	constexpr double SQRT2 = 1.4142135623730950488;
 	constexpr float SQRT2_F = (float)SQRT2;
 
+	constexpr double E = 2.71828182845904523536;
+	constexpr float E_F = (float)E;
+
 	constexpr const double DEGS_PER_RAD = 180.0 / PI;
 	constexpr const double RADS_PER_DEG = PI / 180.0;
 
@@ -118,6 +121,9 @@ namespace Maths
 		while (index--) result *= base;
 		return result;
 	}
+
+	float Exp(float x);
+	double Exp(double x);
 
 	template<typename T>
 	inline T RadiansToDegrees(T radians) { return (T)DEGS_PER_RAD * radians; }

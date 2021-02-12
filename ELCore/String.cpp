@@ -668,3 +668,51 @@ bool StringsEqualN(const char* a, const char* b, size_t n)
 {
 	return !StringsInequalN(a, b, n);
 }
+
+std::ostream& operator<<(std::ostream& stream, String& string)
+{
+	stream.write(string._data, string._length);
+	return stream;
+}
+
+std::istream& operator>>(std::istream& stream, String& string)
+{
+	bool skip = true;
+	while (true)
+	{
+		char c = stream.peek();
+		if (c == ' ' || c == '\n' || c == '\r')
+		{
+			if (!skip) break;
+			
+			stream.get();
+			continue;
+		}
+		
+		skip = false;
+		string += stream.get();
+	}
+
+	return stream;
+}
+
+std::istream& std::getline(std::istream& stream, String& string)
+{
+	bool skip = true;
+	while (true)
+	{
+		char c = stream.peek();
+		if (c == '\n' || c == '\r')
+		{
+			if (!skip) break;
+
+			stream.get();
+			continue;
+		}
+
+		skip = false;
+		string += stream.get();
+	}
+
+	return stream;
+}

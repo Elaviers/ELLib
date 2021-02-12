@@ -1,5 +1,6 @@
 #pragma once
 #include "Types.hpp"
+#include <iostream>
 
 template<typename T>
 class Buffer;
@@ -28,6 +29,13 @@ inline size_t StringLength(const char* string) {
 	while (string[length] != '\0') length++;
 	return length;
 }
+
+class String;
+
+namespace std
+{
+	std::istream& getline(std::istream& stream, String& string);
+};
 
 class String {
 private:
@@ -171,4 +179,8 @@ public:
 	LINKBOTH(unsigned long, int64);
 	LINKBOTH(unsigned long long, int64);
 	LINKBOTH(float, double);
+
+	friend std::ostream& operator<<(std::ostream& stream, String& string);
+	friend std::istream& operator>>(std::istream& stream, String& string);
+	friend std::istream& std::getline(std::istream& stream, String& string);
 };

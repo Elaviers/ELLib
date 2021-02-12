@@ -4,6 +4,7 @@
 #include <ELCore/MacroUtilities.hpp>
 #include <ELCore/Pool.hpp>
 #include <ELCore/Types.hpp>
+#include <ELMaths/Vector2.hpp>
 #include <Windows.h>
 
 namespace WindowFunctions
@@ -107,6 +108,8 @@ protected:
 	HWND	_hwnd;		//Window handle
 	HDC		_hdc;		//Device context handle
 
+	bool _closeDestroysWindow;
+
 	typedef MultiPool<byte, sizeof(WindowEvent) * 8> _EventPoolType;
 	_EventPoolType _eventPool;
 	List<WindowEvent> _eventList;
@@ -129,16 +132,20 @@ public:
 
 	virtual ~Window()
 	{
-		if (_hwnd) ::DestroyWindow(_hwnd);
+		Destroy();
 	}
 
 	void Create(const char* title, const Window* parent = nullptr, WindowFlags flags = WindowFlags::NONE);
 	void Show();
 	void Hide();
 	void SwapBuffers();
+	void Destroy();
 
 	void Focus();
 
+	Vector2T<uint16> GetClientSize() const;
+	
+	void SetDestroyOnClose(bool destroyOnClose)							{ _closeDestroysWindow = destroyOnClose; }
 	void SetTitle(const char *title)									{ ::SetWindowTextA(_hwnd, title); }
 	void SetSizeAndPos(uint16 x, uint16 y, uint16 width, uint16 height)	{ WindowFunctions::SetHWNDSizeAndPos(_hwnd, x, y, width, height); }
 	void SetSize(uint16 width, uint16 height)							{ WindowFunctions::ResizeHWND(_hwnd, width, height); }

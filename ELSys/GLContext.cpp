@@ -5,6 +5,7 @@
 
 void GLContext::_Create(HDC hdc)
 {
+	Delete();
 	_id = wglCreateContext(hdc);
 
 	if (_id == NULL)
@@ -46,5 +47,9 @@ void GLContext::CreateDummyAndUse()
 
 void GLContext::Delete()
 {
-	wglDeleteContext(_id);
+	if (_id)
+	{
+		wglDeleteContext(_id);
+		_id = 0;
+	}
 }

@@ -92,10 +92,12 @@ void Window::Win32SetIconResource(int resource)
 	iconResource = MAKEINTRESOURCE(resource);
 }
 
-Window::Window() : _hwnd(NULL), _hdc(NULL), _eventList(NewHandler(&_eventPool, &_EventPoolType::NewArray), DeleteHandler(&_eventPool, &_EventPoolType::DeleteHandler))
+Window::Window() : 
+	_hwnd(NULL), _hdc(NULL), 
+	_closeDestroysWindow(true),
+	_eventList(NewHandler(&_eventPool, &_EventPoolType::NewArray), DeleteHandler(&_eventPool, &_EventPoolType::DeleteHandler))
 {
 }
-
 
 void Window::Create(const char* title, const Window* parent, WindowFlags flags)
 {
@@ -104,9 +106,33 @@ void Window::Create(const char* title, const Window* parent, WindowFlags flags)
 	if (_hwnd)
 		::DestroyWindow(_hwnd);
 
-	_hwnd = ::CreateWindow(_wclassDefault, title, WS_OVERLAPPEDWINDOW, CW_USEDEFAULT, 0, CW_USEDEFAULT, 0, parent ? parent->_hwnd : NULL, NULL, _programInstance, (LPVOID)this);
+	DWORD style = 0;
+
+	bool borderless = (int)(flags & WindowFlags::BORDERLESS);
+	if (borderless)
+		style |= WS_POPUP;
+	else
+		style |= WS_OVERLAPPEDWINDOW;
+
+	_hwnd = ::CreateWindow(_wclassDefault, title, style, CW_USEDEFAULT, 0, CW_USEDEFAULT, 0, parent ? parent->_hwnd : NULL, NULL, _programInstance, (LPVOID)this);
 
 	Debug::Assert(_hwnd, CSTR("Unable to create window (0x", String::FromInt(::GetLastError(), 2, 16), ")"));
+
+	if ((int)(flags & WindowFlags::FULLSCREEN))
+	{
+		if (borderless)
+		{
+			MONITORINFO monitorInfo;
+			monitorInfo.cbSize = sizeof(monitorInfo);
+			GetMonitorInfo(MonitorFromWindow(_hwnd, MONITOR_DEFAULTTONEAREST), &monitorInfo);
+
+			WindowFunctions::SetHWNDSizeAndPos(_hwnd, 0, 0, monitorInfo.rcMonitor.right, monitorInfo.rcMonitor.bottom);
+		}
+		else
+		{
+			//todo.. heh
+		}
+	}
 
 	_hdc = GetDC(_hwnd);
 	WindowFunctions::SetDefaultPixelFormat(_hdc);
@@ -124,6 +150,15 @@ void Window::Hide()
 		::ShowWindow(_hwnd, SW_HIDE);
 }
 
+void Window::Destroy()
+{
+	if (_hwnd)
+	{
+		::DestroyWindow(_hwnd);
+		_hwnd = NULL;
+	}
+}
+
 void Window::SwapBuffers()
 {
 	::SwapBuffers(_hdc);
@@ -132,6 +167,14 @@ void Window::SwapBuffers()
 void Window::Focus()
 {
 	::SetFocus(_hwnd);
+}
+
+Vector2T<uint16> Window::GetClientSize() const
+{
+	RECT sz = {};
+	::GetClientRect(_hwnd, &sz);
+
+	return Vector2T<uint16>(sz.right, sz.bottom);
 }
 
 bool Window::PollEvent(WindowEvent& out)
@@ -174,11 +217,17 @@ LRESULT CALLBACK Window::_WindowsProc(HWND hwnd, UINT msg, WPARAM wparam, LPARAM
 	switch (msg)
 	{
 	case WM_CLOSE:
-		::DestroyWindow(hwnd);
+		if (window->_closeDestroysWindow)
+			::DestroyWindow(hwnd);
+		else
+			window->_eventList.Emplace(WindowEvent::CLOSED);
+
 		break;
 
 	case WM_DESTROY:
-		window->_eventList.Emplace(WindowEvent::CLOSED);
+		if (!window->_closeDestroysWindow)
+			window->_eventList.Emplace(WindowEvent::CLOSED);
+		
 		break;
 
 	case WM_SIZE:
