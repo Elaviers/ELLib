@@ -27,7 +27,7 @@ class Collider
 public:
 	Collider() : _channels(ECollisionChannels::NONE) {}
 
-	Collider(ECollisionChannels channels, const CollisionShape& shape) : _channels(channels), _shapes(shape.Clone()) {}
+	Collider(ECollisionChannels channels, const CollisionShape& shape) : _channels(channels), _shapes({ shape.Clone() }) {}
 
 	Collider(ECollisionChannels channels, const Buffer<CollisionShape>& shapes = Buffer<CollisionShape>()) : _channels(channels)
 	{

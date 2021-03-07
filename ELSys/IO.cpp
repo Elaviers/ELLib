@@ -46,7 +46,7 @@ Buffer<byte> IO::ReadFile(const char *filename, bool silent)
 		buffer.SetSize(fileSize.LowPart);
 
 		#pragma warning(suppress: 28193) //False positive
-		BOOL success = ::ReadFile(file, buffer.Data(), fileSize.LowPart, NULL, NULL);
+		BOOL success = ::ReadFile(file, buffer.Elements(), fileSize.LowPart, NULL, NULL);
 
 		if (!silent && success == FALSE)
 			Debug::Error(CSTR("Could not read file \"", filename, '\"'));
@@ -162,7 +162,7 @@ String IO::OpenFileDialog(const wchar_t* dir, const Buffer<Pair<const wchar_t*>>
 	HRESULT result = ::CoCreateInstance(CLSID_FileOpenDialog, NULL, CLSCTX_ALL, IID_IFileOpenDialog, (void**)&fileOpenDialog);
 	if (SUCCEEDED(result))
 	{
-		fileOpenDialog->SetFileTypes((UINT)_fileTypes.GetSize(), _fileTypes.Data());
+		fileOpenDialog->SetFileTypes((UINT)_fileTypes.GetSize(), _fileTypes.Elements());
 
 		IShellItem* folder;
 
@@ -213,7 +213,7 @@ String IO::SaveFileDialog(const wchar_t* dir, const Buffer<Pair<const wchar_t*>>
 		SHCreateItemFromParsingName(fullPath, NULL, IID_PPV_ARGS(&folder));
 
 		fileSaveDialog->SetDefaultExtension(L"lvl");
-		fileSaveDialog->SetFileTypes((UINT)_fileTypes.GetSize(), _fileTypes.Data());
+		fileSaveDialog->SetFileTypes((UINT)_fileTypes.GetSize(), _fileTypes.Elements());
 		fileSaveDialog->SetFolder(folder);
 
 		result = fileSaveDialog->Show(NULL);

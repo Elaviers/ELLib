@@ -3,7 +3,7 @@
 
 void Mesh_Skeletal::UpdateRenderer()
 {
-	_renderer.GL().Create(vertices.Data(), (GLsizei)vertices.GetSize(), elements.Data(), (GLsizei)elements.GetSize());
+	_renderer.GL().Create(vertices.Elements(), (GLsizei)vertices.GetSize(), elements.Elements(), (GLsizei)elements.GetSize());
 }
 
 enum class EEFileVersion

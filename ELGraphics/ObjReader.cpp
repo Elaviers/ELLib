@@ -77,7 +77,7 @@ uint32 GetVertexIndex(Buffer<Vertex17F> &vertices, uint32 &vertexCount, const Bu
 			return i;
 
 	if (i == vertices.GetSize())
-		vertices.Append(1);
+		vertices.Emplace();
 
 	vertices[i].pos = pos;
 	vertices[i].normal = normal;
@@ -165,7 +165,7 @@ Mesh_Static* IO::ReadOBJFile(const String& objSrc)
 						uint32 v3 = GetVertexIndex(mesh->vertices, vertexCount, positions, normals, uvs, tokens[3].GetData());
 
 						size_t last = mesh->elements.GetSize();
-						mesh->elements.Append(3);
+						mesh->elements.Grow(3);
 
 						mesh->elements[last] = v1;
 						mesh->elements[last + 1] = v3;
@@ -177,7 +177,7 @@ Mesh_Static* IO::ReadOBJFile(const String& objSrc)
 							uint32 v4 = GetVertexIndex(mesh->vertices, vertexCount, positions, normals, uvs, tokens[4].GetData());
 
 							size_t last = mesh->elements.GetSize();
-							mesh->elements.Append(3);
+							mesh->elements.Grow(3);
 
 							mesh->elements[last] = v1;
 							mesh->elements[last + 1] = v4;

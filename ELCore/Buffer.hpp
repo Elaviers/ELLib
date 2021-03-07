@@ -14,18 +14,18 @@ template <typename T>
 class Buffer
 {
 private:
-	NewHandler _handlerNew;
-	DeleteHandler _handlerDelete;
+	const NewHandler _handlerNew;
+	const DeleteHandler _handlerDelete;
 
 	union
 	{
 		T* _elements;
-		byte* _data;
+		byte* _raw;
 	};
 
 	size_t _size;
 
-	byte* _CreateNewArray(size_t newSize) const
+	byte* _AllocRawData(size_t newSize) const
 	{
 		if (_handlerNew.IsCallable())
 			return _handlerNew(sizeof(T) * newSize);
@@ -33,15 +33,15 @@ private:
 		return new byte[sizeof(T) * newSize];
 	}
 
-	void _DeleteData()
+	void _DestroyData()
 	{
 		for (size_t i = 0; i < _size; ++i)
 			_elements[i].~T();
 
 		if (_handlerDelete.IsCallable())
-			_handlerDelete(_data);
+			_handlerDelete(_raw);
 		else
-			delete[] _data;
+			delete[] _raw;
 	}
 
 	template <typename S>
@@ -73,53 +73,46 @@ private:
 	}
 
 public:
-	Buffer() : _data(nullptr), _size(0) {}
-
-	Buffer(const T& v) : _size(1)
-	{
-		_data = _CreateNewArray(_size);
-		new (_elements) T(v);
-	}
+	Buffer() : _raw(nullptr), _size(0) {}
+	Buffer(const NewHandler& newHandler, const DeleteHandler& deleteHandler) : Buffer(), _handlerNew(newHandler), _handlerDelete(deleteHandler) {}
 
 	Buffer(const std::initializer_list<T>& elements) : _size(elements.size())
 	{
-		_data = _CreateNewArray(_size);
+		_raw = _AllocRawData(_size);
 
 		for (size_t i = 0; i < _size; ++i)
-			new (_elements + i) T(elements.begin()[i]);
-	}
-
-	Buffer(const Buffer& other) : _size(other._size)
-	{
-		_data = _CreateNewArray(_size);
-
-		for (size_t i = 0; i < _size; ++i)
-			new (_elements + i) T(other[i]);
+			new (_elements + i) T(std::move(elements.begin()[i]));
 	}
 
 	Buffer(const T* data, size_t size) : _size(size)
 	{
-		_data = _CreateNewArray(_size);
+		_raw = _AllocRawData(_size);
 
 		for (size_t i = 0; i < _size; ++i)
 			new (_elements + i) T(data[i]);
 	}
 
-	Buffer(const NewHandler& newHandler, const DeleteHandler& deleteHandler) : Buffer(), _handlerNew(newHandler), _handlerDelete(deleteHandler) {}
+	Buffer(const Buffer& other) : _size(other._size)
+	{
+		_raw = _AllocRawData(_size);
 
-	Buffer(Buffer&& other) noexcept : _data(nullptr), _size(0)
+		for (size_t i = 0; i < _size; ++i)
+			new (_elements + i) T(other[i]);
+	}
+
+	Buffer(Buffer&& other) noexcept
 	{
 		operator=(std::move(other));
 	}
 
 	~Buffer()
 	{
-		_DeleteData();
+		_DestroyData();
 	}
 
 	size_t GetSize() const { return _size; }
-	const T* Data() const { return _elements; }
-	T* Data() { return _elements; }
+	const T* Elements() const { return _elements; }
+	T* Elements() { return _elements; }
 
 	T& operator[](size_t index) { return _elements[index]; }
 	const T& operator[](size_t index) const { return _elements[index]; }
@@ -129,78 +122,103 @@ public:
 
 	void SetSize(size_t size)
 	{
-		if (_size == size)
-			return;
+		if (size == _size) return;
+		if (size > _size) return Grow(size - _size);
+		return Shrink(_size - size);
+	}
 
-		byte* newData = nullptr;
-		if (size != 0)
+	void Grow(size_t amount)
+	{
+		if (amount > 0)
 		{
-			newData = _CreateNewArray(size);
-			auto minSize = size < _size ? size : _size;
-			for (size_t i = 0; i < minSize; ++i)
+			size_t size = _size + amount;
+			byte* newData = _AllocRawData(size);
+			for (size_t i = 0; i < _size; ++i)
 				new (newData + sizeof(T) * i) T(std::move(_elements[i]));
 
-			for (size_t i = minSize; i < size; ++i)
-				new (newData + sizeof(T) * i) T();
-		}
+			byte* newDataStart = newData + _size * sizeof(T);
+			for (size_t i = 0; i < amount; ++i)
+				new (newDataStart + sizeof(T) * i) T();
 
-		_DeleteData();
-		_data = newData;
-		_size = size;
+			_DestroyData();
+			_raw = newData;
+			_size = size;
+		}
+	}
+
+	void Shrink(size_t amount)
+	{
+		if (amount > 0)
+		{
+			if (amount < _size)
+			{
+				size_t size = _size - amount;
+				byte* newData = _AllocRawData(size);
+
+				for (size_t i = 0; i < size; ++i)
+					new (newData + sizeof(T) * i) T(std::move(_elements[i]));
+
+				_DestroyData();
+				_raw = newData;
+				_size = size;
+			}
+			else
+				Clear();
+		}
 	}
 
 	template <typename... Args>
-	T& Emplace(const Args&... args)
+	T& Emplace(Args&&... args)
 	{
-		byte* newData = _CreateNewArray(_size + 1);
+		byte* newData = _AllocRawData(_size + 1);
 		for (size_t i = 0; i < _size; ++i)
 			new (newData + sizeof(T) * i) T(std::move(_elements[i]));
 
-		_DeleteData();
-		_data = newData;
+		_DestroyData();
+		_raw = newData;
 		++_size;
-		return *new (_elements + _size - 1) T(args...);
+		return *new (_elements + _size - 1) T(static_cast<Args&&>(args)...);
 	}
 
 	T& Add(const T& item) { return Emplace(item); }
-	T& Add(T&& item) { return Emplace(item); }
+	T& Add(T&& item) { return Emplace(std::move(item)); }
 
 	void Clear()
 	{
-		_DeleteData();
-		_data = nullptr;
+		_DestroyData();
+		_raw = nullptr;
 		_size = 0;
 	}
 
-	void Append(size_t elements) { SetSize(_size + elements); }
-
-	T* Insert(const T& item, size_t pos)
+	T* Insert(const T& item, size_t pos) { return pos > _size ? nullptr : Insert(std::move(T(item)), pos); }
+	T* Insert(T&& item, size_t pos)
 	{
 		if (pos > _size) return nullptr;
 
-		byte* newData = _CreateNewArray(_size + 1);
+		byte* newData = _AllocRawData(_size + 1);
 		for (size_t i = 0; i < pos; ++i)
 			new (newData + sizeof(T) * i) T(std::move(_elements[i]));
 
-		new (newData + sizeof(T) * pos) T(item);
+		new (newData + sizeof(T) * pos) T(std::move(item));
 
-		for (size_t i = pos + 1; i <= _size; ++i)
-			new (newData + sizeof(T) * i) T(std::move(_elements[i]));
+		for (size_t i = pos; i < _size; ++i)
+			new (newData + sizeof(T) * (i + 1)) T(std::move(_elements[i]));
 
-		_DeleteData();
-		_data = newData;
+		_DestroyData();
+		_raw = newData;
 		_size++;
 
 		return &_elements[pos];
 	}
 
-	T& OrderedAdd(const T& item)
+	T& OrderedAdd(const T& item) { return OrderedAdd(std::move(T(item))); }
+	T& OrderedAdd(T&& item)
 	{
 		for (size_t i = 0; i < _size; ++i)
 			if (_elements[i] > item)
-				return *Insert(item, i);
+				return *Insert(std::move(item), i);
 
-		return Add(item);
+		return Add(std::move(item));
 	}
 
 	void RemoveIndex(size_t index)
@@ -210,7 +228,7 @@ public:
 			_size--;
 			_elements[index].~T();
 
-			byte* newData = _CreateNewArray(_size);
+			byte* newData = _AllocRawData(_size);
 
 			for (size_t i = 0; i < index; ++i)
 				new (newData + sizeof(T) * i) T(std::move(_elements[i]));
@@ -218,11 +236,12 @@ public:
 			for (size_t i = index; i < _size; ++i)
 				new (newData + sizeof(T) * i) T(std::move(_elements[i + 1]));
 
-			_DeleteData();
-			_data = newData;
+			_DestroyData();
+			_raw = newData;
 		}
 	}
 
+	//Removes anything equivalent to item from the array
 	void Remove(const T& item)
 	{
 		for (size_t i = 0; i < _size;)
@@ -234,16 +253,17 @@ public:
 		}
 	}
 
-	Buffer operator+(const T& other)
+	Buffer operator+(const T& other) { return operator+(std::move(T(other))); }
+	Buffer operator+(T&& other)
 	{
 		Buffer result;
 		result._size = _size + 1;
-		result._data = _CreateNewArray(result._size);
+		result._raw = _AllocRawData(result._size);
 
 		for (size_t i = 0; i < _size; ++i)
 			new (result._elements + i) T(_elements[i]);
 
-		new (result._elements + _size) T(other);
+		new (result._elements + _size) T(std::move(other));
 		return result;
 	}
 
@@ -251,7 +271,7 @@ public:
 	{
 		Buffer result;
 		result._size = _size + other._size;
-		result._data = _CreateNewArray(result._size);
+		result._raw = _AllocRawData(result._size);
 
 		for (size_t i = 0; i < _size; ++i)
 			new (result._elements + i) T(_elements[i]);
@@ -269,9 +289,9 @@ public:
 
 	Buffer& operator=(const Buffer& other)
 	{
-		_DeleteData();
+		_DestroyData();
 		_size = other._size;
-		_data = _CreateNewArray(_size);
+		_raw = _AllocRawData(_size);
 
 		for (size_t i = 0; i < _size; ++i)
 			new (_elements + i) T(other[i]);
@@ -288,9 +308,9 @@ public:
 			return *this;
 		}
 
-		_data = other._data;
+		_raw = other._raw;
 		_size = other._size;
-		other._data = nullptr;
+		other._raw = nullptr;
 		other._size = 0;
 		return *this;
 	}
@@ -306,7 +326,7 @@ public:
 		return true;
 	}
 
-	int IndexOf(const T& item) const
+	int IndexOfFirst(const T& item) const
 	{
 		for (size_t i = 0; i < _size; ++i)
 			if (_elements[i] == item)

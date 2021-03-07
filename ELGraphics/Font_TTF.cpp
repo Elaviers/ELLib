@@ -122,7 +122,7 @@ float FontTTF::CalculateStringWidth(const char* string, float scaleX, size_t max
 		{
 			const TTFGlyph* glyph = _charMap.Get(*c);
 			if (glyph)
-				currentLineW += (glyph->advance >> 6) * scale;
+				currentLineW += (float)(glyph->advance >> 6) * scale;
 		}
 
 		if (++i == maxChars) break;
@@ -197,27 +197,35 @@ size_t FontTTF::GetPositionOf(float pX, float pY, const char* string, const Tran
 	return StringLength(string);
 }
 
-void FontTTF::RenderString(RenderEntry& e, const char* string, const Transform& transform, float lineHeight) const
+void FontTTF::RenderString(RenderEntry& e, const char* string, const Transform& transform, float lineHeight, const RectF& clip) const
 {
-	Transform t;
-	Vector3 advanceDirection = t.GetRightVector();
-	Vector3 upDirection = t.GetUpVector();
-	Vector3 downDirection = -1.f * upDirection;
+	const Vector3& rotation = transform.GetRotation().GetEuler();
+	const Vector3 advanceDirection = transform.GetRightVector();
+	const Vector3 downDirection = -1.f * transform.GetUpVector();
+	
+	const float scale = transform.GetScale().x / (float)_size;
+	const float yOffset = (float)_descender * scale;
 
-	t.SetPosition(transform.GetPosition());
+	const bool clipX = clip.w > 0;
+	const bool clipY = clip.h > 0;
+	float xClipStart = clip.x;
+	float yClipStart = clip.y;
+	float xClipEnd = xClipStart + clip.w;
+	float yClipEnd = yClipStart + clip.h;
 
-	float scale = (transform.GetScale().x / (float)_size);
+	if (xClipStart > xClipEnd) Utilities::Swap(xClipStart, xClipEnd);
+	if (yClipStart > yClipEnd) Utilities::Swap(yClipStart, yClipEnd);
+
+	bool clipped = false;
 
 	float line = 0.f;
-	float currentLineW = 0.f;
+	float x = 0.f;
 
-	float yOffset = (float)_descender * scale;
-
-	t.Move(downDirection * yOffset);
+	float gX = 0.f, gY = 0.f, gW, gH;
+	
+	Vector3 rootPos = transform.GetPosition() + downDirection * yOffset;
 
 	e.AddSetIsFont(true);
-	e.AddCommand(RCMDSetUVScale::Default());
-	e.AddCommand(RCMDSetUVOffset::Default());
 
 	for (const char* c = string; *c != '\0'; ++c)
 	{
@@ -230,35 +238,106 @@ void FontTTF::RenderString(RenderEntry& e, const char* string, const Transform& 
 		else if (*c == '\n' && lineHeight)
 		{
 			++line;
-			currentLineW = 0.f;
-
-			t = transform;
-			t.Move(downDirection * (yOffset + lineHeight * line));
+			x = 0.f;
+			
+			rootPos = transform.GetPosition() + downDirection * (yOffset + lineHeight * line);
 		}
 		else if (*c == '\t')
 		{
 			const TTFGlyph* space = _charMap.Get(' ');
 			float stopWidth = (space->advance >> 6) * scale * 5.f;
-			float nextStop = Maths::Trunc(currentLineW, stopWidth) + stopWidth;
-
-			t.Move(advanceDirection * (nextStop - currentLineW));
-			currentLineW = nextStop;
+			x = Maths::Trunc(x, stopWidth) + stopWidth;
 		}
-		else
+		else if (!clipped)
 		{
 			const TTFGlyph* glyph = _charMap.Get(*c);
 			if (glyph)
 			{
-				t.SetScale(Vector3(glyph->size.x * scale, glyph->size.y * scale, 1.f));
+				gW = glyph->size.x * scale;
+				gH = glyph->size.y * scale;
 
-				Vector3 v = t.GetPosition() + (advanceDirection * (glyph->bearing.x + glyph->size.x / 2.f) * scale) + (downDirection * (glyph->size.y / 2.f - glyph->bearing.y) * scale);
+				gX = glyph->bearing.x * scale;
+				gY = glyph->bearing.y * scale;
+				float gStart = x + gX;
+				float gEnd = gStart + gW;
 
-				e.AddSetTransform(Matrix4::Transformation(v, t.GetRotation().GetQuat(), t.GetScale()));
-				e.AddSetTextureGL(glyph->texID, 0);
-				e.AddCommand(RCMDRenderMesh::PLANE);
+				Vector2 uvOffset = Vector2(0.f, 0.f);
+				Vector2 uvScale = Vector2(1.f, 1.f);
+				
+				if (!clipX || gEnd > xClipStart)
+				{
+					if (clipX)
+					{
+						if (gStart < xClipStart)
+						{
+							//gEnd is past clipping point
 
-				t.Move(advanceDirection * (float)(glyph->advance >> 6) * scale);
-				currentLineW += (float)(glyph->advance >> 6) * scale;
+							float gWClipped = gEnd - xClipStart;
+							gX += xClipStart - gStart;
+							uvScale.x = gWClipped / gW;
+							uvOffset.x = 1.f - uvScale.x;
+							gW = gWClipped;
+						}
+						else if (gEnd >= xClipEnd)
+						{
+							clipped = true;
+
+							if (gStart >= xClipEnd)
+								gW = 0;
+							else
+							{
+								float gWClipped = xClipEnd - gStart;
+								uvScale.x *= gWClipped / gW;
+								gW = gWClipped;
+							}
+						}
+					}
+
+					if (clipY)
+					{
+						float gTop = gY - lineHeight * line - yOffset;
+						float gBottom = gTop - gH;
+
+						if (gBottom < yClipStart)
+						{
+							float gHClipped = gTop - yClipStart;
+							uvScale.y = gHClipped / gH;
+							gH = gHClipped;
+						}
+						else if (gTop > yClipEnd)
+						{
+							if (gBottom >= yClipEnd)
+								gH = 0;
+							else
+							{
+								float gHClipped = yClipEnd - gBottom;
+								gY += yClipEnd - gTop;
+								uvScale.y = gHClipped / gH;
+								uvOffset.y = 1.f - uvScale.y;
+								gH = gHClipped;
+							}
+						}
+					}
+
+					if (gW && gH)
+					{
+						e.AddSetTransform(Matrix4::Transformation(
+							rootPos +
+							(advanceDirection * (gStart + gX + gW / 2.f)) +
+							(downDirection * (gH / 2.f - gY)),
+							rotation,
+							Vector3(gW, gH, 1.f)
+						));
+
+						e.AddSetUVOffset(uvOffset);
+						e.AddSetUVScale(uvScale);
+
+						e.AddSetTextureGL(glyph->texID, 0);
+						e.AddCommand(RCMDRenderMesh::PLANE);
+					}
+				}
+
+				x += (float)(glyph->advance >> 6) * scale;
 			}
 		}
 	}

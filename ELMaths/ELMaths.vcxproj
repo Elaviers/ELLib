@@ -203,7 +203,7 @@
     <ClInclude Include="RenderParam.hpp" />
     <ClInclude Include="Rotation.hpp" />
     <ClInclude Include="Transform.hpp" />
-    <ClInclude Include="UVRect.hpp" />
+    <ClInclude Include="Rect.hpp" />
     <ClInclude Include="Vector2.hpp" />
     <ClInclude Include="Vector3.hpp" />
     <ClInclude Include="Vector4.hpp" />

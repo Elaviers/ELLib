@@ -25,8 +25,7 @@ void FontTexture::_CMD_texture(const Buffer<String>& args, const Context& ctx)
 {
 	if (args.GetSize() > 0)
 	{
-		TextureManager* textureManager = ctx.GetPtr<TextureManager>();
-		if (textureManager) textureManager->Get(args[0], ctx);
+		_texture = ctx.GetPtr<TextureManager>()->Get(args[0], ctx);
 	}
 }
 
@@ -205,25 +204,63 @@ size_t FontTexture::GetPositionOf(float pX, float pY, const char* string, const 
 	return StringLength(string);
 }
 
-void FontTexture::RenderString(RenderEntry& e, const char* string, const Transform & transform, float lineHeight) const
+void FontTexture::RenderString(RenderEntry& e, const char* string, const Transform& transform, float lineHeight, const RectF& clip) const
 {
-	Transform charTransform = transform;
-	Vector3 advanceDirection = charTransform.GetRightVector();
-	Vector3 downDirection = -1.f * charTransform.GetUpVector();
+	const Vector3& rotation = transform.GetRotationEuler();
+	const Vector3 advanceDirection = transform.GetRightVector();
+	const Vector3 downDirection = -1.f * transform.GetUpVector();
 
-	charTransform.Move(Vector3(0.f, Maths::Round(transform.GetScale().y / 2.f), 0.f));
+	const float h = transform.GetScale().y;
 
-	float scale = (transform.GetScale().x / (float)_size);
-
-	float line = 0.f;
-	float currentLineW = 0.f;
-
-	const Vector2 halfTexel(.5f / ((float)_texture->GetWidth() * scale), .5f / ((float)_texture->GetHeight() * scale));
-	const Vector2 texel(1.f / ((float)_texture->GetWidth() * scale), 1.f / ((float)_texture->GetHeight() * scale));
+	const float xScale = transform.GetScale().x / (float)_size;
+	const Vector2 halfTexel(.5f / ((float)_texture->GetWidth() * xScale), .5f / ((float)_texture->GetHeight() * xScale));
+	const Vector2 texel(1.f / ((float)_texture->GetWidth() * xScale), 1.f / ((float)_texture->GetHeight() * xScale));
 
 	Colour colour = Colour::White;
+
+	float gX = 0.f;
+	float gW, gH = h;
+
+	const bool clipX = clip.w > 0;
+	const bool clipY = clip.h > 0;
+	float xClipStart = clip.x;
+	float yClipStart = clip.y;
+	float xClipEnd = xClipStart + clip.w;
+	float yClipEnd = yClipStart + clip.h;
+
+	if (xClipStart > xClipEnd) Utilities::Swap(xClipStart, xClipEnd);
+	if (yClipStart > yClipEnd) Utilities::Swap(yClipStart, yClipEnd);
+
+	float line = 0.f;
+	float x = 0.f;
 	
-	bool firstGlyph = true;
+	bool flipUVYOffset = false;
+	float uvYScale = 1.f;
+
+	float y = 0.f;
+
+	bool clipped = false;
+	if (clipY)
+	{
+		if (yClipEnd < 0|| h <= yClipStart)
+			clipped = true;
+		else if (yClipStart > 0)
+		{
+			float gHClipped = h - yClipStart;
+			y = yClipStart;
+			uvYScale = gHClipped / gH;
+			gH = gHClipped;
+		}
+		else if (yClipEnd < h)
+		{
+			float gHClipped = yClipEnd;
+			uvYScale = gHClipped / gH;
+			flipUVYOffset = true;
+			gH = gHClipped;
+		}
+	}
+
+	Vector3 rootPos = transform.GetPosition() - downDirection * (gH / 2.f + y);
 
 	for (const char* c = string; *c != '\0'; ++c)
 	{
@@ -236,40 +273,107 @@ void FontTexture::RenderString(RenderEntry& e, const char* string, const Transfo
 		else if (*c == '\n' && lineHeight)
 		{
 			++line;
-			currentLineW = 0.f;
+			x = 0.f;
 
-			charTransform = transform;
-			charTransform.Move(downDirection * lineHeight * line);
+			y = -lineHeight * line;
+			
+			gH = h;
+
+			if (clipY)
+			{
+				if (y >= yClipEnd || y + h <= yClipStart)
+					clipped = true;
+				else if (y < yClipStart)
+				{
+					float gHClipped = y + h - yClipStart;
+					y += yClipStart - y;
+					flipUVYOffset = false;
+					uvYScale = gHClipped / gH;
+					gH = gHClipped;
+				}
+				else if (y + h > yClipEnd)
+				{
+					float gHClipped = yClipEnd - y;
+					uvYScale = gHClipped / gH;
+					flipUVYOffset = true;
+					gH = gHClipped;
+				}
+				else
+				{
+					flipUVYOffset = false;
+					uvYScale = 1.f;
+				}
+			}
+
+			rootPos = transform.GetPosition() - downDirection * (gH / 2.f + y);
 		}
 		else if (*c == '\t')
 		{
 			const Glyph* space = _charMap.Get(' ');
-			float stopWidth = space->width * scale * 5.f;
-			float nextStop = Maths::Trunc(currentLineW, stopWidth) + stopWidth;
-
-			charTransform.Move(advanceDirection * (nextStop - currentLineW));
-			currentLineW = nextStop;
+			float stopWidth = space->width * xScale * 5.f;
+			x = Maths::Trunc(x, stopWidth) + stopWidth;
 		}
-		else
+		else if (!clipped)
 		{
 			const Glyph* glyph = _charMap.Get(*c);
 			if (glyph)
 			{
-				float halfCharW = (glyph->width * scale / 2.f);
-				charTransform.Move(advanceDirection * halfCharW);
-				charTransform.SetScale(Vector3(glyph->width * scale, (float)transform.GetScale().y, 1.f));
+				gX = 0.f;
+				gW = glyph->width * xScale;
+				float gEnd = x + gW;
 
-				e.AddSetTransform(charTransform.MakeTransformationMatrix());
-				e.AddSetUVOffset(glyph->uv + halfTexel);
-				e.AddSetUVScale(glyph->uvSize - texel);
-				e.AddSetTexture(*_texture, 0);
-				e.AddCommand(RCMDRenderMesh::PLANE);
+				if (!clipX || gEnd > xClipStart)
+				{
+					Vector2 uvOffset = glyph->uv;
+					Vector2 uvScale = glyph->uvSize;
+
+					uvScale.y *= uvYScale;
+
+					if (flipUVYOffset)
+						uvOffset.y = glyph->uv.y + glyph->uvSize.y - uvScale.y;
+
+					if (clipX)
+					{
+						if (x < xClipStart)
+						{
+							float gWClipped = gEnd - xClipStart;
+							gX = xClipStart - x;
+							uvScale.x *= gWClipped / gW;
+							uvOffset.x = glyph->uv.x + glyph->uvSize.x - uvScale.x;
+							gW = gWClipped;
+						}
+						else if (gEnd >= xClipEnd)
+						{
+							clipped = true;
+
+							if (x >= xClipEnd)
+								gW = 0;
+							else
+							{
+								float gWClipped = xClipEnd - x;
+								uvScale.x *= gWClipped / gW;
+								gW = gWClipped;
+							}
+						}
+					}
+
+					if (gW != 0)
+					{
+						e.AddSetTransform(Matrix4::Transformation(
+							rootPos + advanceDirection * (x + gX + gW / 2.f),
+							rotation,
+							Vector3(gW, gH, 1.f)));
+
+						uvOffset += halfTexel;
+						uvScale -= texel;
+						e.AddSetUVOffset(uvOffset);
+						e.AddSetUVScale(uvScale);
+						e.AddSetTexture(*_texture, 0);
+						e.AddCommand(RCMDRenderMesh::PLANE);
+					}
+				}
 				
-				float secondHalfWPlusAdvance = (((glyph->width / 2.f) + glyph->advance) * scale);
-				charTransform.Move(advanceDirection * secondHalfWPlusAdvance);
-
-				currentLineW += (glyph->width + glyph->advance) * scale;
-				firstGlyph = false;
+				x += (glyph->width + glyph->advance) * xScale;
 			}
 		}
 	}

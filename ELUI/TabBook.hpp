@@ -116,6 +116,8 @@ public:
 	virtual void UpdateBounds() override;
 	virtual void Render(RenderQueue&) const override;
 
+	virtual void Update(float deltaTime) override;
+
 	virtual bool OnKeyUp(bool blocked, EKeycode) override;
 	virtual bool OnKeyDown(bool blocked, EKeycode) override;
 	virtual bool OnCharInput(bool blocked, char) override;

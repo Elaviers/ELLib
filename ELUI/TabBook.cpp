@@ -129,6 +129,18 @@ void UITabBook::Render(RenderQueue& renderQueue) const
 	}
 }
 
+void UITabBook::Update(float deltaTime)
+{
+	if (_activeTab)
+		_activeTab->page->Update(deltaTime);
+
+	for (_UITabBookElement& element : _tabs)
+	{
+		element.panel.Update(deltaTime);
+		element.label.Update(deltaTime);
+	}
+}
+
 Text UITabBook::GetTabName(const UIElement& page) const
 {
 	if (page.GetParent() == this)

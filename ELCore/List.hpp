@@ -12,12 +12,12 @@ class List
 	class Node;
 
 	template <typename... Args>
-	Node* _NewNode(Node* next, Args... args) const
+	Node* _NewNode(Node* next, Args&&... args) const
 	{
 		if (_handlerNew.IsCallable())
-			return new (_handlerNew(sizeof(Node))) Node(next, args...);
+			return new (_handlerNew(sizeof(Node))) Node(next, static_cast<Args&&>(args)...);
 
-		return new Node(next, args...);
+		return new Node(next, static_cast<Args&&>(args)...);
 	}
 
 	void _DeleteNode(Node* node) const
@@ -39,7 +39,7 @@ class List
 
 	public:
 		template<typename... Args>
-		Node(Node* next, const Args&... args) : _value(args...), _next(next) {}
+		Node(Node* next, Args&&... args) : _value(static_cast<Args&&>(args)...), _next(next) {}
 		~Node() {}
 
 		T& Value()					{ return _value; }
@@ -121,9 +121,9 @@ class List
 		}
 
 		template<typename... Args>
-		Node* Emplace(const List& list, Args... args)
+		Node* Emplace(const List& list, Args&&... args)
 		{
-			return GetDeepestNode()->_next = list._NewNode(nullptr, args...);
+			return GetDeepestNode()->_next = list._NewNode(nullptr, static_cast<Args&&>(args)...);
 		}
 
 		//Depth must be greater than 0
@@ -141,7 +141,7 @@ class List
 
 		//Depth must be greater than 0
 		template <typename ...Args>
-		Node* InsertChild(size_t depth, const List& list, Args ...args)
+		Node* InsertChild(size_t depth, const List& list, Args&& ...args)
 		{
 			Node* node = this;
 			size_t prev = depth - 1;
@@ -150,7 +150,7 @@ class List
 					return nullptr;
 
 			Node* next = node->_next;
-			return node->_next = list._NewNode(next, args...);
+			return node->_next = list._NewNode(next, static_cast<Args&&>(args)...);
 		}
 
 		Node* InsertChildBefore(const T& value, const Node* before, const List& list)
@@ -170,14 +170,14 @@ class List
 		}
 
 		template <typename ...Args>
-		Node* InsertChildBefore(const Node* before, const List& list, Args ...args)
+		Node* InsertChildBefore(const Node* before, const List& list, Args&& ...args)
 		{
 			Node* current = this;
 			Node* next = _next;
 			while (next)
 			{
 				if (next == before)
-					return current->_next = list._NewNode(next->_next, args...);
+					return current->_next = list._NewNode(next->_next, static_cast<Args&&>(args)...);
 
 				current = next;
 				next = current->_next;
@@ -274,7 +274,7 @@ class List
 
 		template<typename P>
 		requires Concepts::Predicate<P, const T&>
-		Node* FirstWhere(P predicate) //Finds first child that matches the predicate
+		Node* FirstWhere(const P& predicate) //Finds first child that matches the predicate
 		{
 			for (Node* node = this; node; node = node->_next)
 				if (predicate(node->_value))
@@ -285,7 +285,7 @@ class List
 
 		template<typename P>
 		requires Concepts::Predicate<P, const T&>
-		bool RemoveChildren(P predicate, const List& list, bool all) //Removes children that pass the predicate
+		bool RemoveChildren(const P& predicate, const List& list, bool all) //Removes children that pass the predicate
 		{
 			bool success = false;
 			Node* current = this;
@@ -539,10 +539,10 @@ public:
 	}
 
 	template <typename... Args>
-	Iterator Emplace(Args... args)
+	Iterator Emplace(Args&&... args)
 	{
-		if (_first) return Iterator(_last = _last->Emplace(*this, args...));
-		return Iterator(_first = _last = _NewNode(nullptr, args...));
+		if (_first) return Iterator(_last = _last->Emplace(*this, static_cast<Args&&>(args)...));
+		return Iterator(_first = _last = _NewNode(nullptr, static_cast<Args&&>(args)...));
 	}
 
 	Iterator Insert(const T& value, Iterator before)
@@ -577,29 +577,29 @@ public:
 	}
 
 	template <typename ...Args>
-	Iterator Insert(Iterator before, Args ...args)
+	Iterator Insert(Iterator before, Args&& ...args)
 	{
 		if (_first)
 		{
 			Node* node = before._node;
 			if (node == _first)
-				return Iterator(_first = _NewNode(_first, args...));
+				return Iterator(_first = _NewNode(_first, static_cast<Args&&>(args)...));
 
-			return Iterator(_first->InsertChildBefore(node, *this, args...));
+			return Iterator(_first->InsertChildBefore(node, *this, static_cast<Args&&>(args)...));
 		}
 
 		return Iterator(nullptr);
 	}
 
 	template <typename ...Args>
-	Iterator Insert(size_t index, Args ...args)
+	Iterator Insert(size_t index, Args&& ...args)
 	{
 		if (index == 0)
-			return Iterator(_first = _NewNode(_first, args...));
+			return Iterator(_first = _NewNode(_first, static_cast<Args&&>(args)...));
 		
 		if (_first)
 		{
-			Node* node = _first->InsertChild(index, *this, args...);
+			Node* node = _first->InsertChild(index, *this, static_cast<Args&&>(args)...);
 			if (node->Next() == nullptr)
 				_last = node;
 
@@ -686,7 +686,7 @@ public:
 
 	template<typename P>
 	requires Concepts::Predicate<P, const T&>
-	Iterator FirstWhere(P predicate) //Returns true if any elements pass the predicate
+	Iterator FirstWhere(const P& predicate) //Returns true if any elements pass the predicate
 	{
 		if (_first)
 		{
@@ -698,7 +698,7 @@ public:
 
 	template<typename P>
 	requires Concepts::Predicate<P, const T&>
-	ConstIterator FirstWhere(P predicate) const //Returns true if any elements pass the predicate
+	ConstIterator FirstWhere(const P& predicate) const //Returns true if any elements pass the predicate
 	{
 		Iterator it = const_cast<List*>(this)->FirstWhere(predicate);
 		return ConstIterator(it);
@@ -706,7 +706,7 @@ public:
 
 	template<typename P>
 	requires Concepts::Predicate<P, const T&>
-	bool Remove(P predicate, bool all = true) //Removes elements that pass the predicate
+	bool Remove(const P& predicate, bool all = true) //Removes elements that pass the predicate
 	{
 		if (_first == nullptr) return false;
 		while (predicate(_first->Value()))

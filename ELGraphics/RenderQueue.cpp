@@ -33,7 +33,7 @@ void RenderQueue::Clear()
 
 void RenderQueue::Render(ERenderChannels channels, const MeshManager* meshManager, const TextureManager* textureManager, int lightCount) const
 {
-	const float zero = 1.f;
+	const float zero = 0.f;
 	for (int i = 0; i < lightCount; ++i)
 		glUniform1fv(GLProgram::Current().GetUniformLocation(CSTR("Lights[", i, "].Radius")), 1, &zero);
 

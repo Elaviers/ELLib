@@ -29,7 +29,7 @@ void Skybox::Load(const char *faceFilenames[6], const Context& context)
 		if (!success)
 			return;
 
-		faces[i].data = facebuffers[i].Data();
+		faces[i].data = facebuffers[i].Elements();
 	}
 
 	_cubemap.Create(faces);

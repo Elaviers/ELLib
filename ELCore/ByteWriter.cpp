@@ -36,7 +36,7 @@ bool ByteWriter::EnsureSpace(size_t amount)
 	{
 		if (_buffer)
 		{
-			_buffer->Append(amount - remainingSpace);
+			_buffer->Grow(amount - remainingSpace);
 			_pointer = &(*_buffer)[_index];
 		}
 		else

@@ -6,6 +6,13 @@
 
 class Window;
 
+extern PFNGLBLENDEQUATIONPROC glBlendEquation;
+extern PFNGLBLENDEQUATIONSEPARATEPROC glBlendEquationSeparate;
+extern PFNGLBLENDFUNCSEPARATEPROC glBlendFuncSeparate;
+extern PFNGLBINDSAMPLERPROC glBindSampler;
+extern PFNGLDRAWELEMENTSBASEVERTEXPROC glDrawElementsBaseVertex;
+extern PFNGLGETATTRIBLOCATIONPROC glGetAttribLocation;
+
 //Windows
 extern PFNWGLCHOOSEPIXELFORMATARBPROC wglChoosePixelFormatARB;
 extern PFNWGLGETEXTENSIONSSTRINGARBPROC wglGetExtensionsStringARB;
@@ -48,6 +55,7 @@ extern PFNGLUSEPROGRAMPROC			glUseProgram;
 extern PFNGLCREATESHADERPROC		glCreateShader;
 extern PFNGLDELETESHADERPROC		glDeleteShader;
 extern PFNGLATTACHSHADERPROC		glAttachShader;
+extern PFNGLDETACHSHADERPROC		glDetachShader;
 extern PFNGLGETSHADERINFOLOGPROC	glGetShaderInfoLog;
 extern PFNGLGETSHADERIVPROC			glGetShaderiv;
 extern PFNGLSHADERSOURCEPROC		glShaderSource;

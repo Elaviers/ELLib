@@ -29,17 +29,17 @@ protected:
 
 	template <typename T, typename ...Args>
 	requires Concepts::DerivedFrom<T, RenderCommand>
-		T& _AddCommand(const Args&... args)
+		T& _AddCommand(Args&&... args)
 	{
 		if (_newHandler.IsCallable())
 		{
 			byte* mem = _newHandler(sizeof(T));
-			T* cmd = new(mem) T(args...);
+			T* cmd = new(mem) T(static_cast<Args&&>(args)...);
 			_commands.Emplace(cmd, true);
 			return *cmd;
 		}
 
-		T* cmd = new T(args...);
+		T* cmd = new T(static_cast<Args&&>(args)...);
 		_commands.Emplace(cmd, true);
 		return *cmd;
 	}

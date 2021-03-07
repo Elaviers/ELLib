@@ -73,7 +73,7 @@ void Texture::_CMD_img(const Buffer<String>& args, const Context& ctx)
 				Buffer<byte> data;
 				if (IO::FileExists(filename.GetData()) && IO::ReadPNGFile(filename.GetData(), data, _width, _height))
 				{
-					Create(data.Data(), _width, _height, textureManager->GetMaxMipLevels(), textureManager->GetMaxAnisotropy());
+					Create(data.Elements(), _width, _height, textureManager->GetMaxMipLevels(), textureManager->GetMaxAnisotropy());
 					break;
 				}
 			}

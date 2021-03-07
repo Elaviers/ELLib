@@ -35,15 +35,15 @@ public:
 	RETURNTYPE Call(T& obj, Args ...args) const
 	{
 		if (_isConstFunction)
-			return (obj.*_constFunction)(args...);
+			return (obj.*_constFunction)(std::forward<Args>(args)...);
 		
-		return (obj.*_function)(args...);
+		return (obj.*_function)(std::forward<Args>(args)...);
 	}
 
 	RETURNTYPE Call(const T& obj, Args ...args) const
 	{
 		//todo: not this
-		return (obj.*_constFunction)(args...);
+		return (obj.*_constFunction)(std::forward<Args>(args)...);
 	}
 
 	void* GetRawPointer() const { return _voidPtr; }
@@ -72,7 +72,7 @@ class FunctionPointer
 		virtual RETURNTYPE Call(Args...) const = 0;
 		virtual bool IsCallable() const = 0;
 
-		void TryCall(Args... args) const	{ if (IsCallable()) Call(args...); }
+		void TryCall(Args... args) const	{ if (IsCallable()) Call(std::forward<Args>(args)...); }
 
 		bool operator==(const FunctionCaller& other) const { return _GetPtrData() == other._GetPtrData(); }
 		bool operator!=(const FunctionCaller& other) const { return _GetPtrData() != other._GetPtrData(); }
@@ -89,7 +89,7 @@ class FunctionPointer
 		FunctionCallerStatic(RETURNTYPE(*function)(Args...)) : _function(function) {}
 		virtual ~FunctionCallerStatic() {}
 
-		virtual RETURNTYPE Call(Args... args) const override	{ return _function(args...); }
+		virtual RETURNTYPE Call(Args... args) const override	{ return _function(std::forward<Args>(args)...); }
 		virtual bool IsCallable() const							{ return _function != nullptr; }
 	};
 
@@ -109,7 +109,7 @@ class FunctionPointer
 
 		virtual ~FunctionCallerMember() {}
 
-		virtual RETURNTYPE Call(Args... args) const override	{ return _fp.Call(*_object, args...); }
+		virtual RETURNTYPE Call(Args ...args) const override	{ return _fp.Call(*_object, std::forward<Args>(args)...); }
 		virtual bool IsCallable() const							{ return _object != nullptr; }
 	};
 
@@ -147,7 +147,7 @@ public:
 
 	FunctionPointer(const FunctionPointer& other) : _u(nullptr) { operator=(other); }
 
-	FunctionPointer(FunctionPointer&& other) { operator=(other); }
+	FunctionPointer(FunctionPointer&& other) : _u(nullptr) { operator=(std::move(other)); }
 
 	~FunctionPointer() { }
 
@@ -164,11 +164,11 @@ public:
 		return *this;
 	}
 
-	RETURNTYPE operator()(Args ...args)			{ return _Fptr().Call(args...); }
-	RETURNTYPE operator()(Args ...args) const	{ return _Fptr().Call(args...); }
+	RETURNTYPE operator()(Args ...args)			{ return _Fptr().Call(std::forward<Args>(args)...); }
+	RETURNTYPE operator()(Args ...args) const	{ return _Fptr().Call(std::forward<Args>(args)...); }
 	bool IsCallable() const						{ return _Fptr().IsCallable(); }
-	void TryCall(Args ...args)					{ _Fptr().TryCall(args...); }
-	void TryCall(Args ...args) const			{ _Fptr().TryCall(args...); }
+	void TryCall(Args ...args)					{ _Fptr().TryCall(std::forward<Args>(args)...); }
+	void TryCall(Args ...args) const			{ _Fptr().TryCall(std::forward<Args>(args)...); }
 
 	bool operator==(const FunctionPointer& other) const { return (FunctionCaller&)_u == (FunctionCaller&)other._u; }
 	bool operator!=(const FunctionPointer& other) const { return (FunctionCaller&)_u != (FunctionCaller&)other._u; }

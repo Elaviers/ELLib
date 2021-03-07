@@ -1,5 +1,6 @@
 #pragma once
 #include "Types.hpp"
+#include <utility>
 
 template <typename T, int SIZE>
 class Pool
@@ -30,9 +31,9 @@ public:
 	size_t GetUsedSlotCount() const { return _usedSlotCount; }
 
 	template <typename... Args>
-	T* New(Args... args)
+	T* New(Args&&... args)
 	{
-		return _usedSlotCount < SIZE ? new(_data + (_usedSlotCount++ * sizeof(T))) T(args...) : nullptr;
+		return _usedSlotCount < SIZE ? new(_data + (_usedSlotCount++ * sizeof(T))) T(std::forward(args)...) : nullptr;
 	}
 
 	T* NewArray(size_t size)
@@ -82,12 +83,12 @@ public:
 	}
 
 	template <typename... Args>
-	T* New(Args... args)
+	T* New(Args&&... args)
 	{
 		for (auto it = _firstUsablePage; it.IsValid(); ++it)
 			if (!it->IsFull())
 			{
-				T* result = it->New(args...);
+				T* result = it->New(std::forward(args)...);
 				if (it->IsFull())
 					_firstUsablePage = it.Next();
 
@@ -95,7 +96,7 @@ public:
 			}
 
 		_firstUsablePage = _pools.Emplace();
-		return _firstUsablePage->New(args...);
+		return _firstUsablePage->New(std::forward(args)...);
 	}
 
 	T* NewArray(size_t size)

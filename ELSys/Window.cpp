@@ -337,7 +337,7 @@ LRESULT CALLBACK Window::_WindowsProc(HWND hwnd, UINT msg, WPARAM wparam, LPARAM
 
 		GetRawInputData((HRAWINPUT)lparam, RID_INPUT, &buffer[0], &size, sizeof(RAWINPUTHEADER));
 
-		RAWINPUT* input = (RAWINPUT*)buffer.Data();
+		RAWINPUT* input = (RAWINPUT*)buffer.Elements();
 		if (input->header.dwType == RIM_TYPEMOUSE)
 		{
 			bool done = false;

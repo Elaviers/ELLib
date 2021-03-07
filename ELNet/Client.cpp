@@ -30,9 +30,9 @@ bool Client::Send(const Buffer<byte>& message, ENetProtocol protocol) const
 	switch (protocol)
 	{
 	case ENetProtocol::TCP:
-		return _tcp.Send(message.Data(), (int)message.GetSize());
+		return _tcp.Send(message.Elements(), (int)message.GetSize());
 	case ENetProtocol::UDP:
-		return _udp.SendTo(_remote, message.Data(), (int)message.GetSize());
+		return _udp.SendTo(_remote, message.Elements(), (int)message.GetSize());
 	}
 
 	return false;

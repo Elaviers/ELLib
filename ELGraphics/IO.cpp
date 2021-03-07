@@ -7,7 +7,7 @@ bool IO::ReadPNGFile(const Buffer<byte>& data, Buffer<byte>& outData, unsigned i
 	unsigned char* buffer;
 	unsigned int width, height;
 
-	lodepng_decode_memory(&buffer, &width, &height, data.Data(), data.GetSize(), LCT_RGBA, 8);
+	lodepng_decode_memory(&buffer, &width, &height, data.Elements(), data.GetSize(), LCT_RGBA, 8);
 	uint32 bufferSize = width * height * 4;
 
 	if (buffer)
@@ -33,7 +33,7 @@ Texture* IO::ReadPNGFile(const Buffer<byte> &data, int mip, int aniso)
 	unsigned char *buffer;
 	unsigned int width, height;
 
-	lodepng_decode_memory(&buffer, &width, &height, data.Data(), data.GetSize(), LCT_RGBA, 8);
+	lodepng_decode_memory(&buffer, &width, &height, data.Elements(), data.GetSize(), LCT_RGBA, 8);
 	uint32 bufferSize = width * height * 4;
 
 	if (buffer)

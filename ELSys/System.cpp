@@ -1,26 +1,58 @@
 #include "System.hpp"
 #include <Windows.h>
 #include <iostream>
+#include <ELCore/MacroUtilities.hpp>
 
-inline HCURSOR ECursorToHCURSOR(ECursor cursor)
+HCURSOR _Cursor_Arrow, _Cursor_Hand, _Cursor_ArrowsVert, _Cursor_ArrowsHoriz, _Cursor_ArrowsQuad, _Cursor_IBeam;
+
+void _EnsureCursors()
 {
+	DO_ONCE_BEGIN;
+
+	_Cursor_Arrow = ::LoadCursor(NULL, IDC_ARROW);
+	_Cursor_Hand = ::LoadCursor(NULL, IDC_HAND);
+	_Cursor_ArrowsVert = ::LoadCursor(NULL, IDC_SIZENS);
+	_Cursor_ArrowsHoriz = ::LoadCursor(NULL, IDC_SIZEWE);
+	_Cursor_ArrowsQuad = ::LoadCursor(NULL, IDC_SIZEALL);
+	_Cursor_IBeam = ::LoadCursor(NULL, IDC_IBEAM);
+
+	DO_ONCE_END;
+}
+
+ECursor HCURSORToECursor(HCURSOR cursor)
+{
+	_EnsureCursors();
+
+	if (cursor == _Cursor_Arrow) return ECursor::DEFAULT;
+	if (cursor == _Cursor_Hand) return ECursor::HAND;
+	if (cursor == _Cursor_ArrowsVert) return ECursor::ARROWS_VERTICAL;
+	if (cursor == _Cursor_ArrowsHoriz) return ECursor::ARROWS_HORIZONTAL;
+	if (cursor == _Cursor_ArrowsQuad) return ECursor::ARROWS_QUAD;
+	if (cursor == _Cursor_IBeam) return ECursor::IBEAM;
+
+	return ECursor::NONE;
+}
+
+HCURSOR ECursorToHCURSOR(ECursor cursor)
+{
+	_EnsureCursors();
+
 	switch (cursor)
 	{
-	case ECursor::DEFAULT:
-		return ::LoadCursor(NULL, IDC_ARROW);
-	case ECursor::HAND:
-		return ::LoadCursor(NULL, IDC_HAND);
-	case ECursor::ARROWS_VERTICAL:
-		return ::LoadCursor(NULL, IDC_SIZENS);
-	case ECursor::ARROWS_HORIZONTAL:
-		return ::LoadCursor(NULL, IDC_SIZEWE);
-	case ECursor::ARROWS_QUAD:
-		return ::LoadCursor(NULL, IDC_SIZEALL);
-	case ECursor::IBEAM:
-		return ::LoadCursor(NULL, IDC_IBEAM);
+	case ECursor::DEFAULT: return _Cursor_Arrow;
+	case ECursor::HAND: return _Cursor_Hand;
+	case ECursor::ARROWS_VERTICAL: return _Cursor_ArrowsVert;
+	case ECursor::ARROWS_HORIZONTAL: return _Cursor_ArrowsHoriz;
+	case ECursor::ARROWS_QUAD: return _Cursor_ArrowsQuad;
+	case ECursor::IBEAM: return _Cursor_IBeam;
 	}
 
 	return NULL;
+}
+
+ECursor System::GetCursor()
+{
+	return HCURSORToECursor(::GetCursor());
 }
 
 void System::SetCursor(ECursor cursor)

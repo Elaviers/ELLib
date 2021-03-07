@@ -431,7 +431,7 @@ private:
 					for (const String& extension : _extensions)
 						if (ext == extension)
 						{
-							if (NameIsValid(name) && results.IndexOf(name) == -1)
+							if (NameIsValid(name) && results.IndexOfFirst(name) == -1)
 								results.OrderedAdd(name);
 
 							break;

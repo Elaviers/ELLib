@@ -177,10 +177,10 @@ void RCMDSetSkinningMatrices::Execute(RenderContext& ctx) const
 {
 	if (_ref)
 		glUniformMatrix4fv(GLProgram::Current().GetUniformLocation(DefaultUniformVars::mat4aBones),
-			(GLsizei)_ref->GetSize(), GL_FALSE, (float*)_ref->Data());
+			(GLsizei)_ref->GetSize(), GL_FALSE, (float*)_ref->Elements());
 	else
 		glUniformMatrix4fv(GLProgram::Current().GetUniformLocation(DefaultUniformVars::mat4aBones),
-			(GLsizei)_matrices.GetSize(), GL_FALSE, (float*)_matrices.Data());
+			(GLsizei)_matrices.GetSize(), GL_FALSE, (float*)_matrices.Elements());
 }
 
 void RCMDLight::Execute(RenderContext& ctx) const

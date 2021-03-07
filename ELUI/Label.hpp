@@ -19,7 +19,10 @@ class UILabel : public UIElement
 
 	Transform _transform;
 	Transform _shadowTransform;
+	RectF _clip;
+	RectF _shadowClip;
 
+	Vector2 _offset;
 	Vector2 _shadowOffset;
 
 	ETextAlignment _alignment;
@@ -51,4 +54,6 @@ public:
 
 	virtual void UpdateBounds() override;
 	virtual void Render(RenderQueue&) const override;
+
+	virtual void Update(float deltaTime) override;
 };

@@ -33,7 +33,7 @@ void TextureManager::_ResourceRead(Texture& texture, const Buffer<byte>& data, c
 		unsigned int w, h;
 		if (IO::ReadPNGFile(data, pngData, w, h))
 		{
-			texture.Create(pngData.Data(), w, h, _maxMipLevels, _maxAnisotropy);
+			texture.Create(pngData.Elements(), w, h, _maxMipLevels, _maxAnisotropy);
 		}
 	}
 	else AssetManager<Texture>::_ResourceRead(texture, data, extension, ctx);

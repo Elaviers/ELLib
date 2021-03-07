@@ -37,18 +37,15 @@ void MeshManager::Initialise()
 	//Plane
 	_plane = new Mesh_Static(
 		Buffer<Vertex17F>({
-			{ Vector3(-.5f, -.5f, 0), Vector2(0, 1),	white, Vector3(), Vector3(), Vector3(0, 0, -1) },
-			{ Vector3(.5f, -.5f, 0), Vector2(1, 1),		white, Vector3(), Vector3(), Vector3(0, 0, -1) },
-			{ Vector3(-.5f, .5f, 0), Vector2(0, 0),		white, Vector3(), Vector3(), Vector3(0, 0, -1) },
-			{ Vector3(.5f, .5f, 0), Vector2(1, 0),		white, Vector3(), Vector3(), Vector3(0, 0, -1) }
+			{ Vector3(-.5f, -.5f, 0), Vector2(0, 1),	white, Vector3(1, 0, 0), Vector3(0, 1, 0), Vector3(0, 0, -1) },
+			{ Vector3(.5f, -.5f, 0), Vector2(1, 1),		white, Vector3(1, 0, 0), Vector3(0, 1, 0), Vector3(0, 0, -1) },
+			{ Vector3(-.5f, .5f, 0), Vector2(0, 0),		white, Vector3(1, 0, 0), Vector3(0, 1, 0), Vector3(0, 0, -1) },
+			{ Vector3(.5f, .5f, 0), Vector2(1, 0),		white, Vector3(1, 0, 0), Vector3(0, 1, 0), Vector3(0, 0, -1) }
 			}),
 		Buffer<uint32>({
 			0, 1, 2,
 			3, 2, 1
 			}));
-
-	Vertex17F::CalculateTangents(_plane->vertices[0], _plane->vertices[1], _plane->vertices[2]);
-	Vertex17F::CalculateTangents(_plane->vertices[3], _plane->vertices[2], _plane->vertices[1]);
 
 	//Cube
 	_cube = new Mesh_Static(

@@ -6,7 +6,7 @@ struct Box
 	Vector3 centre;
 	Vector3 halfSize;
 
-	Box(const Vector3& centre = Vector3(), const Vector3& extent = Vector3()) : centre(centre), halfSize(extent) {}
+	Box(const Vector3& centre = Vector3(), const Vector3& halfSize = Vector3()) : centre(centre), halfSize(halfSize) {}
 
 	static Box FromMinMax(const Vector3& min, const Vector3& max)
 	{
