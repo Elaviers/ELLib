@@ -30,8 +30,8 @@ public:
 	bool IsFull() const { return _usedSlotCount >= SIZE; }
 	size_t GetUsedSlotCount() const { return _usedSlotCount; }
 
-	template <typename... Args>
-	T* New(Args&&... args)
+	template <typename... ARGS>
+	T* New(ARGS&&... args)
 	{
 		return _usedSlotCount < SIZE ? new(_data + (_usedSlotCount++ * sizeof(T))) T(std::forward(args)...) : nullptr;
 	}
@@ -82,8 +82,8 @@ public:
 		}
 	}
 
-	template <typename... Args>
-	T* New(Args&&... args)
+	template <typename... ARGS>
+	T* New(ARGS&&... args)
 	{
 		for (auto it = _firstUsablePage; it.IsValid(); ++it)
 			if (!it->IsFull())

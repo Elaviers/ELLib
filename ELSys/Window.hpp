@@ -9,9 +9,9 @@
 
 namespace WindowFunctions
 {
-	inline void SetHWNDSizeAndPos(HWND hwnd, uint16 x, uint16 y, uint16 w, uint16 h) { ::SetWindowPos(hwnd, NULL, x, y, w, h, 0); }
-	void ResizeHWND(HWND, uint16 w, uint16 h);
-	void RepositionHWND(HWND, uint16 x, uint16 y);
+	inline void SetHWNDSizeAndPos(HWND hwnd, uint16 x, uint16 y, uint16 w, uint16 h) { ::SetWindowPos(hwnd, NULL, x, y, w, h, SWP_NOZORDER); }
+	inline void ResizeHWND(HWND hwnd, uint16 w, uint16 h) { ::SetWindowPos(hwnd, NULL, 0, 0, w, h, SWP_NOREPOSITION | SWP_NOZORDER); }
+	inline void RepositionHWND(HWND hwnd, uint16 x, uint16 y) { ::SetWindowPos(hwnd, NULL, x, y, 0, 0, SWP_NOSIZE | SWP_NOZORDER); }
 
 	void SetDefaultPixelFormat(HDC hdc);
 

@@ -2,7 +2,7 @@
 #include "Vector3.hpp"
 #include "Matrix4.hpp"
 #include "Rotation.hpp"
-#include <ELCore/FunctionPointer.hpp>
+#include <ELCore/Function.hpp>
 
 class ByteReader;
 class ByteWriter;
@@ -32,7 +32,7 @@ class Transform
 	void _MakeInverseTransformationMatrix(Matrix4&) const;
 
 public:
-	Transform(const Vector3& position, const Rotation& rotation = Rotation(), const Vector3& scale = Vector3(1, 1, 1), const Callback& callback = Callback(nullptr)) :
+	Transform(const Vector3& position, const Rotation& rotation = Rotation(), const Vector3& scale = Vector3(1, 1, 1), const Callback& callback = Callback()) :
 		_position(position), 
 		_rotation(rotation), 
 		_scale(scale), 
@@ -42,7 +42,7 @@ public:
 		_onChanged.TryCall();
 	}
 
-	Transform(const Callback& callback = Callback(nullptr)) : Transform(Vector3(), Rotation(), Vector3(1, 1, 1), callback) {}
+	Transform(const Callback& callback = Callback()) : Transform(Vector3(), Rotation(), Vector3(1, 1, 1), callback) {}
 	
 	Transform(const Transform& other) : 
 		_onChanged(),

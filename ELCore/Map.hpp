@@ -1,6 +1,6 @@
 #pragma once
 #include "Buffer.hpp"
-#include "FunctionPointer.hpp"
+#include "Function.hpp"
 #include "Pair.hpp"
 
 template <typename K, typename V>
@@ -13,7 +13,7 @@ class Map
 
 	Node* _NewNode(const K& key, const V& value) const
 	{
-		if (_handlerNew.IsCallable())
+		if (_handlerNew.IsValid())
 			return new (_handlerNew(sizeof(Node))) Node(key, value);
 
 		return new Node(key, value);
@@ -21,7 +21,7 @@ class Map
 
 	void _DeleteNode(Node* node) const
 	{
-		if (_handlerDelete.IsCallable())
+		if (_handlerDelete.IsValid())
 		{
 			node->~Node();
 			_handlerDelete((byte*)node);

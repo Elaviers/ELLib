@@ -2,6 +2,18 @@
 #include <ELGraphics/RenderCommand.hpp>
 #include <ELGraphics/RenderQueue.hpp>
 
+void _CalculateTextStartStop(const AbsoluteBounds& bounds, const Transform& renderTransform, float margin, float& start, float& stop)
+{
+	Vector3 rv = renderTransform.GetRightVector();
+	Vector3 uv = renderTransform.GetUpVector();
+
+	Vector3 vstart = Vector3(bounds.x, bounds.y, 0.f) + rv * margin + uv * margin;
+	Vector3 vend = vstart + rv * (bounds.w - margin * 2.f);
+
+	start = (vstart - renderTransform.GetPosition()).Length();
+	stop = (vend - renderTransform.GetPosition()).Length();
+}
+
 void UITextbox::_ResetCaretBlink()
 {
 	_caretTimer = _caretPeriod;
@@ -10,14 +22,21 @@ void UITextbox::_ResetCaretBlink()
 
 void UITextbox::_UpdateSelectionBox()
 {
-	Transform t = _label.GetRenderTransform();
+	_selectionTransform = _label.GetRenderTransform();
 
-	float startX = t.GetPosition().x + (_selectionStart == 0 ? 0 : _label.GetFont()->CalculateStringWidth(_label.GetText().ToString().GetData(), _label.GetRenderTransform().GetScale().x, _selectionStart));
-	float endX = t.GetPosition().x + (_selectionEnd == 0 ? 0 : _label.GetFont()->CalculateStringWidth(_label.GetText().ToString().GetData(), _label.GetRenderTransform().GetScale().x, _selectionEnd));
+	float startX = _selectionStart == 0 ? 0 : _label.GetFont()->CalculateStringWidth(_label.GetText().ToString().GetData(), _selectionTransform.GetScale().x, _selectionStart);
+	float endX = _selectionEnd == 0 ? 0 : _label.GetFont()->CalculateStringWidth(_label.GetText().ToString().GetData(), _selectionTransform.GetScale().x, _selectionEnd);
 
 	if (startX > endX) Utilities::Swap(startX, endX);
 
-	_selectionRect.SetBounds(UIBounds(UICoord(0.f, startX - _absoluteBounds.x), 0.f, UICoord(0.f, endX - startX), 1.f));
+	float pstart, pstop;
+	_CalculateTextStartStop(_label.GetAbsoluteBounds(), _selectionTransform, _label.GetMargin(), pstart, pstop);
+
+	startX = Maths::Max(startX, pstart);
+	endX = Maths::Min(endX, pstop);
+
+	_selectionTransform.SetScale(Vector3(endX - startX, _selectionTransform.GetScale().y, 0.f));
+	_selectionTransform.Move(((endX + startX) / 2.f) * _selectionTransform.GetRightVector() + (_selectionTransform.GetScale().y / 2.f) * _selectionTransform.GetUpVector());
 }
 
 void UITextbox::_RemoveSelection()
@@ -26,9 +45,43 @@ void UITextbox::_RemoveSelection()
 
 	SetText(Text(GetText().ToString().SubString(0, _selectionStart) + GetText().ToString().SubString(_selectionEnd)));
 
-	_caretPos = _selectionStart;
+	SetCaretPosition(_selectionStart);
 	_selectionStart = _selectionEnd = 0;
-	_selectionRect.SetW(0.f);
+}
+
+UITextbox& UITextbox::SetCaretPosition(size_t pos)
+{
+	_caretPos = pos;
+
+	if (_label.GetFont())
+	{
+		_caretTransform = _label.GetRenderTransform();
+		
+		float pstart, pstop;
+		_CalculateTextStartStop(_label.GetAbsoluteBounds(), _caretTransform, _label.GetMargin(), pstart, pstop);
+
+		const Font* font = _label.GetFont().Ptr();
+		const char* str = _label.GetText().ToString().GetData();
+		float pcaret = _caretOffset * _caretTransform.GetScale().x + _caretPos == 0 ? 0 : font->CalculateStringWidth(str, _caretTransform.GetScale().x, _caretPos);
+
+		float width = pstop - pstart - _label.GetMargin();
+
+		if (pcaret < pstart)
+			_label.SetTextOffset(Vector2(-pcaret, 0.f));
+		else if (pcaret > pstop)
+			_label.SetTextOffset(Vector2(width - pcaret, 0.f));
+		
+		_caretTransform = _label.GetRenderTransform();
+		float caretX = _caretOffset * _caretTransform.GetScale().x +
+			(_caretPos == 0 ?
+				0.f :
+				font->CalculateStringWidth(str, _caretTransform.GetScale().x, _caretPos));
+
+		_caretTransform.Move(_caretTransform.GetRightVector() * caretX + _caretTransform.GetUpVector() * (_caretTransform.GetScale().y / 2.f));
+		_caretTransform.SetScale(Vector3(_caretWidth, _caretTransform.GetScale().y, 0.f));
+	}
+
+	return *this;
 }
 
 void UITextbox::UpdateBounds()
@@ -36,26 +89,29 @@ void UITextbox::UpdateBounds()
 	UIElement::UpdateBounds();
 	_label.UpdateBounds();
 	_panel.UpdateBounds();
-	_selectionRect.UpdateBounds();
+	SetCaretPosition(_caretPos);
+	_UpdateSelectionBox();
 }
 
 void UITextbox::Render(RenderQueue& q) const
 {
 	_panel.Render(q);
 	_label.Render(q);
-	_selectionRect.Render(q);
+	
+	if (_selectionStart != _selectionEnd)
+	{
+		RenderEntry& e = q.CreateEntry(ERenderChannels::UNLIT, 0);
+		e.AddSetTransform(_selectionTransform.GetTransformationMatrix());
+		e.AddSetTexture(RCMDSetTexture::Type::WHITE, 0);
+		e.AddSetColour(_selectionColour);
+		e.AddCommand(RCMDRenderMesh::PLANE);
+	}
 
 	if (_hasFocus && _caretStatus)
 	{
-		Transform t = _label.GetRenderTransform();
-		float caretX = _caretOffset * t.GetScale().x + (_caretPos == 0 ? 0.f : _label.GetFont()->CalculateStringWidth(_label.GetText().ToString().GetData(), t.GetScale().x, _caretPos));
-		t.Move(Vector3(caretX, t.GetScale().y / 2.f, 0.f));
-		t.SetScale(Vector3(_caretWidth, t.GetScale().y, 0.f));
-
 		RenderEntry& e = q.CreateEntry(ERenderChannels::UNLIT, 0);
 		_caretColour.Apply(e);
-
-		e.AddSetTransform(t.GetTransformationMatrix());
+		e.AddSetTransform(_caretTransform.GetTransformationMatrix());
 		e.AddSetTexture(RCMDSetTexture::Type::WHITE, 0);
 		e.AddCommand(RCMDRenderMesh::PLANE);
 	}
@@ -63,6 +119,8 @@ void UITextbox::Render(RenderQueue& q) const
 
 void UITextbox::Update(float deltaTime)
 {
+	_label.Update(deltaTime);
+
 	_caretTimer -= deltaTime;
 
 	if (_caretTimer <= 0.f)
@@ -80,7 +138,7 @@ bool UITextbox::OnKeyDown(bool blocked, EKeycode key)
 		{
 			RequestFocus();
 
-			_caretPos = _label.GetFont()->GetPositionOf(_lastMouseX, _lastMouseY, _label.GetText().ToString().GetData(), _label.GetRenderTransform());
+			SetCaretPosition(_label.GetFont()->GetPositionOf(_lastMouseX, _lastMouseY, _label.GetText().ToString().GetData(), _label.GetRenderTransform()));
 
 			_selecting = true;
 			_selectionStart = _caretPos;
@@ -100,20 +158,18 @@ bool UITextbox::OnKeyDown(bool blocked, EKeycode key)
 		switch (key)
 		{
 		case EKeycode::LEFT:
-			if (_caretPos > 0) --_caretPos;
+			if (_caretPos > 0) SetCaretPosition(_caretPos - 1);
 
 			_selecting = false;
 			_selectionStart = _selectionEnd = 0;
-			_selectionRect.SetW(0.f);
 			_ResetCaretBlink();
 			break;
 		
 		case EKeycode::RIGHT:
-			if (_caretPos < GetText().ToString().GetLength()) ++_caretPos;
+			if (_caretPos < GetText().ToString().GetLength()) SetCaretPosition(_caretPos + 1);
 
 			_selecting = false;
 			_selectionStart = _selectionEnd = 0;
-			_selectionRect.SetW(0.f);
 			_ResetCaretBlink();
 			break;
 
@@ -152,7 +208,7 @@ bool UITextbox::OnCharInput(bool blocked, char c)
 			else if (_caretPos > 0)
 			{
 				SetText(Text(GetText().ToString().SubString(0, _caretPos - 1) + GetText().ToString().SubString(_caretPos)));
-				--_caretPos;
+				SetCaretPosition(_caretPos - 1);
 
 				_ResetCaretBlink();
 			}
@@ -165,7 +221,7 @@ bool UITextbox::OnCharInput(bool blocked, char c)
 				_RemoveSelection();
 
 			SetText(Text(GetText().ToString().SubString(0, _caretPos) + c + GetText().ToString().SubString(_caretPos)));
-			++_caretPos;
+			SetCaretPosition(_caretPos + 1);
 
 			_ResetCaretBlink();
 
@@ -182,15 +238,12 @@ bool UITextbox::OnMouseMove(bool blocked, float x, float y)
 {
 	UIElement::OnMouseMove(blocked, x, y);
 
-	if (_hover)
-	{
-		_lastMouseX = x;
-		_lastMouseY = y;
-	}
+	_lastMouseX = x;
+	_lastMouseY = y;
 
 	if (_selecting)
 	{
-		_caretPos = _label.GetFont()->GetPositionOf(_lastMouseX, _lastMouseY, _label.GetText().ToString().GetData(), _label.GetRenderTransform());
+		SetCaretPosition(_label.GetFont()->GetPositionOf(_lastMouseX, _lastMouseY, _label.GetText().ToString().GetData(), _label.GetRenderTransform()));
 		_selectionEnd = _caretPos;
 
 		_UpdateSelectionBox();

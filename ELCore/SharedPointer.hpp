@@ -1,5 +1,5 @@
 #pragma once
-#include "FunctionPointer.hpp"
+#include "Function.hpp"
 #include "Types.hpp"
 
 template<typename T>
@@ -12,7 +12,7 @@ class SharedPointerData
 
 	T* _ptr;
 	uint32 _referenceCount;
-	FunctionPointer<void, SharedPointerData&> _onZeroReferences;
+	Function<void, SharedPointerData&> _onZeroReferences;
 
 	void _Increment() { if (_ptr) ++_referenceCount; }
 
@@ -28,7 +28,7 @@ class SharedPointerData
 	}
 
 public:
-	SharedPointerData(T* addr, uint32 referenceCount, const FunctionPointer<void, SharedPointerData&>& onZeroReferences = FunctionPointer<void, SharedPointerData&>()) :
+	SharedPointerData(T* addr, uint32 referenceCount, const Function<void, SharedPointerData&>& onZeroReferences = Function<void, SharedPointerData&>()) :
 		_ptr(addr),
 		_referenceCount(referenceCount),
 		_onZeroReferences(onZeroReferences)
@@ -39,7 +39,7 @@ public:
 	uint32 GetReferenceCount() const	{ return _referenceCount; }
 
 	void SetPtr(T* ptr)					{ _ptr = ptr; }
-	void SetOnZeroReferences(const FunctionPointer<void, SharedPointerData&>& onZeroReferences) { _onZeroReferences = onZeroReferences; }
+	void SetOnZeroReferences(const Function<void, SharedPointerData&>& onZeroReferences) { _onZeroReferences = onZeroReferences; }
 };
 
 extern SharedPointerData<void> _nullPtrData;
@@ -51,7 +51,7 @@ protected:
 	//Should never be nullptr
 	SharedPointerData<T>* _data;
 	
-	static const FunctionPointer<void, SharedPointerData<T>&> _pDeletePointer;
+	static const Function<void, SharedPointerData<T>&> _pDeletePointer;
 	static void _DeletePointer(SharedPointerData<T>& data)
 	{
 		delete data.GetPtr();
@@ -138,7 +138,7 @@ public:
 };
 
 template<typename T>
-const FunctionPointer<void, SharedPointerData<T>&> SharedPointer<T>::_pDeletePointer(&SharedPointer<T>::_DeletePointer);
+const Function<void, SharedPointerData<T>&> SharedPointer<T>::_pDeletePointer(&SharedPointer<T>::_DeletePointer);
 
 class Entity;
 typedef SharedPointer<Entity> EntityPointer;

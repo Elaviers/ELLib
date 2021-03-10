@@ -1,7 +1,7 @@
 #pragma once
 #include <ELSys/AssetManager.hpp>
 #include "Sampler.hpp"
-#include <ELCore/FunctionPointer.hpp>
+#include <ELCore/Function.hpp>
 #include <ELCore/List.hpp>
 #include <Windows.h>
 #include <Audioclient.h>

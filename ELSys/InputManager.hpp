@@ -1,6 +1,6 @@
 #pragma once
 #include "EKeycode.hpp"
-#include <ELCore/FunctionPointer.hpp>
+#include <ELCore/Function.hpp>
 #include <ELCore/Hashmap.hpp>
 
 enum class EInputAxis

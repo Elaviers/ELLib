@@ -23,14 +23,18 @@ protected:
 
 	UIPanel _panel;
 	UILabel _label;
-	UIRect _selectionRect;
+
+	Colour _selectionColour;
+	Transform _selectionTransform;
 
 	float _caretWidth;
 	float _caretOffset;
 	float _caretPeriod;
 	UIColour _caretColour;
 
-	void _OnFocusLost(UIElement& element) { _selectionRect.SetW(0.f); }
+	Transform _caretTransform;
+
+	void _OnFocusLost(UIElement& element) { _selectionStart = _selectionEnd = 0; }
 
 	void _ResetCaretBlink();
 	void _UpdateSelectionBox();
@@ -41,16 +45,13 @@ public:
 	Event<UITextbox&> onStringSubmitted;
 
 	UITextbox(UIElement* parent = nullptr) : UIElement(parent),
-		_panel(this), _label(this), _selectionRect(this),
+		_panel(this), _label(this), _selectionStart(0), _selectionEnd(0), _selectionColour(Colour(0.f, .2f, 1.f, .2f)),
 		_selecting(false), _readOnly(false),
 		_caretWidth(2.f), _caretOffset(0.f), _caretPeriod(0.33f), _caretColour(Colour::Black)
 	{
 		SetCursor(ECursor::IBEAM);
 
-		_selectionRect.SetW(0.f);
-		SetSelectionColour(Colour(0.f, .2f, 1.f, .2f));
-
-		UIElement::onFocusLost += FunctionPointer<void, UIElement&>(this, &UITextbox::_OnFocusLost);
+		UIElement::onFocusLost += Function<void, UIElement&>(*this, &UITextbox::_OnFocusLost);
 	}
 
 	virtual ~UITextbox() {}
@@ -58,22 +59,24 @@ public:
 	UITextbox& SetReadOnly(bool readOnly) { _readOnly = readOnly; return *this; }
 	UITextbox& SetCaretColour(const UIColour& colour) { _caretColour = colour; return *this; }
 	UITextbox& SetCaretPeriod(float caretPeriod) { _caretPeriod = caretPeriod; return *this; }
-	UITextbox& SetCaretOffset(float offset) { _caretOffset = offset; return *this; }
+	UITextbox& SetCaretOffset(float offset) { _caretOffset = offset; SetCaretPosition(_caretPos); return *this; }
+	UITextbox& SetCaretPosition(size_t pos);
 	UITextbox& SetMaterial(const SharedPointer<const Material>& material) { _panel.SetMaterial(material); return *this; }
 	UITextbox& SetColour(const UIColour& colour) { _panel.SetColour(colour);  return *this; }
-	UITextbox& SetText(const Text& text) { _label.SetText(text); onStringChanged(*this); return *this; }
+	UITextbox& SetText(const Text& text) { _label.SetText(text); onStringChanged(*this); SetCaretPosition(_caretPos); return *this; }
 	UITextbox& SetTextColour(const UIColour& colour) { _label.SetColour(colour);  return *this; }
 	UITextbox& SetTextShadowColour(const UIColour& colour) { _label.SetShadowColour(colour); return *this; }
 	UITextbox& SetTextShadowOffset(const Vector2& offset) { _label.SetShadowOffset(offset); return *this; }
-	UITextbox& SetTextAlignment(ETextAlignment alignment) { _label.SetAlignment(alignment); return *this; }
-	UITextbox& SetFont(const SharedPointer<const Font>& font) { _label.SetFont(font);  return *this; }
+	UITextbox& SetTextAlignment(ETextAlignment alignment) { _label.SetAlignment(alignment); SetCaretPosition(_caretPos); return *this; }
+	UITextbox& SetFont(const SharedPointer<const Font>& font) { _label.SetFont(font); SetCaretPosition(_caretPos);  return *this; }
 	UITextbox& SetBorderSize(float size) { _panel.SetBorderSize(size);  return *this; }
-	UITextbox& SetSelectionColour(const UIColour& colour) { _selectionRect.SetColour(colour); return *this; }
+	UITextbox& SetSelectionColour(const Colour& colour) { _selectionColour = colour; return *this; }
 
 	bool GetReadOnly() const { return _readOnly; }
 	const UIColour& GetCaretColour() const { return _caretColour; }
 	float GetCaretPeriod() const { return _caretPeriod; }
 	float GetCaretOffset() const { return _caretOffset; }
+	size_t GetCaretPosition() const { return _caretPos; }
 	const SharedPointer<const Material>& GetMaterial() const { return _panel.GetMaterial(); }
 	const UIColour& GetColour() const { return _panel.GetColour(); }
 	const Text& GetText() const { return _label.GetText(); }
@@ -83,7 +86,7 @@ public:
 	ETextAlignment GetTextAlignment() const { return _label.GetAlignment(); }
 	const SharedPointer<const Font>& GetFont() const { return _label.GetFont(); }
 	float GetBorderSize() const { return _panel.GetBorderSize(); }
-	const UIColour& GetSelectionColour() const { return _selectionRect.GetColour(); }
+	const Colour& GetSelectionColour() const { return _selectionColour; }
 
 	virtual void UpdateBounds() override;
 	virtual void Render(RenderQueue&) const override;

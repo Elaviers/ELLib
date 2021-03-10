@@ -59,10 +59,10 @@ void UILabel::UpdateBounds()
 		_transform.SetPosition(Vector3(x, _absoluteBounds.y + _offset.y + _margin, _z));
 		_transform.SetScale(Vector3(fontSize, fontSize, 1.f));
 
-		_clip.x = _absoluteBounds.x - x;
+		_clip.x = _absoluteBounds.x + _margin - x;
 		_clip.y = -_offset.y - _margin;
-		_clip.w = _absoluteBounds.w;
-		_clip.h = _absoluteBounds.h;
+		_clip.w = _absoluteBounds.w - _margin * 2;
+		_clip.h = _absoluteBounds.h - _margin * 2;
 	}
 
 	_UpdateShadowTransform();
@@ -73,6 +73,8 @@ void UILabel::UpdateBounds()
 
 	void UILabel::Update(float deltaTime)
 	{
+		if (_text.ToString().GetLength() == 0) return;
+
 		float aoffset[2] = { _bounds.x.absolute, _bounds.y.absolute };
 		float rot = _transform.GetRotation().GetEuler().z;
 

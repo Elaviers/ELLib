@@ -24,7 +24,7 @@ public:
 
 	UICheckbox(UIElement* parent = nullptr) : UIElement(parent), _button(this), _image(this), _value(false), _readOnly(false)
 	{
-		_button.onPressed += FunctionPointer<void, UIButton&>(this, &UICheckbox::_OnButtonPressed);
+		_button.onPressed += Function<void, UIButton&>(*this, &UICheckbox::_OnButtonPressed);
 	}
 
 	virtual ~UICheckbox() {}

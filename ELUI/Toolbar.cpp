@@ -36,7 +36,7 @@ void UIToolbar::AddButton(const Text& label, const SharedPointer<const Texture>&
 	item->SetUserData(userData).SetMaterial(_material).SetBorderSize(_borderSize).SetTextureFalse(texture).SetTextureTrue(texture)
 		.SetColourFalse(_colourFalse).SetColourTrue(_colourTrue).SetColourHover(_colourHover).SetColourHold(_colourHold);
 	item->SetBounds(UIBounds(UICoord(0.f, _nextButtonX), 0.f, UICoord(0.f, _buttonW), 1.f));
-	item->onStateChanged += FunctionPointer<void, UICheckbox&>(this, &UIToolbar::_OnItemStateChanged);
+	item->onStateChanged += Function<void, UICheckbox&>(*this, &UIToolbar::_OnItemStateChanged);
 
 	_nextButtonX += _buttonW + _buttonGap;
 }

@@ -1,6 +1,6 @@
 #pragma once
 #include "Concepts.hpp"
-#include "FunctionPointer.hpp"
+#include "Function.hpp"
 #include <initializer_list>
 
 template <typename T>
@@ -11,18 +11,18 @@ class List
 
 	class Node;
 
-	template <typename... Args>
-	Node* _NewNode(Node* next, Args&&... args) const
+	template <typename... ARGS>
+	Node* _NewNode(Node* next, ARGS&&... args) const
 	{
-		if (_handlerNew.IsCallable())
-			return new (_handlerNew(sizeof(Node))) Node(next, static_cast<Args&&>(args)...);
+		if (_handlerNew.IsValid())
+			return new (_handlerNew(sizeof(Node))) Node(next, static_cast<ARGS&&>(args)...);
 
-		return new Node(next, static_cast<Args&&>(args)...);
+		return new Node(next, static_cast<ARGS&&>(args)...);
 	}
 
 	void _DeleteNode(Node* node) const
 	{
-		if (_handlerDelete.IsCallable())
+		if (_handlerDelete.IsValid())
 		{
 			node->~Node();
 			_handlerDelete((byte*)node);
@@ -38,8 +38,8 @@ class List
 		Node* _next;
 
 	public:
-		template<typename... Args>
-		Node(Node* next, Args&&... args) : _value(static_cast<Args&&>(args)...), _next(next) {}
+		template<typename... ARGS>
+		Node(Node* next, ARGS&&... args) : _value(static_cast<ARGS&&>(args)...), _next(next) {}
 		~Node() {}
 
 		T& Value()					{ return _value; }
@@ -120,10 +120,10 @@ class List
 			return GetDeepestNode()->_next = list._NewNode(nullptr, value);
 		}
 
-		template<typename... Args>
-		Node* Emplace(const List& list, Args&&... args)
+		template<typename... ARGS>
+		Node* Emplace(const List& list, ARGS&&... args)
 		{
-			return GetDeepestNode()->_next = list._NewNode(nullptr, static_cast<Args&&>(args)...);
+			return GetDeepestNode()->_next = list._NewNode(nullptr, static_cast<ARGS&&>(args)...);
 		}
 
 		//Depth must be greater than 0
@@ -140,8 +140,8 @@ class List
 		}
 
 		//Depth must be greater than 0
-		template <typename ...Args>
-		Node* InsertChild(size_t depth, const List& list, Args&& ...args)
+		template <typename ...ARGS>
+		Node* InsertChild(size_t depth, const List& list, ARGS&& ...args)
 		{
 			Node* node = this;
 			size_t prev = depth - 1;
@@ -150,7 +150,7 @@ class List
 					return nullptr;
 
 			Node* next = node->_next;
-			return node->_next = list._NewNode(next, static_cast<Args&&>(args)...);
+			return node->_next = list._NewNode(next, static_cast<ARGS&&>(args)...);
 		}
 
 		Node* InsertChildBefore(const T& value, const Node* before, const List& list)
@@ -169,15 +169,15 @@ class List
 			return nullptr;
 		}
 
-		template <typename ...Args>
-		Node* InsertChildBefore(const Node* before, const List& list, Args&& ...args)
+		template <typename ...ARGS>
+		Node* InsertChildBefore(const Node* before, const List& list, ARGS&& ...args)
 		{
 			Node* current = this;
 			Node* next = _next;
 			while (next)
 			{
 				if (next == before)
-					return current->_next = list._NewNode(next->_next, static_cast<Args&&>(args)...);
+					return current->_next = list._NewNode(next->_next, static_cast<ARGS&&>(args)...);
 
 				current = next;
 				next = current->_next;
@@ -509,14 +509,14 @@ public:
 
 	List& operator=(List&& other) noexcept
 	{
+		if (_handlerNew.IsValid() || other._handlerNew.IsValid() || _handlerDelete.IsValid() || other._handlerDelete.IsValid())
+			return operator=((const List&)*this);
+
 		Clear();
 
 		_first = other._first;
 		_last = other._last;
 		other._first = other._last = nullptr;
-
-		if (_handlerNew != other._handlerNew || _handlerDelete != other._handlerDelete)
-			return operator=((const List&)*this);
 
 		return *this;
 	}
@@ -538,11 +538,11 @@ public:
 		return Iterator(_first = _last = _NewNode(nullptr, value));
 	}
 
-	template <typename... Args>
-	Iterator Emplace(Args&&... args)
+	template <typename... ARGS>
+	Iterator Emplace(ARGS&&... args)
 	{
-		if (_first) return Iterator(_last = _last->Emplace(*this, static_cast<Args&&>(args)...));
-		return Iterator(_first = _last = _NewNode(nullptr, static_cast<Args&&>(args)...));
+		if (_first) return Iterator(_last = _last->Emplace(*this, static_cast<ARGS&&>(args)...));
+		return Iterator(_first = _last = _NewNode(nullptr, static_cast<ARGS&&>(args)...));
 	}
 
 	Iterator Insert(const T& value, Iterator before)
@@ -576,30 +576,30 @@ public:
 		return Iterator(nullptr);
 	}
 
-	template <typename ...Args>
-	Iterator Insert(Iterator before, Args&& ...args)
+	template <typename ...ARGS>
+	Iterator Insert(Iterator before, ARGS&& ...args)
 	{
 		if (_first)
 		{
 			Node* node = before._node;
 			if (node == _first)
-				return Iterator(_first = _NewNode(_first, static_cast<Args&&>(args)...));
+				return Iterator(_first = _NewNode(_first, static_cast<ARGS&&>(args)...));
 
-			return Iterator(_first->InsertChildBefore(node, *this, static_cast<Args&&>(args)...));
+			return Iterator(_first->InsertChildBefore(node, *this, static_cast<ARGS&&>(args)...));
 		}
 
 		return Iterator(nullptr);
 	}
 
-	template <typename ...Args>
-	Iterator Insert(size_t index, Args&& ...args)
+	template <typename ...ARGS>
+	Iterator Insert(size_t index, ARGS&& ...args)
 	{
 		if (index == 0)
-			return Iterator(_first = _NewNode(_first, static_cast<Args&&>(args)...));
+			return Iterator(_first = _NewNode(_first, static_cast<ARGS&&>(args)...));
 		
 		if (_first)
 		{
-			Node* node = _first->InsertChild(index, *this, static_cast<Args&&>(args)...);
+			Node* node = _first->InsertChild(index, *this, static_cast<ARGS&&>(args)...);
 			if (node->Next() == nullptr)
 				_last = node;
 

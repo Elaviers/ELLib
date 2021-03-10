@@ -1,5 +1,5 @@
 #pragma once
-#include "FunctionPointer.hpp"
+#include "Function.hpp"
 #include "List.hpp"
 
 /*
@@ -7,40 +7,36 @@
 
 	Linked list of function pointers
 */
-template<typename ...Args>
+template<typename ...ARGS>
 class Event
 {
-	List<FunctionPointer<void, Args...>> _list;
+	List<Function<void, ARGS...>> _list;
 
 public:
 	Event() {}
 	~Event() {}
 
-	Event& operator+=(const FunctionPointer<void, Args...>& function) 
+	Event& operator+=(const Function<void, ARGS...>& function) 
 	{
-		for (const FunctionPointer<void, Args...>& fp : _list)
+		//todo- check for duplicates
+		/*
+		for (const Function<void, ARGS...>& fp : _list)
 			if (fp == function)
 				return *this;
+		*/
 
 		_list.Add(function);
 		return *this;
 	}
 
-
-	bool Remove(const FunctionPointer<void, Args...>& function)
+	void Clear()
 	{
-		return _list.Remove(function);
+		_list.Clear();
 	}
 
-	Event& operator-=(const FunctionPointer<void, Args...>& function)
+	void operator()(ARGS... args) const 
 	{
-		Remove(function);
-		return *this;
-	}
-
-	void operator()(Args... args) const 
-	{
-		for (const FunctionPointer<void, Args...>& fp : _list)
+		for (const Function<void, ARGS...>& fp : _list)
 			fp.TryCall(args...);
 	}
 };

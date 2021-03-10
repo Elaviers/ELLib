@@ -1,5 +1,5 @@
 #pragma once
-#include "FunctionPointer.hpp"
+#include "Function.hpp"
 #include "Types.hpp"
 #include "Utilities.hpp"
 #include <initializer_list>
@@ -27,7 +27,7 @@ private:
 
 	byte* _AllocRawData(size_t newSize) const
 	{
-		if (_handlerNew.IsCallable())
+		if (_handlerNew.IsValid())
 			return _handlerNew(sizeof(T) * newSize);
 
 		return new byte[sizeof(T) * newSize];
@@ -38,7 +38,7 @@ private:
 		for (size_t i = 0; i < _size; ++i)
 			_elements[i].~T();
 
-		if (_handlerDelete.IsCallable())
+		if (_handlerDelete.IsValid())
 			_handlerDelete(_raw);
 		else
 			delete[] _raw;
@@ -167,8 +167,8 @@ public:
 		}
 	}
 
-	template <typename... Args>
-	T& Emplace(Args&&... args)
+	template <typename... ARGS>
+	T& Emplace(ARGS&&... args)
 	{
 		byte* newData = _AllocRawData(_size + 1);
 		for (size_t i = 0; i < _size; ++i)
@@ -177,7 +177,7 @@ public:
 		_DestroyData();
 		_raw = newData;
 		++_size;
-		return *new (_elements + _size - 1) T(static_cast<Args&&>(args)...);
+		return *new (_elements + _size - 1) T(static_cast<ARGS&&>(args)...);
 	}
 
 	T& Add(const T& item) { return Emplace(item); }
@@ -301,7 +301,7 @@ public:
 
 	Buffer& operator=(Buffer&& other) noexcept
 	{
-		if (other._handlerNew != _handlerNew || other._handlerDelete != _handlerDelete)
+		if (_handlerNew.IsValid() || other._handlerNew.IsValid() || _handlerDelete.IsValid() || other._handlerDelete.IsValid())
 		{
 			operator=((const Buffer&)other);
 			other.Clear();

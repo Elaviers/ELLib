@@ -128,8 +128,8 @@ public:
 	static String Concat(T first) { return From(first); }
 
 	//Concatenates each argument interpreted as a string
-	template<typename T, typename ...Args>
-	static String Concat(T first, const Args&... args) { return From(first) + Concat(args...); }
+	template<typename T, typename ...ARGS>
+	static String Concat(T first, const ARGS&... args) { return From(first) + Concat(args...); }
 
 	//Concatenates args and returns a char pointer (which is deleted before the next statement)
 	#define CSTR(...) (String::Concat(__VA_ARGS__)).GetData()

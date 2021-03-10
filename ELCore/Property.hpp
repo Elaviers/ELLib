@@ -1,6 +1,6 @@
 #pragma once
 #include "Buffer.hpp"
-#include "FunctionPointer.hpp"
+#include "Function.hpp"
 #include "String.hpp"
 #include "Types.hpp"
 #include <typeinfo>

@@ -2,7 +2,7 @@
 #include <ELSys/AssetManager.hpp>
 #include "Material.hpp"
 #include "TextureManager.hpp"
-#include <ELCore/FunctionPointer.hpp>
+#include <ELCore/Function.hpp>
 
 class MaterialManager : public AssetManager<Material>
 {

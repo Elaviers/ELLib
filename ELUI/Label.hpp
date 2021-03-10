@@ -39,6 +39,7 @@ public:
 	const Text& GetText() const { return _text; }
 	const UIColour& GetColour() const { return _colour; }
 	const Transform& GetRenderTransform() const { return _transform; }
+	const Vector2& GetTextOffset() const { return _offset; }
 	const Vector2& GetShadowOffset() const { return _shadowOffset; }
 	const UIColour& GetShadowColour() const { return _shadowColour; }
 	const ETextAlignment& GetAlignment() const { return _alignment; }
@@ -47,6 +48,7 @@ public:
 	UILabel& SetFont(const SharedPointer<const Font>& font) { _font = font; UpdateBounds(); return *this; }
 	UILabel& SetText(const Text& text) { _text = text; UpdateBounds(); return *this; }
 	UILabel& SetColour(const UIColour& colour) { _colour = colour; return *this; }
+	UILabel& SetTextOffset(const Vector2& offset) { _offset = offset; UpdateBounds(); return *this; }
 	UILabel& SetShadowOffset(const Vector2& offset) { _shadowOffset = offset; _UpdateShadowTransform(); return *this; }
 	UILabel& SetShadowColour(const UIColour& colour) { _shadowColour = colour; return *this; }
 	UILabel& SetAlignment(ETextAlignment alignment) { _alignment = alignment; UpdateBounds(); return *this; }

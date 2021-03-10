@@ -1,6 +1,6 @@
 #pragma once
 #include "Buffer.hpp"
-#include "FunctionPointer.hpp"
+#include "Function.hpp"
 #include "List.hpp"
 #include "Hashing.hpp"
 #include "Pair.hpp"
@@ -29,7 +29,7 @@ class Hashmap
 	class Node;
 	Node* _NewNode(H_TYPE hash) const
 	{
-		if (_handlerNew.IsCallable())
+		if (_handlerNew.IsValid())
 			return new (_handlerNew(sizeof(Node))) Node(hash, _handlerNew, _handlerDelete);
 
 		return new Node(hash, _handlerNew, _handlerDelete);
@@ -37,7 +37,7 @@ class Hashmap
 
 	void _DeleteNode(Node* node) const
 	{
-		if (_handlerDelete.IsCallable())
+		if (_handlerDelete.IsValid())
 		{
 			node->~Node();
 			_handlerDelete((byte*)node);

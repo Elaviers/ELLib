@@ -138,7 +138,7 @@ float FontTexture::CalculateStringWidth(const char* string, float scaleX, size_t
 	return Maths::Max(longestWidth, currentLineW);
 }
 
-size_t FontTexture::GetPositionOf(float pX, float pY, const char* string, const Transform& transform, float lineHeight) const
+size_t FontTexture::GetPositionOf(float pX, float pY, const char* string, const Transform& transform, float lineHeight, bool round) const
 {
 	Vector3 advanceDirection = transform.GetRightVector();
 	Vector3 downDirection = -1.f * transform.GetUpVector();
@@ -188,7 +188,7 @@ size_t FontTexture::GetPositionOf(float pX, float pY, const char* string, const 
 
 		if (x + advanceDirection.x * currentCharW >= pX)
 		{
-			if (x + advanceDirection.x * currentCharW / 2.f <= pX)
+			if (round && x + advanceDirection.x * currentCharW / 2.f <= pX)
 				return i + 1;
 
 			return i;

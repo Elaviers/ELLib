@@ -3,21 +3,6 @@
 #include <ELCore/String.hpp>
 #include <windowsx.h>
 
-void WindowFunctions::ResizeHWND(HWND hwnd, uint16 w, uint16 h)
-{
-	RECT _rect;
-	::GetWindowRect(hwnd, &_rect);
-	::MapWindowPoints(HWND_DESKTOP, ::GetParent(hwnd), (LPPOINT)&_rect, 2);
-	SetHWNDSizeAndPos(hwnd, (uint16)_rect.left, (uint16)_rect.top, w, h);
-}
-
-void WindowFunctions::RepositionHWND(HWND hwnd, uint16 x, uint16 y)
-{
-	RECT _rect;
-	::GetClientRect(hwnd, &_rect);
-	SetHWNDSizeAndPos(hwnd, x, y, (uint16)_rect.right, (uint16)_rect.bottom);
-}
-
 void WindowFunctions::SetDefaultPixelFormat(HDC hdc)
 {
 	const int attribInts[] =
@@ -95,7 +80,7 @@ void Window::Win32SetIconResource(int resource)
 Window::Window() : 
 	_hwnd(NULL), _hdc(NULL), 
 	_closeDestroysWindow(true),
-	_eventList(NewHandler(&_eventPool, &_EventPoolType::NewArray), DeleteHandler(&_eventPool, &_EventPoolType::DeleteHandler))
+	_eventList(NewHandler(_eventPool, &_EventPoolType::NewArray), DeleteHandler(_eventPool, &_EventPoolType::DeleteHandler))
 {
 }
 
@@ -225,7 +210,7 @@ LRESULT CALLBACK Window::_WindowsProc(HWND hwnd, UINT msg, WPARAM wparam, LPARAM
 		break;
 
 	case WM_DESTROY:
-		if (!window->_closeDestroysWindow)
+		if (window->_closeDestroysWindow)
 			window->_eventList.Emplace(WindowEvent::CLOSED);
 		
 		break;

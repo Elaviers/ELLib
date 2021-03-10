@@ -38,7 +38,7 @@ public:
 	{
 		SharedPointerData<T>* pointerData = _Find(addr);
 		if (pointerData == nullptr)
-			pointerData = &*_list.Add(SharedPointerData<T>(addr, 0, FunctionPointer<void, SharedPointerData<T>&>(this, &Tracker::_Remove)));
+			pointerData = &*_list.Add(SharedPointerData<T>(addr, 0, Function<void, SharedPointerData<T>&>(*this, &Tracker::_Remove)));
 		
 		return SharedPointer<T>(*pointerData);
 	}

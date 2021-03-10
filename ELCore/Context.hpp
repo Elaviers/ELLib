@@ -20,8 +20,8 @@ public:
 		_ptrs[typeid(T).hash_code()] = ptr;
 	}
 
-	template <typename T, typename ...Args>
-	void Set(T* ptr, Args ...more)
+	template <typename T, typename ...ARGS>
+	void Set(T* ptr, ARGS ...more)
 	{
 		Set(ptr);
 		Set(more...);

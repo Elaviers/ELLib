@@ -27,19 +27,19 @@ protected:
 
 	ERenderChannels _renderChannels;
 
-	template <typename T, typename ...Args>
+	template <typename T, typename ...ARGS>
 	requires Concepts::DerivedFrom<T, RenderCommand>
-		T& _AddCommand(Args&&... args)
+		T& _AddCommand(ARGS&&... args)
 	{
-		if (_newHandler.IsCallable())
+		if (_newHandler.IsValid())
 		{
 			byte* mem = _newHandler(sizeof(T));
-			T* cmd = new(mem) T(static_cast<Args&&>(args)...);
+			T* cmd = new(mem) T(static_cast<ARGS&&>(args)...);
 			_commands.Emplace(cmd, true);
 			return *cmd;
 		}
 
-		T* cmd = new T(static_cast<Args&&>(args)...);
+		T* cmd = new T(static_cast<ARGS&&>(args)...);
 		_commands.Emplace(cmd, true);
 		return *cmd;
 	}

@@ -40,7 +40,7 @@ public:
 	virtual const PropertyCollection& GetProperties() override;
 
 	virtual float CalculateStringWidth(const char* string, float scaleX, size_t maxChars = 0) const override;
-	virtual size_t GetPositionOf(float x, float y, const char* string, const Transform& transform, float lineHeight = 0.f) const override;
+	virtual size_t GetPositionOf(float x, float y, const char* string, const Transform& transform, float lineHeight = 0.f, bool round = true) const override;
 
 	virtual void RenderString(RenderEntry&, const char *string, const Transform &transform, float lineHeight = 0.f, const RectF& clip = RectF()) const override;
 };

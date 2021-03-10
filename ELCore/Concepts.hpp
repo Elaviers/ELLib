@@ -15,9 +15,9 @@ namespace Concepts
 	template<typename T>
 	concept Callback = requires(const T& t) { t(); };
 
-	template<typename T, typename RETURN, typename... Args>
-	concept Function = requires(const T & t, Args&&... args) { requires std::convertible_to<decltype(t(static_cast<Args&&>(args)...)), RETURN>; };
-
+	template<typename T, typename RETURN, typename... ARGS>
+	concept Function = requires(const T& t, ARGS... args) { requires std::convertible_to<decltype(t(std::forward<ARGS>(args)...)), RETURN>; };
+	
 	template<typename T, typename Arg>
 	concept Predicate = Function<T, bool, Arg>;
 }
