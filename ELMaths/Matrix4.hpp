@@ -106,7 +106,7 @@ public:
 	}
 
 	//returns the inverse of the 3x3 part of this matrix (usually rotation/scale)
-	//the result is indentity outside of the 3x3 part
+	//the result is indWorldObject outside of the 3x3 part
 	Matrix4T Inverse3x3() const
 	{
 		//- 0	1	2	3
@@ -300,8 +300,8 @@ public:
 
 	static const Matrix4T& Identity()
 	{
-		static Matrix4T identity;
-		return identity;
+		static Matrix4T idWorldObject;
+		return idWorldObject;
 	}
 
 	static Matrix4T RotationX(const T& degrees)

@@ -6,6 +6,8 @@ class _DummyProperty : public Property
 public:
 	_DummyProperty(const String& name, byte flags, const char* typeName) : Property(name, flags, typeName) {}
 	virtual ~_DummyProperty() {}
+
+	virtual Property* Clone() const override { return new _DummyProperty(*this); }
 };
 
 class RigidProperty

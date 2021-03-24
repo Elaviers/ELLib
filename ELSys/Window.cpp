@@ -3,7 +3,7 @@
 #include <ELCore/String.hpp>
 #include <windowsx.h>
 
-void WindowFunctions::SetDefaultPixelFormat(HDC hdc)
+void WindowFunctions_Win32::SetDefaultPixelFormat(HDC hdc)
 {
 	const int attribInts[] =
 	{
@@ -29,7 +29,7 @@ void WindowFunctions::SetDefaultPixelFormat(HDC hdc)
 	Debug::Assert(SetPixelFormat(hdc, pfdId, &pfd), CSTR("SetPixelFormat returned FALSE (0x", String::FromInt(::GetLastError(), 2, 16), ")"));
 }
 
-WPARAM WindowFunctions::SplitKeyWPARAMLeftRight(WPARAM wparam)
+WPARAM WindowFunctions_Win32::SplitKeyWPARAMLeftRight(WPARAM wparam)
 {
 	switch (wparam)
 	{
@@ -62,7 +62,7 @@ void Window::_EnsureWindowClasses()
 	windowClass.lpszClassName = _wclassDummy;
 	Debug::Assert(::RegisterClassEx(&windowClass), CSTR("Unable to register dummy window class (0x", String::FromInt(::GetLastError(), 2, 16), ")"));
 
-	windowClass.lpfnWndProc = _WindowsProc;
+	windowClass.lpfnWndProc = WindowFunctions_Win32::WindowProc;
 	windowClass.hbrBackground = (HBRUSH)(COLOR_WINDOW + 1);
 	windowClass.hIcon = icon;
 	windowClass.hIconSm = icon;
@@ -82,6 +82,18 @@ Window::Window() :
 	_closeDestroysWindow(true),
 	_eventList(NewHandler(_eventPool, &_EventPoolType::NewArray), DeleteHandler(_eventPool, &_EventPoolType::DeleteHandler))
 {
+}
+
+Window::Window(Window&& other) :
+	_hwnd(other._hwnd), _hdc(other._hdc), _closeDestroysWindow(other._closeDestroysWindow),
+	_eventList(NewHandler(_eventPool, &_EventPoolType::NewArray), DeleteHandler(_eventPool, &_EventPoolType::DeleteHandler))
+{
+	other._hwnd = NULL;
+	other._hdc = NULL;
+
+	_eventList = other._eventList;
+	other._eventList.Clear();
+	other._eventPool.Clear();
 }
 
 void Window::Create(const char* title, const Window* parent, WindowFlags flags)
@@ -111,7 +123,7 @@ void Window::Create(const char* title, const Window* parent, WindowFlags flags)
 			monitorInfo.cbSize = sizeof(monitorInfo);
 			GetMonitorInfo(MonitorFromWindow(_hwnd, MONITOR_DEFAULTTONEAREST), &monitorInfo);
 
-			WindowFunctions::SetHWNDSizeAndPos(_hwnd, 0, 0, monitorInfo.rcMonitor.right, monitorInfo.rcMonitor.bottom);
+			WindowFunctions_Win32::SetHWNDSizeAndPos(_hwnd, 0, 0, monitorInfo.rcMonitor.right, monitorInfo.rcMonitor.bottom);
 		}
 		else
 		{
@@ -120,7 +132,7 @@ void Window::Create(const char* title, const Window* parent, WindowFlags flags)
 	}
 
 	_hdc = GetDC(_hwnd);
-	WindowFunctions::SetDefaultPixelFormat(_hdc);
+	WindowFunctions_Win32::SetDefaultPixelFormat(_hdc);
 }
 
 void Window::Show()
@@ -184,9 +196,17 @@ bool Window::PollEvent(WindowEvent& out)
 	return false;
 }
 
+bool Window::IsVisible() const
+{
+	if (_hwnd)
+		return ::IsWindowVisible(_hwnd);
+
+	return false;
+}
+
 #include <ELCore/Buffer.hpp>
 
-LRESULT CALLBACK Window::_WindowsProc(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam)
+LRESULT CALLBACK WindowFunctions_Win32::WindowProc(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam)
 {
 	if (msg == WM_CREATE)
 	{
@@ -198,7 +218,12 @@ LRESULT CALLBACK Window::_WindowsProc(HWND hwnd, UINT msg, WPARAM wparam, LPARAM
 	Window* window = (Window*)::GetWindowLongPtr(hwnd, GWLP_USERDATA);
 	if (window == nullptr)
 		return ::DefWindowProc(hwnd, msg, wparam, lparam);
+	else
+		return WindowProc(window, hwnd, msg, wparam, lparam);
+}
 
+LRESULT CALLBACK WindowFunctions_Win32::WindowProc(Window* window, HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam)
+{
 	switch (msg)
 	{
 	case WM_CLOSE:
@@ -291,7 +316,7 @@ LRESULT CALLBACK Window::_WindowsProc(HWND hwnd, UINT msg, WPARAM wparam, LPARAM
 	case WM_KEYDOWN:
 	{
 		auto& e = *window->_eventList.Emplace(WindowEvent::KEYDOWN);
-		e.data.keyDown.key = (EKeycode)WindowFunctions::SplitKeyWPARAMLeftRight(wparam);
+		e.data.keyDown.key = (EKeycode)WindowFunctions_Win32::SplitKeyWPARAMLeftRight(wparam);
 		e.data.keyDown.isRepeat = lparam & (1 << 30);
 	}
 		break;
@@ -299,7 +324,7 @@ LRESULT CALLBACK Window::_WindowsProc(HWND hwnd, UINT msg, WPARAM wparam, LPARAM
 	case WM_KEYUP:
 	{
 		auto& e = *window->_eventList.Emplace(WindowEvent::KEYUP);
-		e.data.keyUp.key = (EKeycode)WindowFunctions::SplitKeyWPARAMLeftRight(wparam);
+		e.data.keyUp.key = (EKeycode)WindowFunctions_Win32::SplitKeyWPARAMLeftRight(wparam);
 	}
 		break;
 
@@ -352,3 +377,30 @@ LRESULT CALLBACK Window::_WindowsProc(HWND hwnd, UINT msg, WPARAM wparam, LPARAM
 	return 0;
 }
 
+bool WindowFunctions_Win32::IsMouseInput(UINT msg)
+{
+	switch (msg)
+	{
+	case WM_LBUTTONDOWN:
+	case WM_LBUTTONUP:
+	case WM_RBUTTONDOWN:
+	case WM_RBUTTONUP:
+	case WM_MOUSEWHEEL:
+		return true;
+	}
+
+	return false;
+}
+
+bool WindowFunctions_Win32::IsKeyInput(UINT msg)
+{
+	switch (msg)
+	{
+	case WM_KEYDOWN:
+	case WM_KEYUP:
+	case WM_CHAR:
+		return true;
+	}
+
+	return false;
+}

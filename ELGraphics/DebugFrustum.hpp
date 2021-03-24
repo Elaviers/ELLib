@@ -16,7 +16,7 @@ public:
 
 	virtual void Render(RenderQueue&) const override;
 
-	static DebugFrustum FromCamera(const Transform&, const Projection&, float time = 0.f, const Colour& colour = Colour::Red, float lineWidth = 2.f, float fadeTime = 0.f);
+	static DebugFrustum FromFrustum(const struct Frustum&, float time = 0.f, const Colour& colour = Colour::Red, float lineWidth = 2.f, float fadeTime = 0.f);
 
 	SIZEOF_DEF;
 };

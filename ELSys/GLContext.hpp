@@ -7,7 +7,7 @@ class GLContext
 private:
 	HGLRC _id;
 
-	void _Create(HDC);
+	void _Create(HDC, int majorVersion, int minorVersion);
 	void _Use(HDC) const;
 
 public:
@@ -22,7 +22,7 @@ public:
 	void CreateDummyAndUse();
 	void Delete();
 	
-	void Create(const Window &window) { _Create(window._hdc); }
+	void Create(const Window &window, int majorVersion = 4, int minorVersion = 1) { _Create(window._hdc, majorVersion, minorVersion); }
 	void Use(const Window &window) const { _Use(window._hdc); }
 
 	bool IsValid() { return _id != 0; }

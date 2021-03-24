@@ -43,4 +43,5 @@ struct Frustum
 	bool OverlapsAABB(const Vector3& min, const Vector3& max) const;
 
 	Frustum() {}
+	Frustum& operator=(const Frustum& other);
 };

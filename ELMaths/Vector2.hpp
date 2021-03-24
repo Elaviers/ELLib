@@ -98,6 +98,7 @@ public:
 	//Comparison
 	bool operator==(const Vector2T& other) const { return x == other.x && y == other.y; }
 	bool operator!=(const Vector2T& other) const { return x != other.x || y != other.y; }
+	std::partial_ordering  operator<=>(const Vector2T other) const { return LengthSquared() <=> other.LengthSquared(); }
 
 	bool AlmostEquals(const Vector2T& other, float tolerance) const { return (*this - other).LengthSquared() <= tolerance * tolerance; }
 

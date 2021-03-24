@@ -1,4 +1,5 @@
 #include "CollisionCapsule.hpp"
+#include "RaycastHitInformation.hpp"
 #include <ELMaths/Ray.hpp>
 #include <ELMaths/Vector2.hpp>
 
@@ -34,9 +35,9 @@ inline bool SphereRayEntryTime(Vector3 rayStart, const Vector3& rayDir, float sp
                             D.D
 */
 
-bool CollisionCapsule::IntersectsRay(const Ray& ray, RaycastResult& result, const Transform& worldTransform) const
+bool CollisionCapsule::IntersectsRay(const Ray& ray, RaycastHitInformation& result, const Transform& worldTransform) const
 {
-    Matrix4 inv = (_transform * worldTransform).GetInverseTransformationMatrix();
+    Matrix4 inv = (_transform * worldTransform).GetInverseMatrix();
     Vector3 transformedRayOrigin = (Vector4(ray.origin, 1.f) * inv).GetXYZ();
     Vector4 transformedRayDirection4 = Vector4(ray.direction, 0.f) * inv;
     Vector3 transformedRayDirection = Vector3(transformedRayDirection4.x, transformedRayDirection4.y, transformedRayDirection4.z);
@@ -67,7 +68,7 @@ bool CollisionCapsule::IntersectsRay(const Ray& ray, RaycastResult& result, cons
         if (!SphereRayEntryTime(transformedRayOrigin, transformedRayDirection, _radius, cylinderHalfHeight, t))
             return false;
 
-        result.entryTime = t;
+        result.time = t;
     }
     else if (cylinderEntryY < -cylinderHalfHeight)
     {
@@ -75,13 +76,13 @@ bool CollisionCapsule::IntersectsRay(const Ray& ray, RaycastResult& result, cons
         if (!SphereRayEntryTime(transformedRayOrigin, transformedRayDirection, _radius, -cylinderHalfHeight, t))
             return false;
 
-        result.entryTime = t;
+        result.time = t;
     }
     else
-        result.entryTime = cylinderEntry;
+        result.time = cylinderEntry;
 
-    if (result.entryTime < 0.f)
-        result.entryTime = 0.f;
+    if (result.time < 0.f)
+        result.time = 0.f;
 
     return true;
 }
@@ -109,8 +110,8 @@ inline Vector3 SphereRayExitPoint(float startY, const Vector3& dir,  float radiu
 CollisionShape::OrientedPoint CollisionCapsule::GetFarthestPointInDirection(const Vector3& axisIn, const Transform& worldTransform) const
 {
     Transform ft = _transform * worldTransform;
-    Matrix4 transform = ft.GetTransformationMatrix();
-    Vector3 axis = (Vector4(axisIn, 0.f) * ft.GetInverseTransformationMatrix()).GetXYZ().Normalised();
+    Matrix4 transform = ft.GetMatrix();
+    Vector3 axis = (Vector4(axisIn, 0.f) * ft.GetInverseMatrix()).GetXYZ().Normalised();
 
     float xz2 = axis.x * axis.x + axis.z * axis.z;
     if (xz2 == 0.f)

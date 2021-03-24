@@ -20,7 +20,7 @@ void UISplitter::UpdateBounds()
 	{
 		if (_isHorizontal)
 		{
-			float relY = Maths::Clamp(_absoluteBounds.y / parent->GetAbsoluteBounds().h, 0.f, 1.f);
+			float relY = Maths::Clamp((_absoluteBounds.y - parent->GetAbsoluteBounds().y) / parent->GetAbsoluteBounds().h, 0.f, 1.f);
 
 			for (size_t i = 0; i < parent->GetChildren().GetSize(); ++i)
 			{
@@ -48,7 +48,7 @@ void UISplitter::UpdateBounds()
 		}
 		else
 		{
-			float relX = Maths::Clamp(_absoluteBounds.x / parent->GetAbsoluteBounds().w, 0.f, 1.f);
+			float relX = Maths::Clamp((_absoluteBounds.x - parent->GetAbsoluteBounds().x) / parent->GetAbsoluteBounds().w, 0.f, 1.f);
 
 			for (size_t i = 0; i < parent->GetChildren().GetSize(); ++i)
 			{
@@ -87,7 +87,7 @@ void UISplitter::Render(RenderQueue& q) const
 	else
 		e.AddSetTexture(RCMDSetTexture::Type::WHITE, 0);
 
-	e.AddSetTransform(_transform.GetTransformationMatrix());
+	e.AddSetTransform(_transform.GetMatrix());
 	e.AddSetUVScale(Vector2((_isHorizontal ? _absoluteBounds.w : _absoluteBounds.h) / _textureTileSize, 1.f));
 	e.AddCommand(RCMDSetUVOffset::Default());
 	e.AddCommand(RCMDRenderMesh::PLANE);
@@ -126,7 +126,7 @@ bool UISplitter::OnMouseMove(bool blocked, float x, float y)
 		{
 			if (_useAbsolute)
 			{
-				_bounds.y.absolute = y - _bounds.y.relative * _parent->GetAbsoluteBounds().h - _absoluteBounds.h / 2.f;
+				_bounds.y.absolute = (y - _parent->GetAbsoluteBounds().y) - _bounds.y.relative * _parent->GetAbsoluteBounds().h - _absoluteBounds.h / 2.f;
 				_bounds.y.absolute = Maths::Clamp(_bounds.y.absolute, _min, _max);
 			}
 			else
@@ -141,7 +141,7 @@ bool UISplitter::OnMouseMove(bool blocked, float x, float y)
 		{
 			if (_useAbsolute)
 			{
-				_bounds.x.absolute = x - _bounds.x.relative * _parent->GetAbsoluteBounds().w - _absoluteBounds.w / 2.f;
+				_bounds.x.absolute = (x - _parent->GetAbsoluteBounds().x) - _bounds.x.relative * _parent->GetAbsoluteBounds().w - _absoluteBounds.w / 2.f;
 				_bounds.x.absolute = Maths::Clamp(_bounds.x.absolute, _min, _max);
 			}
 			else

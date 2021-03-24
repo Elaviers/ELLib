@@ -12,18 +12,18 @@ public:
 
 	COLLISIONSHAPE_FUNCS(CollisionCapsule)
 
-	void SetHalfHeight(float halfHeight) { _halfHeight = halfHeight; }
-	void SetRadius(float radius) { _radius = radius; }
+	void SetHalfHeight(float halfHeight) { _halfHeight = halfHeight; _onChanged(); }
+	void SetRadius(float radius) { _radius = radius; _onChanged(); }
 
 	float GetHalfHeight() const { return _halfHeight; }
 	float GetRadius() const { return _radius; }
 
-	virtual float GetMaximumRadius() const override
+	virtual float GetBoundingRadius() const override
 	{ 
 		return Maths::Max(_halfHeight, _radius) * Maths::Max(GetTransform().GetScale().GetData(), 3);
 	}
 
-	virtual bool IntersectsRay(const Ray&, RaycastResult&, const Transform & = Transform()) const override;
+	virtual bool IntersectsRay(const Ray&, RaycastHitInformation&, const Transform & = Transform()) const override;
 	virtual Vector3 GetNormalForPoint(const Vector3& point, const Transform& transform) const override;
 	virtual OrientedPoint GetFarthestPointInDirection(const Vector3& axis, const Transform&) const override;
 };

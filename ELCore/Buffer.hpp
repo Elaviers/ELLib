@@ -253,6 +253,19 @@ public:
 		}
 	}
 
+	template <typename P>
+	requires Concepts::Predicate<P, const T&>
+	void Remove(const P& predicate)
+	{
+		for (size_t i = 0; i < _size;)
+		{
+			if (predicate(_elements[i]))
+				RemoveIndex(i);
+			else
+				++i;
+		}
+	}
+
 	Buffer operator+(const T& other) { return operator+(std::move(T(other))); }
 	Buffer operator+(T&& other)
 	{

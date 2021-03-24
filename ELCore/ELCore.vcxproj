@@ -187,6 +187,7 @@
     <ClInclude Include="Axes.hpp" />
     <ClInclude Include="Event.hpp" />
     <ClInclude Include="Function.hpp" />
+    <ClInclude Include="Handle.hpp" />
     <ClInclude Include="Hashing.hpp" />
     <ClInclude Include="Hashmap.hpp" />
     <ClInclude Include="IEEE754.hpp" />
@@ -205,7 +206,6 @@
     <ClInclude Include="String.hpp" />
     <ClInclude Include="Text.hpp" />
     <ClInclude Include="TextProvider.hpp" />
-    <ClInclude Include="Tracker.hpp" />
     <ClInclude Include="Types.hpp" />
     <ClInclude Include="Utilities.hpp" />
   </ItemGroup>

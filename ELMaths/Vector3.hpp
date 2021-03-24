@@ -20,7 +20,8 @@ public:
 
 	Vector3T(const T& x = (T)0, const T& y = (T)0, const T& z = (T)0) : x(x), y(y), z(z) {}
 	Vector3T(const Vector3T& other) : x(other.x), y(other.y), z(other.z) {}
-	
+	Vector3T(Vector3T&& other) noexcept : x(other.x), y(other.y), z(other.z) {}
+
 	const T* GetData() const { return _data; }
 
 	template <typename CAST>
@@ -30,6 +31,14 @@ public:
 	const T& operator[](int index) const { return _data[index]; }
 
 	Vector3T& operator=(const Vector3T& other)
+	{
+		x = other.x;
+		y = other.y;
+		z = other.z;
+		return *this;
+	}
+
+	Vector3T& operator=(Vector3T&& other) noexcept
 	{
 		x = other.x;
 		y = other.y;
@@ -88,7 +97,13 @@ public:
 	Vector3T operator+(const Vector3T& other) const	{ return Vector3T(x + other.x, y + other.y, z + other.z); }
 	Vector3T operator-(const Vector3T& other) const	{ return Vector3T(x - other.x, y - other.y, z - other.z); }
 	Vector3T operator-() const { return Vector3T(-x, -y, -z); }
-	Vector3T operator*(const T& scalar) const		{ return Vector3T(x * scalar,  y * scalar,  z * scalar);  }
+	Vector3T operator*(const T& scalar) const		{ 
+		Vector3T result;
+		result.x = x * scalar;
+		result.y = y * scalar;
+		result.z = z * scalar;
+		return Vector3T(x * scalar,  y * scalar,  z * scalar);  
+	}
 	Vector3T operator*(const Vector3T& other) const	{ return Vector3T(x * other.x, y * other.y, z * other.z); }
 	Vector3T operator/(const T& scalar) const		{ return Vector3T(x / scalar,  y / scalar,  z / scalar);  }
 	Vector3T operator/(const Vector3T& other) const	{ return Vector3T(x / other.x, y / other.y, z / other.z); }
@@ -116,6 +131,7 @@ public:
 	//Comparison
 	bool operator==(const Vector3T& other) const { return x == other.x && y == other.y && z == other.z; }
 	bool operator!=(const Vector3T& other) const { return x != other.x || y != other.y || z != other.z; }
+	std::partial_ordering operator<=>(const Vector3T other) const { return LengthSquared() <=> other.LengthSquared(); }
 
 	bool AlmostEquals(const Vector3T& other, float tolerance) const { return (*this - other).LengthSquared() <= tolerance * tolerance; }
 

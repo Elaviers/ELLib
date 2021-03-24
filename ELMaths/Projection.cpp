@@ -89,7 +89,7 @@ Vector3 RayPlaneIntersection(const Vector3& start, const Vector3& dir, const Vec
 	float denominator = dir.Dot(planeNormal);
 	if (denominator == 0.f) return 0.f;	//Axes are perpendicular
 
-	float t = (planePoint - start).Dot(planeNormal) / denominator;
+	float t = (planePoint - start)	.Dot(planeNormal) / denominator;
 	return start + dir * t;
 }
 

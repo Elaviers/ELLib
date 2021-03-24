@@ -1,5 +1,6 @@
 #include "RenderQueue.hpp"
 #include "RenderCommand.hpp"
+#include <ELMaths/Projection.hpp>
 #include <ELSys/GLProgram.hpp>
 
 List<const RenderEntry*>& RenderQueue::_GetQueue(int priority)
@@ -55,4 +56,13 @@ RenderEntry& RenderQueue::CreateEntry(ERenderChannels renderChannels, int priori
 	RenderEntry& entry = *_entries.Emplace(renderChannels, NewHandler(_entryPool, &_EntryPoolType::NewArray), DeleteHandler(_entryPool, &_EntryPoolType::DeleteHandler));
 	_GetQueue(priority).Emplace(&entry);
 	return entry;
+}
+
+RenderEntry& RenderQueue::CreateCameraEntry(const Projection& projection, const Transform& transform, ERenderChannels renderChannels, int priority)
+{
+	RenderEntry& e = CreateEntry(renderChannels, priority);
+	e.AddSetViewport(0, 0, projection.GetDimensions().x, projection.GetDimensions().y);
+	e.AddSetMat4(RCMDSetMat4::Type::VIEW, transform.GetInverseMatrix());
+	e.AddSetMat4(RCMDSetMat4::Type::PROJECTION, projection.GetMatrix());
+	return e;
 }

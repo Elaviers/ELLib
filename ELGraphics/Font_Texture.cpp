@@ -206,7 +206,7 @@ size_t FontTexture::GetPositionOf(float pX, float pY, const char* string, const 
 
 void FontTexture::RenderString(RenderEntry& e, const char* string, const Transform& transform, float lineHeight, const RectF& clip) const
 {
-	const Vector3& rotation = transform.GetRotationEuler();
+	const Vector3& rotation = transform.GetRotation().GetEuler();
 	const Vector3 advanceDirection = transform.GetRightVector();
 	const Vector3 downDirection = -1.f * transform.GetUpVector();
 

@@ -11,14 +11,9 @@ public:
 
 	COLLISIONSHAPE_FUNCS(CollisionBox)
 
-	void SetPositionSize(const Transform& transform)	{ _transform = transform; }
-	void SetPosition(const Vector3& position)		{ _transform.SetPosition(position); }
-	void SetRotation(const Rotation& rotation)		{ _transform.SetRotation(rotation); }
-	void SetScale(const Vector3& scale)				{ _transform.SetScale(scale); }
+	float GetBoundingRadius() const override { return GetTransform().GetScale().Length(); }
 
-	float GetMaximumRadius() const override { return GetTransform().GetScale().Length(); }
-
-	virtual bool IntersectsRay(const Ray&, RaycastResult&, const Transform& = Transform()) const override;
+	virtual bool IntersectsRay(const Ray&, RaycastHitInformation&, const Transform& = Transform()) const override;
 	virtual Vector3 GetNormalForPoint(const Vector3& point, const Transform& transform) const override;
 	virtual OrientedPoint GetFarthestPointInDirection(const Vector3& axis, const Transform&) const override;
 };

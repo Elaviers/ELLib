@@ -23,6 +23,16 @@ void RCMDSetFloat::Execute(RenderContext& ctx) const
 	}
 }
 
+void RCMDSetUVec4::Execute(RenderContext& ctx) const
+{
+	switch (_type)
+	{
+	case Type::COLOUR:
+		GLProgram::Current().SetUVec4(DefaultUniformVars::uvec4Colour, _uvec4);
+		break;
+	}
+}
+
 void RCMDSetMat4::Execute(RenderContext& ctx) const
 {
 	switch (_type)
@@ -175,9 +185,9 @@ void RCMDRenderMesh::Execute(RenderContext& ctx) const
 
 void RCMDSetSkinningMatrices::Execute(RenderContext& ctx) const
 {
-	if (_ref)
+	if (_obj)
 		glUniformMatrix4fv(GLProgram::Current().GetUniformLocation(DefaultUniformVars::mat4aBones),
-			(GLsizei)_ref->GetSize(), GL_FALSE, (float*)_ref->Elements());
+			(GLsizei)_obj->GetSize(), GL_FALSE, (float*)_obj->Elements());
 	else
 		glUniformMatrix4fv(GLProgram::Current().GetUniformLocation(DefaultUniformVars::mat4aBones),
 			(GLsizei)_matrices.GetSize(), GL_FALSE, (float*)_matrices.Elements());

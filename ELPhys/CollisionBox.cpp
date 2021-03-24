@@ -1,6 +1,6 @@
 #include "CollisionBox.hpp"
 #include "Collision.hpp"
-#include "RaycastResult.hpp"
+#include "RaycastHitInformation.hpp"
 #include <ELCore/Utilities.hpp>
 #include <ELMaths/Maths.hpp>
 #include <ELMaths/Ray.hpp>
@@ -37,7 +37,7 @@ inline void FindT(const float &originComponent, const float &directionComponent,
 	}
 }
 
-bool CollisionBox::IntersectsRay(const Ray &ray, RaycastResult &result, const Transform &worldTransform) const
+bool CollisionBox::IntersectsRay(const Ray &ray, RaycastHitInformation &result, const Transform &worldTransform) const
 {
 	Transform t = _transform * worldTransform;
 
@@ -71,7 +71,7 @@ bool CollisionBox::IntersectsRay(const Ray &ray, RaycastResult &result, const Tr
 
 	if (maxT < 0.f) return false; //Should probably check if behind a bit earlier
 	
-	result.entryTime = minT < 0.f ? 0.f : minT;
+	result.time = minT < 0.f ? 0.f : minT;
 	return true;
 }
 
@@ -85,7 +85,7 @@ bool CollisionBox::IntersectsRay(const Ray &ray, RaycastResult &result, const Tr
 
 Vector3 CollisionBox::GetNormalForPoint(const Vector3& point, const Transform& worldTransform) const
 {
-	Vector3 p = (Vector4(point, 1.f) * (_transform * worldTransform).GetInverseTransformationMatrix()).GetXYZ();
+	Vector3 p = (Vector4(point, 1.f) * (_transform * worldTransform).GetInverseMatrix()).GetXYZ();
 
 	float x = Maths::Abs(point.x), y = Maths::Abs(point.y), z = Maths::Abs(point.z);
 
@@ -105,8 +105,8 @@ Vector3 CollisionBox::GetNormalForPoint(const Vector3& point, const Transform& w
 CollisionShape::OrientedPoint CollisionBox::GetFarthestPointInDirection(const Vector3& axisIn, const Transform& worldTransform) const
 {
 	Transform ft = _transform * worldTransform;
-	Matrix4 transform = ft.GetTransformationMatrix();
-	Vector3 axis = (Vector4(axisIn, 0.f) * ft.GetInverseTransformationMatrix()).GetXYZ();
+	Matrix4 transform = ft.GetMatrix();
+	Vector3 axis = (Vector4(axisIn, 0.f) * ft.GetInverseMatrix()).GetXYZ();
 
 	const static Vector3 points[8] = {
 		Vector3(-1, -1, -1),

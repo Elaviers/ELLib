@@ -21,9 +21,6 @@
     <ClInclude Include="CollisionSphere.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="RaycastResult.hpp">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="Collider.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -37,6 +34,15 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="ECollisionChannels.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Body.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="PhysSimulation.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="RaycastHitInformation.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
@@ -54,6 +60,15 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="Collider.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Body.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Collider_Algorithms.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="PhysSimulation.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

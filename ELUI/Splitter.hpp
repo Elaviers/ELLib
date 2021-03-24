@@ -34,7 +34,7 @@ public:
 	{ 
 		_isHorizontal = isHorizontal; 
 		SetCursor(_isHorizontal ? ECursor::ARROWS_VERTICAL : ECursor::ARROWS_HORIZONTAL);
-		_transform.SetRotationEuler(_isHorizontal ? Vector3() : Vector3(0.f, 0.f, 90.f));
+		_transform.SetRotation(Rotation(_isHorizontal ? Vector3() : Vector3(0.f, 0.f, 90.f)));
 		return *this; 
 	}
 	UISplitter& SetTextureTileSize(float textureTileSize) { _textureTileSize = textureTileSize; return *this; }

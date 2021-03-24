@@ -95,7 +95,7 @@ void RenderEntry::AddLine(const Vector3& a, const Vector3& b)
 	Vector3 dir = (b - a).Normalise();
 	t.SetRotation(Vector3(90 + Maths::RadiansToDegrees(Maths::ArcSin(dir.y)), Maths::RadiansToDegrees(Maths::ArcTan2(dir.x, dir.z)), 0.f));
 
-	AddSetTransform(t.MakeTransformationMatrix());
+	AddSetTransform(t.MakeMatrix());
 	AddCommand(RCMDRenderMesh::LINE);
 }
 

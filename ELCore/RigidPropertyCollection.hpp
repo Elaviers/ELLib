@@ -4,32 +4,27 @@
 
 class RigidPropertyCollection
 {
-	Buffer<RigidProperty*> _cvars;
+	Buffer<RigidProperty*> _properties;
 
 public:
 	RigidPropertyCollection() {}
-	~RigidPropertyCollection() 
-	{
-		for (size_t i = 0; i < _cvars.GetSize(); ++i)
-			delete _cvars[i];
-	}
+	RigidPropertyCollection(const RigidPropertyCollection&) = delete;
+	RigidPropertyCollection(RigidPropertyCollection&& other) noexcept : _properties(std::move(other._properties)) {}
 
-	const Buffer<RigidProperty*>& GetAll() const { return _cvars; }
+	~RigidPropertyCollection();
 
-	void Clear() { _cvars.Clear(); }
+	RigidPropertyCollection& operator=(const RigidPropertyCollection&) = delete;
+	RigidPropertyCollection& operator=(RigidPropertyCollection&& other) noexcept { Clear(); _properties = std::move(other._properties); return *this; }
+
+	const Buffer<RigidProperty*>& GetAll() const { return _properties; }
+
+	void Clear();
 
 	String HandleCommand(const Buffer<String>& tokens, const Context& ctx) const;
 	String HandleCommand(const String& command, const Context& ctx) const { return HandleCommand(command.Split(" "), ctx); }
 
-	RigidProperty* Find(const String& name) const
-	{
-		for (size_t i = 0; i < _cvars.GetSize(); ++i)
-			if (_cvars[i]->GetName().Equals(name, true))
-				return _cvars[i];
-
-		return nullptr;
-	}
-
+	RigidProperty* Find(const String& name) const;
+	
 	template <typename T>
 	RigidVariableProperty<T>* FindVar(const String &name)
 	{
@@ -57,21 +52,21 @@ public:
 	template <typename T>
 	void CreateVar(const String& name, const T& value, byte flags = 0)
 	{
-		_cvars.Add(new RigidValueProperty<T>(name, value, flags));
+		_properties.Add(new RigidValueProperty<T>(name, value, flags));
 	}
 
 	template <typename T>
 	void Add(const String &name, T& value, byte flags = 0)
 	{
-		_cvars.Add(new RigidReferenceProperty<T>(name, value, flags));
+		_properties.Add(new RigidReferenceProperty<T>(name, value, flags));
 	}
 
-	template <typename T, typename V> void Add(const String& name, const MemberGetter<T, V>& getter, const MemberSetter<T, V>& setter, byte flags = 0) { _cvars.Add(new RigidFptrProperty<T, V>(name, getter, setter, flags)); }
-	template <typename T, typename V> void Add(const String& name, const MemberGetter<T, V>& getter, const ContextualMemberSetter<T, V>& setter, byte flags = 0) { _cvars.Add(new RigidFptrProperty<T, V>(name, getter, setter, flags)); }
-	template <typename T, typename V> void Add(const String& name, const ContextualMemberGetter<T, V>& getter, const MemberSetter<T, V>& setter, byte flags = 0) { _cvars.Add(new RigidFptrProperty<T, V>(name, getter, setter, flags)); }
-	template <typename T, typename V> void Add(const String& name, const ContextualMemberGetter<T, V>& getter, const ContextualMemberSetter<T, V>& setter, byte flags = 0) { _cvars.Add(new RigidFptrProperty<T, V>(name, getter, setter, flags)); }
-	template <typename T, typename V> void Add(const String& name, const MemberGetter<T, const V&>& getter, const MemberSetter<T, V>& setter, byte flags = 0) { _cvars.Add(new RigidFptrProperty<T, V>(name, getter, setter, flags)); }
-	template <typename T, typename V> void Add(const String& name, const MemberGetter<T, const V&>& getter, const ContextualMemberSetter<T, V>& setter, byte flags = 0) { _cvars.Add(new RigidFptrProperty<T, V>(name, getter, setter, flags)); }
-	template <typename T, typename V> void Add(const String& name, const ContextualMemberGetter<T, const V&>& getter, const MemberSetter<T, V>& setter, byte flags = 0) { _cvars.Add(new RigidFptrProperty<T, V>(name, getter, setter, flags)); }
-	template <typename T, typename V> void Add(const String& name, const ContextualMemberGetter<T, const V&>& getter, const ContextualMemberSetter<T, V>& setter, byte flags = 0) { _cvars.Add(new RigidFptrProperty<T, V>(name, getter, setter, flags)); }
+	template <typename T, typename V> void Add(const String& name, const MemberGetter<T, V>& getter, const MemberSetter<T, V>& setter, byte flags = 0) { _properties.Add(new RigidFptrProperty<T, V>(name, getter, setter, flags)); }
+	template <typename T, typename V> void Add(const String& name, const MemberGetter<T, V>& getter, const ContextualMemberSetter<T, V>& setter, byte flags = 0) { _properties.Add(new RigidFptrProperty<T, V>(name, getter, setter, flags)); }
+	template <typename T, typename V> void Add(const String& name, const ContextualMemberGetter<T, V>& getter, const MemberSetter<T, V>& setter, byte flags = 0) { _properties.Add(new RigidFptrProperty<T, V>(name, getter, setter, flags)); }
+	template <typename T, typename V> void Add(const String& name, const ContextualMemberGetter<T, V>& getter, const ContextualMemberSetter<T, V>& setter, byte flags = 0) { _properties.Add(new RigidFptrProperty<T, V>(name, getter, setter, flags)); }
+	template <typename T, typename V> void Add(const String& name, const MemberGetter<T, const V&>& getter, const MemberSetter<T, V>& setter, byte flags = 0) { _properties.Add(new RigidFptrProperty<T, V>(name, getter, setter, flags)); }
+	template <typename T, typename V> void Add(const String& name, const MemberGetter<T, const V&>& getter, const ContextualMemberSetter<T, V>& setter, byte flags = 0) { _properties.Add(new RigidFptrProperty<T, V>(name, getter, setter, flags)); }
+	template <typename T, typename V> void Add(const String& name, const ContextualMemberGetter<T, const V&>& getter, const MemberSetter<T, V>& setter, byte flags = 0) { _properties.Add(new RigidFptrProperty<T, V>(name, getter, setter, flags)); }
+	template <typename T, typename V> void Add(const String& name, const ContextualMemberGetter<T, const V&>& getter, const ContextualMemberSetter<T, V>& setter, byte flags = 0) { _properties.Add(new RigidFptrProperty<T, V>(name, getter, setter, flags)); }
 };

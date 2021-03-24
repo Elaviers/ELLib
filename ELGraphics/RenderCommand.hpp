@@ -76,6 +76,34 @@ public:
 	virtual void Execute(RenderContext&) const override;
 };
 
+class RCMDSetUVec4 : public RenderCommand
+{
+public:
+	enum class Type
+	{
+		COLOUR
+	};
+
+protected:
+	Type _type;
+	uint32 _uvec4[4];
+
+public:
+	RCMDSetUVec4(Type type, const uint32 uvec4[4]) : _type(type) { _uvec4[0] = uvec4[0]; _uvec4[1] = uvec4[1]; _uvec4[2] = uvec4[2]; _uvec4[3] = uvec4[3]; }
+	virtual ~RCMDSetUVec4() {}
+
+	void Set(Type type, const uint32 uvec4[4])
+	{
+		_type = type;
+		_uvec4[0] = uvec4[0]; 
+		_uvec4[1] = uvec4[1]; 
+		_uvec4[2] = uvec4[2]; 
+		_uvec4[3] = uvec4[3];
+	}
+
+	virtual void Execute(RenderContext&) const override;
+};
+
 class RCMDSetMat4 : public RenderCommand
 {
 public:
@@ -244,15 +272,15 @@ class RCMDSetSkinningMatrices : public RenderCommand
 {
 protected:
 	Buffer<Matrix4> _matrices;
-	const Buffer<Matrix4>* _ref;
+	const Buffer<Matrix4>* _obj;
 
 public:
-	RCMDSetSkinningMatrices(const Buffer<Matrix4>& matrices) : _matrices(matrices), _ref(nullptr) {}
-	RCMDSetSkinningMatrices(const Buffer<Matrix4>* matrices) : _ref(matrices) {}
+	RCMDSetSkinningMatrices(const Buffer<Matrix4>& matrices) : _matrices(matrices), _obj(nullptr) {}
+	RCMDSetSkinningMatrices(const Buffer<Matrix4>* matrices) : _obj(matrices) {}
 	virtual ~RCMDSetSkinningMatrices() {}
 
-	void Set(const Buffer<Matrix4>& matrices) { _ref = nullptr; _matrices = matrices; }
-	void Set(const Buffer<Matrix4>* matrices) { _ref = matrices; }
+	void Set(const Buffer<Matrix4>& matrices) { _obj = nullptr; _matrices = matrices; }
+	void Set(const Buffer<Matrix4>* matrices) { _obj = matrices; }
 
 	virtual void Execute(RenderContext&) const override;
 };

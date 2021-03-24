@@ -13,69 +13,68 @@ enum class EEFileVersion
 
 constexpr byte CURRENT_FILE_VERSION = (byte)EEFileVersion::V1;
 
-void Mesh_Skeletal::Read(ByteReader& iterator)
+void Mesh_Skeletal::Read(ByteReader& reader)
 {
-	iterator.IncrementIndex(1); //Skip type
+	reader.IncrementIndex(1); //Skip type
 
-	byte version = iterator.Read_byte();
+	byte version = reader.Read_byte();
 
 	if (version == (byte)EEFileVersion::V1)
 	{
-		byte bonesPerVertex = iterator.Read_byte();
+		byte bonesPerVertex = reader.Read_byte();
 		if (bonesPerVertex != VertexSkeletal::BONE_COUNT)
 		{
 			Debug::Error("I can't be bothered to load this mesh because it does not have 2 bones per vertex");
 			return;
 		}
 
-		uint32 vertCount = iterator.Read_uint32();
+		uint32 vertCount = reader.Read_uint32();
 
 		vertices.SetSize(vertCount);
 
 		for (uint32 i = 0; i < vertCount; ++i)
 		{
-			vertices[i].pos.Read(iterator);
-			vertices[i].normal.Read(iterator);
-			vertices[i].uv.Read(iterator);
+			vertices[i].pos.Read(reader);
+			vertices[i].normal.Read(reader);
+			vertices[i].uv.Read(reader);
 
 			for (int j = 0; j < bonesPerVertex; ++j)
 			{
-				vertices[i].boneIndices[j] = iterator.Read_uint32();
-				vertices[i].boneWeights[j] = iterator.Read_float();
+				vertices[i].boneIndices[j] = reader.Read_uint32();
+				vertices[i].boneWeights[j] = reader.Read_float();
 			}
 		}
 
-		uint32 elemCount = iterator.Read_uint32();
+		uint32 elemCount = reader.Read_uint32();
 
 		elements.SetSize(elemCount);
 
 		for (uint32 i = 0; i < elemCount; ++i)
 		{
-			elements[i] = iterator.Read_uint32();
+			elements[i] = reader.Read_uint32();
 
 			if ((i + 1) % 3 == 0)
 				VertexSkeletal::CalculateTangents(vertices[elements[i - 2]], vertices[elements[i - 1]], vertices[elements[i]]);
 		}
 
-		uint32 jointCount = iterator.Read_uint32();
+		uint32 jointCount = reader.Read_uint32();
 
 		for (size_t i = 0; i < jointCount; ++i)
 		{
-			Joint *parent = skeleton.GetJointWithID(iterator.Read_uint32());
+			Joint *parent = skeleton.GetJointWithID(reader.Read_uint32());
 
 			Joint* j = skeleton.CreateJoint(parent);
-			j->name.Read(iterator);
-			j->bindingMatrix.Read(iterator);
+			j->name.Read(reader);
+			j->bindingMatrix.Read(reader);
 		}
 
-		bounds.min.Read(iterator);
-		bounds.max.Read(iterator);
+		_box.SetTransform(reader.Read<Transform>());
 
 		UpdateRenderer();
 	}
 }
 
-void Mesh_Skeletal::Write(ByteWriter& iterator) const
+void Mesh_Skeletal::Write(ByteWriter& writer) const
 {
 	uint32 jointCount = (uint32)skeleton.GetJointCount();
 
@@ -94,7 +93,7 @@ void Mesh_Skeletal::Write(ByteWriter& iterator) const
 		jointDataSize += 4 + (it->name.GetLength() + 1) + (4 * 4 * 4);
 	}
 
-	iterator.EnsureSpace(
+	writer.EnsureSpace(
 		1 +													//Type (Skeletal)
 		1 +													//Version
 		1 +													//Bone indices/weights per vertex (2)
@@ -107,33 +106,33 @@ void Mesh_Skeletal::Write(ByteWriter& iterator) const
 		4 * 3 +												//Bounds min
 		4 * 3);												//Bounds max
 
-	iterator.Write_byte(ASSET_MESH_SKELETAL);
-	iterator.Write_byte(CURRENT_FILE_VERSION);
-	iterator.Write_byte(VertexSkeletal::BONE_COUNT);
+	writer.Write_byte(ASSET_MESH_SKELETAL);
+	writer.Write_byte(CURRENT_FILE_VERSION);
+	writer.Write_byte(VertexSkeletal::BONE_COUNT);
 
-	iterator.Write_uint32((uint32)vertices.GetSize());
+	writer.Write_uint32((uint32)vertices.GetSize());
 
 	for (size_t i = 0; i < vertices.GetSize(); ++i)
 	{
 		const VertexSkeletal& v = vertices[i];
 
-		v.pos.Write(iterator);
-		v.normal.Write(iterator);
-		v.uv.Write(iterator);
+		v.pos.Write(writer);
+		v.normal.Write(writer);
+		v.uv.Write(writer);
 		
 		for (int j = 0; j < VertexSkeletal::BONE_COUNT; ++j)
 		{
-			iterator.Write_uint32(v.boneIndices[j]);
-			iterator.Write_float(v.boneWeights[j]);
+			writer.Write_uint32(v.boneIndices[j]);
+			writer.Write_float(v.boneWeights[j]);
 		}
 	}
 
-	iterator.Write_uint32((uint32)elements.GetSize());
+	writer.Write_uint32((uint32)elements.GetSize());
 
 	for (size_t i = 0; i < elements.GetSize(); ++i)
-		iterator.Write_uint32(elements[i]);
+		writer.Write_uint32(elements[i]);
 
-	iterator.Write_uint32((uint32)jointBuffer.GetSize());
+	writer.Write_uint32((uint32)jointBuffer.GetSize());
 
 	for (size_t i = 0; i < jointBuffer.GetSize(); ++i)
 	{
@@ -149,11 +148,10 @@ void Mesh_Skeletal::Write(ByteWriter& iterator) const
 			}
 		}
 
-		iterator.Write_uint32((uint32)parentId);
-		iterator.Write_cstr(joint->name.GetData());
-		joint->bindingMatrix.Write(iterator);
+		writer.Write_uint32((uint32)parentId);
+		writer.Write_cstr(joint->name.GetData());
+		joint->bindingMatrix.Write(writer);
 	}
 
-	bounds.min.Write(iterator);
-	bounds.max.Write(iterator);
+	_box.GetTransform().Write(writer);
 }

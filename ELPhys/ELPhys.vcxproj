@@ -194,6 +194,7 @@
     </PreBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="Body.hpp" />
     <ClInclude Include="Collider.hpp" />
     <ClInclude Include="Collision.hpp" />
     <ClInclude Include="CollisionBox.hpp" />
@@ -201,14 +202,18 @@
     <ClInclude Include="ECollisionChannels.hpp" />
     <ClInclude Include="CollisionShape.hpp" />
     <ClInclude Include="CollisionSphere.hpp" />
-    <ClInclude Include="RaycastResult.hpp" />
+    <ClInclude Include="PhysSimulation.hpp" />
+    <ClInclude Include="RaycastHitInformation.hpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="Body.cpp" />
     <ClCompile Include="Collider.cpp" />
     <ClCompile Include="Collision.cpp" />
     <ClCompile Include="CollisionBox.cpp" />
     <ClCompile Include="CollisionCapsule.cpp" />
     <ClCompile Include="CollisionSphere.cpp" />
+    <ClCompile Include="Collider_Algorithms.cpp" />
+    <ClCompile Include="PhysSimulation.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\ELCore\ELCore.vcxproj">

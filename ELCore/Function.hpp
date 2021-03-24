@@ -18,7 +18,7 @@ private:
 
 public:
 	MemberFunction() : _isConstFunction(false), _function(nullptr) {}
-	MemberFunction(RETURNTYPE(T::* function)(ARGS...)) :			_isConstFunction(false), _function(function)		{}
+	MemberFunction(RETURNTYPE(T::* function)(ARGS...)) : _isConstFunction(false), _function(function)		{}
 	MemberFunction(RETURNTYPE(T::* function)(ARGS...) const) :	_isConstFunction(true), _constFunction(function)	{}
 
 	RETURNTYPE Call(T& obj, ARGS ...args) const
@@ -125,7 +125,7 @@ class Function
 	bool _IsAllocated() const { return (byte*)_callable != _static; }
 
 public:
-	Function() : _callable(nullptr) {}
+	Function() : _callable(nullptr), _static() {}
 	Function(const Function& other)
 	{
 		if (other._IsAllocated()) _callable = other._callable ? other._callable->Clone(nullptr) : nullptr;

@@ -11,17 +11,16 @@ public:
 
 	virtual CollisionShape* Clone() const override { return new CollisionSphere(*this); }
 
-	void SetRadius(float radius) { _radius = radius; }
-	void SetPosition(const Vector3& translation) { _transform.SetPosition(translation); }
-
 	float GetRadius() const { return _radius; }
+	
+	void SetRadius(float radius) { _radius = radius; _onChanged(); }
 
-	virtual float GetMaximumRadius() const override
+	virtual float GetBoundingRadius() const override
 	{ 
 		return _radius * Maths::Max(GetTransform().GetScale().GetData(), 3);
 	}
 
-	virtual bool IntersectsRay(const Ray&, RaycastResult&, const Transform& = Transform()) const override;
+	virtual bool IntersectsRay(const Ray&, RaycastHitInformation&, const Transform& = Transform()) const override;
 	virtual Vector3 GetNormalForPoint(const Vector3& point, const Transform& transform) const override;
 	virtual OrientedPoint GetFarthestPointInDirection(const Vector3& axis, const Transform&) const override;
 };

@@ -4,38 +4,26 @@
 
 class PropertyCollection
 {
-	Buffer<Property*> _cvars;
+	Buffer<Property*> _properties;
 
 public:
 	PropertyCollection() {}
-	~PropertyCollection() 
-	{
-		for (size_t i = 0; i < _cvars.GetSize(); ++i)
-			delete _cvars[i];
-	}
+	PropertyCollection(const PropertyCollection& other);
+	PropertyCollection(PropertyCollection&& other) noexcept : _properties(std::move(other._properties)) {}
+	~PropertyCollection();
 
-	const Buffer<Property*>& GetAll() const { return _cvars; }
+	PropertyCollection& operator=(const PropertyCollection& other);
+	PropertyCollection& operator=(PropertyCollection&& other) noexcept;
 
-	void Clear() { _cvars.Clear(); }
+	const Buffer<Property*>& GetAll() const { return _properties; }
+
+	void Clear();
 
 	String HandleCommand(void* obj, const Buffer<String>& tokens, const Context&) const;
 	String HandleCommand(void* obj, const String& command, const Context& ctx) const { return HandleCommand(obj, command.Split(" "), ctx); }
 
-	void Transfer(const void* from, void* to, const Context& ctx) const
-	{
-		for (size_t i = 0; i < _cvars.GetSize(); ++i)
-			if ((_cvars[i]->GetFlags() & PropertyFlags::READONLY) == 0)
-				_cvars[i]->TransferTo(from, to, ctx);
-	}
-
-	Property* Find(const String& name) const
-	{
-		for (size_t i = 0; i < _cvars.GetSize(); ++i)
-			if (_cvars[i]->GetName().Equals(name, true))
-				return _cvars[i];
-
-		return nullptr;
-	}
+	void Transfer(const void* from, void* to, const Context& ctx) const;
+	Property* Find(const String& name) const;
 	
 	template <typename V>
 	VariableProperty<V>* FindVar(const String& name) const
@@ -64,21 +52,23 @@ public:
 	template <typename V>
 	void Add(const String& name, size_t offset, byte flags = 0)
 	{
-		_cvars.Add(new OffsetProperty<V>(name, offset, flags));
+		_properties.Add(new OffsetProperty<V>(name, offset, flags));
 	}
 	
-	template <typename T, typename V> void Add(const String& name, const MemberGetter<T, V>& getter,					const MemberSetter<T, V>& setter,			size_t offset = 0, byte flags = 0)	{ _cvars.Add(new FptrProperty<T, V>(name, getter, setter, offset, flags)); }
-	template <typename T, typename V> void Add(const String& name, const MemberGetter<T, V>& getter,					const ContextualMemberSetter<T, V>& setter, size_t offset = 0, byte flags = 0)	{ _cvars.Add(new FptrProperty<T, V>(name, getter, setter, offset, flags)); }
-	template <typename T, typename V> void Add(const String& name, const ContextualMemberGetter<T, V>& getter,			const MemberSetter<T, V>& setter,			size_t offset = 0, byte flags = 0)	{ _cvars.Add(new FptrProperty<T, V>(name, getter, setter, offset, flags)); }
-	template <typename T, typename V> void Add(const String& name, const ContextualMemberGetter<T, V>& getter,			const ContextualMemberSetter<T, V>& setter, size_t offset = 0, byte flags = 0)	{ _cvars.Add(new FptrProperty<T, V>(name, getter, setter, offset, flags)); }
-	template <typename T, typename V> void Add(const String& name, const MemberGetter<T, const V&>& getter,				const MemberSetter<T, V>& setter,			size_t offset = 0, byte flags = 0)	{ _cvars.Add(new FptrProperty<T, V>(name, getter, setter, offset, flags)); }
-	template <typename T, typename V> void Add(const String& name, const MemberGetter<T, const V&>& getter,				const ContextualMemberSetter<T, V>& setter, size_t offset = 0, byte flags = 0)	{ _cvars.Add(new FptrProperty<T, V>(name, getter, setter, offset, flags)); }
-	template <typename T, typename V> void Add(const String& name, const ContextualMemberGetter<T, const V&>& getter,	const MemberSetter<T, V>& setter,			size_t offset = 0, byte flags = 0)	{ _cvars.Add(new FptrProperty<T, V>(name, getter, setter, offset, flags)); }
-	template <typename T, typename V> void Add(const String& name, const ContextualMemberGetter<T, const V&>& getter,	const ContextualMemberSetter<T, V>& setter, size_t offset = 0, byte flags = 0)	{ _cvars.Add(new FptrProperty<T, V>(name, getter, setter, offset, flags)); }
+	template <typename T, typename V> void Add(const String& name, const MemberGetter<T, V>& getter,					const MemberSetter<T, V>& setter,			size_t offset = 0, byte flags = 0)	{ _properties.Add(new FptrProperty<T, V>(name, getter, setter, offset, flags)); }
+	template <typename T, typename V> void Add(const String& name, const MemberGetter<T, V>& getter,					const ContextualMemberSetter<T, V>& setter, size_t offset = 0, byte flags = 0)	{ _properties.Add(new FptrProperty<T, V>(name, getter, setter, offset, flags)); }
+	template <typename T, typename V> void Add(const String& name, const ContextualMemberGetter<T, V>& getter,			const MemberSetter<T, V>& setter,			size_t offset = 0, byte flags = 0)	{ _properties.Add(new FptrProperty<T, V>(name, getter, setter, offset, flags)); }
+	template <typename T, typename V> void Add(const String& name, const ContextualMemberGetter<T, V>& getter,			const ContextualMemberSetter<T, V>& setter, size_t offset = 0, byte flags = 0)	{ _properties.Add(new FptrProperty<T, V>(name, getter, setter, offset, flags)); }
+	template <typename T, typename V> void Add(const String& name, const MemberGetter<T, const V&>& getter,				const MemberSetter<T, V>& setter,			size_t offset = 0, byte flags = 0)	{ _properties.Add(new FptrProperty<T, V>(name, getter, setter, offset, flags)); }
+	template <typename T, typename V> void Add(const String& name, const MemberGetter<T, const V&>& getter,				const ContextualMemberSetter<T, V>& setter, size_t offset = 0, byte flags = 0)	{ _properties.Add(new FptrProperty<T, V>(name, getter, setter, offset, flags)); }
+	template <typename T, typename V> void Add(const String& name, const ContextualMemberGetter<T, const V&>& getter,	const MemberSetter<T, V>& setter,			size_t offset = 0, byte flags = 0)	{ _properties.Add(new FptrProperty<T, V>(name, getter, setter, offset, flags)); }
+	template <typename T, typename V> void Add(const String& name, const ContextualMemberGetter<T, const V&>& getter,	const ContextualMemberSetter<T, V>& setter, size_t offset = 0, byte flags = 0)	{ _properties.Add(new FptrProperty<T, V>(name, getter, setter, offset, flags)); }
+
+	//TODO: Pass-by-value setters!!!
 
 	template <typename T>
 	void AddCommand(const String& name, const MemberCommandPtr<T>& function, size_t offset = 0, byte flags = 0)
 	{
-		_cvars.Add(new FunctionProperty<T>(name, function, offset));
+		_properties.Add(new FunctionProperty<T>(name, function, offset));
 	}
 };

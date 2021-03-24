@@ -686,7 +686,7 @@ public:
 
 	template<typename P>
 	requires Concepts::Predicate<P, const T&>
-	Iterator FirstWhere(const P& predicate) //Returns true if any elements pass the predicate
+	Iterator FirstWhere(const P& predicate)
 	{
 		if (_first)
 		{
@@ -698,7 +698,7 @@ public:
 
 	template<typename P>
 	requires Concepts::Predicate<P, const T&>
-	ConstIterator FirstWhere(const P& predicate) const //Returns true if any elements pass the predicate
+	ConstIterator FirstWhere(const P& predicate) const
 	{
 		Iterator it = const_cast<List*>(this)->FirstWhere(predicate);
 		return ConstIterator(it);

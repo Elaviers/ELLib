@@ -7,7 +7,7 @@
 #include <ELMaths/Vector2.hpp>
 #include <Windows.h>
 
-namespace WindowFunctions
+namespace WindowFunctions_Win32
 {
 	inline void SetHWNDSizeAndPos(HWND hwnd, uint16 x, uint16 y, uint16 w, uint16 h) { ::SetWindowPos(hwnd, NULL, x, y, w, h, SWP_NOZORDER); }
 	inline void ResizeHWND(HWND hwnd, uint16 w, uint16 h) { ::SetWindowPos(hwnd, NULL, 0, 0, w, h, SWP_NOREPOSITION | SWP_NOZORDER); }
@@ -16,6 +16,12 @@ namespace WindowFunctions
 	void SetDefaultPixelFormat(HDC hdc);
 
 	WPARAM SplitKeyWPARAMLeftRight(WPARAM wparam);
+
+	LRESULT CALLBACK WindowProc(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam);
+	LRESULT CALLBACK WindowProc(class Window* window, HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam);
+
+	bool IsMouseInput(UINT msg);
+	bool IsKeyInput(UINT msg);
 }
 
 struct WindowEvent
@@ -123,12 +129,14 @@ protected:
 	friend class GLContext;
 	friend void GL::LoadExtensions(const Window&);
 	friend int WinMain(HINSTANCE, HINSTANCE, LPSTR, int);
+	friend LRESULT CALLBACK WindowFunctions_Win32::WindowProc(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam);
+	friend LRESULT CALLBACK WindowFunctions_Win32::WindowProc(Window*, HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam);
 
 	//Yeah, that's right. This class is buddies with WinMain. :/
-
-	static LRESULT CALLBACK _WindowsProc(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam);
 public:
 	Window();
+	Window(const Window&) = delete;
+	Window(Window&&);
 
 	virtual ~Window()
 	{
@@ -147,11 +155,13 @@ public:
 	
 	void SetDestroyOnClose(bool destroyOnClose)							{ _closeDestroysWindow = destroyOnClose; }
 	void SetTitle(const char *title)									{ ::SetWindowTextA(_hwnd, title); }
-	void SetSizeAndPos(uint16 x, uint16 y, uint16 width, uint16 height)	{ WindowFunctions::SetHWNDSizeAndPos(_hwnd, x, y, width, height); }
-	void SetSize(uint16 width, uint16 height)							{ WindowFunctions::ResizeHWND(_hwnd, width, height); }
-	void SetPos(uint16 x, uint16 y)										{ WindowFunctions::RepositionHWND(_hwnd, x, y); }
+	void SetSizeAndPos(uint16 x, uint16 y, uint16 width, uint16 height)	{ WindowFunctions_Win32::SetHWNDSizeAndPos(_hwnd, x, y, width, height); }
+	void SetSize(uint16 width, uint16 height)							{ WindowFunctions_Win32::ResizeHWND(_hwnd, width, height); }
+	void SetPos(uint16 x, uint16 y)										{ WindowFunctions_Win32::RepositionHWND(_hwnd, x, y); }
 
 	bool PollEvent(WindowEvent& out);
+
+	bool IsVisible() const;
 
 	static void Win32SetIconResource(int resource);
 };

@@ -6,6 +6,9 @@
 
 class Window;
 
+extern PFNWGLCREATECONTEXTATTRIBSARBPROC wglCreateContextAttribsARB;
+extern PFNGLGETSTRINGIPROC glGetStringi;
+
 extern PFNGLBLENDEQUATIONPROC glBlendEquation;
 extern PFNGLBLENDEQUATIONSEPARATEPROC glBlendEquationSeparate;
 extern PFNGLBLENDFUNCSEPARATEPROC glBlendFuncSeparate;

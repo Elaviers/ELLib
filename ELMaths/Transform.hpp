@@ -28,8 +28,8 @@ class Transform
 		INVERSETRANSFORM
 	} _matrixStatus;
 
-	void _MakeTransformationMatrix(Matrix4&) const;
-	void _MakeInverseTransformationMatrix(Matrix4&) const;
+	void _MakeMatrix(Matrix4&) const;
+	void _MakeInverseMatrix(Matrix4&) const;
 
 public:
 	Transform(const Vector3& position, const Rotation& rotation = Rotation(), const Vector3& scale = Vector3(1, 1, 1), const Callback& callback = Callback()) :
@@ -76,14 +76,14 @@ public:
 		return *this;
 	}
 
+	static const Transform& Identity() { static Transform t; return t; }
+
 	const Vector3& GetPosition() const			{ return _position; }
 	const Rotation& GetRotation() const			{ return _rotation; }
-	const Vector3& GetRotationEuler() const		{ return _rotation.GetEuler(); }
 	const Vector3& GetScale() const				{ return _scale; }
 
 	void SetPosition(const Vector3 &position)	{ _position = position; _Update(); }
 	void SetRotation(const Rotation &rotation)	{ _rotation = rotation; _Update(); }
-	void SetRotationEuler(const Vector3& euler) { SetRotation(Rotation(euler)); }
 	void SetScale(const Vector3 &scale)			{ _scale = scale;		_Update(); }
 	void SetCallback(const Callback& callback)	{ _onChanged = callback; _onChanged.TryCall(); }
 
@@ -92,10 +92,10 @@ public:
 
 	void AddRotation(const Vector3& euler)		{ _rotation += euler; _Update(); }
 
-	Matrix4 GetTransformationMatrix() const;
-	Matrix4 GetInverseTransformationMatrix() const;
-	Matrix4 MakeTransformationMatrix() const;
-	Matrix4 MakeInverseTransformationMatrix() const;
+	Matrix4 GetMatrix() const;
+	Matrix4 GetInverseMatrix() const;
+	Matrix4 MakeMatrix() const;
+	Matrix4 MakeInverseMatrix() const;
 
 	Vector3 GetForwardVector() const			{ return _rotation.GetQuat().GetForwardVector(); }
 	Vector3 GetRightVector() const				{ return _rotation.GetQuat().GetRightVector(); }

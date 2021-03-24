@@ -3,15 +3,24 @@
 #include "Debug.hpp"
 #include "Window.hpp"
 
-void GLContext::_Create(HDC hdc)
+void GLContext::_Create(HDC hdc, int majorVersion, int minorVersion)
 {
+	int attribs[] = { 
+		WGL_CONTEXT_MAJOR_VERSION_ARB, majorVersion, 
+		WGL_CONTEXT_MINOR_VERSION_ARB, minorVersion, 
+		WGL_CONTEXT_PROFILE_MASK_ARB, WGL_CONTEXT_CORE_PROFILE_BIT_ARB,
+		WGL_CONTEXT_FLAGS_ARB, WGL_CONTEXT_FORWARD_COMPATIBLE_BIT_ARB, 
+		0
+	};
+
+
 	Delete();
-	_id = wglCreateContext(hdc);
+	_id = wglCreateContextAttribsARB(hdc, 0, attribs);
 
 	if (_id == NULL)
 	{
 		DWORD error = ::GetLastError();
-		Debug::FatalError(CSTR("wglCreateContext failed (0x", String::FromInt(error, 2, 16), ")"));
+		Debug::FatalError(CSTR("wglCreateContextAttribsARB failed (0x", String::FromInt(error, 2, 16), ")"));
 	}
 }
 
@@ -39,7 +48,14 @@ void GLContext::CreateDummyAndUse()
 
 	::SetPixelFormat(hdc, pfdId, &pfd);
 
-	_Create(hdc);
+	_id = wglCreateContext(hdc);
+
+	if (_id == NULL)
+	{
+		DWORD error = ::GetLastError();
+		Debug::FatalError(CSTR("Dummy context creation: wglCreateContext failed (0x", String::FromInt(error, 2, 16), ")"));
+	}
+
 	_Use(hdc);
 
 	::DestroyWindow(hwnd);

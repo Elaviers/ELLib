@@ -101,7 +101,7 @@ void UITextbox::Render(RenderQueue& q) const
 	if (_selectionStart != _selectionEnd)
 	{
 		RenderEntry& e = q.CreateEntry(ERenderChannels::UNLIT, 0);
-		e.AddSetTransform(_selectionTransform.GetTransformationMatrix());
+		e.AddSetTransform(_selectionTransform.GetMatrix());
 		e.AddSetTexture(RCMDSetTexture::Type::WHITE, 0);
 		e.AddSetColour(_selectionColour);
 		e.AddCommand(RCMDRenderMesh::PLANE);
@@ -111,7 +111,7 @@ void UITextbox::Render(RenderQueue& q) const
 	{
 		RenderEntry& e = q.CreateEntry(ERenderChannels::UNLIT, 0);
 		_caretColour.Apply(e);
-		e.AddSetTransform(_caretTransform.GetTransformationMatrix());
+		e.AddSetTransform(_caretTransform.GetMatrix());
 		e.AddSetTexture(RCMDSetTexture::Type::WHITE, 0);
 		e.AddCommand(RCMDRenderMesh::PLANE);
 	}

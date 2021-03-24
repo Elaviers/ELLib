@@ -317,8 +317,8 @@ public:
 		return buffer;
 	}
 
-	//Function args must be (const K&, V&)
 	template <typename Function>
+	requires Concepts::Function<Function, void, const K&, V&>
 	void ForEach(Function function)
 	{
 		if (_data) _data->ForEach(function);

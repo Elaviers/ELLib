@@ -106,7 +106,7 @@ void UILabel::Render(RenderQueue& q) const
 		Vector3 tPos = Vector3((_clip.x + _clip.w / 2.f) / _transform.GetScale()[0], (_clip.y + _clip.h / 2.f) / _transform.GetScale()[1], 0.f);
 		Vector3 tSz = Vector3(_clip.w, _clip.h, 1.f);
 
-		tPos = (Vector4(tPos) * _transform.GetTransformationMatrix()).GetXYZ();
+		tPos = (Vector4(tPos) * _transform.GetMatrix()).GetXYZ();
 
 		e.AddSetTransform(Matrix4::Transformation(tPos, _transform.GetRotation().GetEuler(), tSz));
 		e.AddCommand(RCMDRenderMesh::PLANE);

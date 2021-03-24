@@ -194,7 +194,6 @@
     </PreBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClInclude Include="Bounds.hpp" />
     <ClInclude Include="Box.hpp" />
     <ClInclude Include="Frustum.hpp" />
     <ClInclude Include="LineSegment.hpp" />
@@ -211,9 +210,9 @@
     <ClInclude Include="Vector2.hpp" />
     <ClInclude Include="Vector3.hpp" />
     <ClInclude Include="Vector4.hpp" />
+    <ClInclude Include="Volume.hpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="Bounds.cpp" />
     <ClCompile Include="Frustum.cpp" />
     <ClCompile Include="Maths.cpp" />
     <ClCompile Include="Projection.cpp" />
@@ -221,6 +220,7 @@
     <ClCompile Include="Random.cpp" />
     <ClCompile Include="Transform.cpp" />
     <ClCompile Include="Vector.cpp" />
+    <ClCompile Include="Volume.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\ELCore\ELCore.vcxproj">

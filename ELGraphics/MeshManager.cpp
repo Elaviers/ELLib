@@ -79,9 +79,9 @@ void MeshManager::Initialise()
 	for (size_t i = 0; i < 36; i += 3)
 		Vertex17F::CalculateTangents(_cube->vertices[i], _cube->vertices[i + 1], _cube->vertices[i + 2]);
 
-	_line->bounds = Bounds(Vector3(0.f, 0.5f, 0.f));
-	_plane->bounds = Bounds(Vector3(.5f, .5f, 0.f));
-	_cube->bounds = Bounds(Vector3(.5f, .5f, .5f));
+	_line->BoundingBox().SetScale(Vector3(0.f, 1.f, 0.f));
+	_plane->BoundingBox().SetScale(Vector3(1.f, 1.f, 0.f));
+	//default bounds are cube, same for invcube
 
 	_line->SetRenderMode(ERenderMode::LINES);
 	_line->UpdateRenderer();
@@ -89,8 +89,7 @@ void MeshManager::Initialise()
 	_cube->UpdateRenderer();
 	
 	_invCube = new Mesh_Static(_cube->vertices, _cube->elements);
-	_invCube->bounds = _cube->bounds;
-
+	
 	for (size_t i = 0; i < 36; i += 3) {
 		_invCube->vertices[i].normal *= -1;
 		_invCube->vertices[i + 1].normal *= -1;

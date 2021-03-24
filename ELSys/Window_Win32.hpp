@@ -12,7 +12,7 @@ public:
 	Window_Win32() {}
 	virtual ~Window_Win32() {}
 
-	void Create(LPCTSTR className, LPCTSTR title, LPVOID param, DWORD flags = WS_OVERLAPPEDWINDOW, HWND parent = NULL);
+	void Create(LPCTSTR className, LPCTSTR title, DWORD flags = WS_OVERLAPPEDWINDOW, HWND parent = NULL, LPVOID param = nullptr);
 
 	HWND GetHWND() const { return _hwnd; }
 	HDC GetHDC() const { return _hdc; }

@@ -1,8 +1,8 @@
 #include "CollisionSphere.hpp"
-#include "RaycastResult.hpp"
+#include "RaycastHitInformation.hpp"
 #include <ELMaths/Ray.hpp>
 
-bool CollisionSphere::IntersectsRay(const Ray &ray, RaycastResult &result, const Transform & worldTransform) const
+bool CollisionSphere::IntersectsRay(const Ray &ray, RaycastHitInformation& result, const Transform & worldTransform) const
 {
 	/*
 		SPHERE:		||P||^2 = r^2
@@ -43,7 +43,7 @@ ___________________________________________________________________
 	*/
 
 
-	Matrix4 inv = (_transform * worldTransform).GetInverseTransformationMatrix();
+	Matrix4 inv = (_transform * worldTransform).GetInverseMatrix();
 	Vector3 transformedRayOrigin = (Vector4(ray.origin, 1.f) * inv).GetXYZ();
 	Vector4 transformedRayDirection4 = Vector4(ray.direction, 0.f) * inv;
 	Vector3 transformedRayDirection = Vector3(transformedRayDirection4[0], transformedRayDirection4[1], transformedRayDirection4[2]);
@@ -62,9 +62,9 @@ ___________________________________________________________________
 	if (discriminant < 0.f) 
 		return false;	//Ray doesn't intersect sphere
 
-	result.entryTime = -dot - Maths::SquareRoot(discriminant);
-	if (result.entryTime < 0.f)
-		result.entryTime = 0.f;
+	result.time = -dot - Maths::SquareRoot(discriminant);
+	if (result.time < 0.f)
+		result.time = 0.f;
 
 	return true;
 }
@@ -77,8 +77,8 @@ Vector3 CollisionSphere::GetNormalForPoint(const Vector3& point, const Transform
 CollisionShape::OrientedPoint CollisionSphere::GetFarthestPointInDirection(const Vector3& axisIn, const Transform& worldTransform) const
 {
 	Transform ft = _transform * worldTransform;
-	Matrix4 transform = ft.GetTransformationMatrix();
-	Vector3 axis = (Vector4(axisIn, 0.f) * ft.GetInverseTransformationMatrix()).GetXYZ().Normalised();
+	Matrix4 transform = ft.GetMatrix();
+	Vector3 axis = (Vector4(axisIn, 0.f) * ft.GetInverseMatrix()).GetXYZ().Normalised();
 
 	CollisionShape::OrientedPoint point;
 	point.position = (Vector4(axis * _radius, 1.f) * transform).GetXYZ();

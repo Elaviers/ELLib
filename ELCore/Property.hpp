@@ -32,6 +32,8 @@ protected:
 public:
 	virtual ~Property() {}
 
+	virtual Property* Clone() const = 0;
+
 	byte GetFlags() const { return _flags; }
 	const String& GetName() const { return _name; }
 	const String& GetDescription() const { return _description; }
@@ -70,6 +72,8 @@ class FunctionProperty : public Property
 public:
 	FunctionProperty(const String& name, const MemberCommandPtr<T>& function, size_t offset = 0) : Property(name, 0, "function"), _offset(offset), _fptr(function) {}
 	virtual ~FunctionProperty() {}
+
+	virtual Property* Clone() const override { return new FunctionProperty(*this); }
 
 	virtual String HandleCommand(void* obj, const Buffer<String>& tokens, const Context& ctx) const override { _fptr.Call(GetSubClass(obj), tokens, ctx); return ""; }
 };
@@ -189,6 +193,8 @@ public:
 
 	virtual ~FptrProperty() {}
 
+	virtual Property* Clone() const override { return new FptrProperty(*this); }
+
 	virtual V Get(const void* obj, const Context& ctx) const override 
 	{
 		if (_isContextualGetter)
@@ -199,10 +205,13 @@ public:
 	
 	virtual void Set(void* obj, const V& value, const Context& ctx) const override 
 	{
-		if (_isContextualGetter)
-			_setCtx.Call(GetSubClass(obj), value, ctx);
-		else
-			_set.Call(GetSubClass(obj), value); 
+		if ((Property::GetFlags() & PropertyFlags::READONLY) == 0)
+		{
+			if (_isContextualGetter)
+				_setCtx.Call(GetSubClass(obj), value, ctx);
+			else
+				_set.Call(GetSubClass(obj), value);
+		}
 	}
 };
 
@@ -215,6 +224,8 @@ public:
 	OffsetProperty(const String& name, size_t offset, byte flags = 0) : VariableProperty<V>(name, flags), _offset(offset) {}
 
 	virtual ~OffsetProperty() {}
+
+	virtual Property* Clone() const override { return new OffsetProperty(*this); }
 
 	const V& GetRef(const void* obj) const
 	{
@@ -229,7 +240,10 @@ public:
 
 	virtual void Set(void* obj, const V& value, const Context& ctx) const override
 	{
-		V* ptr = (V*)((byte*)obj + _offset);
-		*ptr = value;
+		if ((Property::GetFlags() & PropertyFlags::READONLY) == 0)
+		{
+			V* ptr = (V*)((byte*)obj + _offset);
+			*ptr = value;
+		}
 	}
 };

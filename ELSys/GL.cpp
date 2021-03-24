@@ -3,6 +3,9 @@
 #include <ELCore/String.hpp>
 #include <ELSys/Debug.hpp>
 
+PFNWGLCREATECONTEXTATTRIBSARBPROC wglCreateContextAttribsARB;
+PFNGLGETSTRINGIPROC glGetStringi;
+
 PFNGLBLENDEQUATIONPROC			glBlendEquation;
 PFNGLBLENDEQUATIONSEPARATEPROC	glBlendEquationSeparate;
 PFNGLBLENDFUNCSEPARATEPROC		glBlendFuncSeparate;
@@ -138,11 +141,24 @@ namespace GL
 			Debug::FatalError(CSTR("OpenGL extension \"", extension, "\" not supported!"));
 	}
 
+	void AssertExtension(const Buffer<const char*>& extensions, const char* extension)
+	{
+		for (const char* ext : extensions)
+			if (StringsEqual(ext, extension))
+				return;
+
+		Debug::FatalError(CSTR("OpenGL extension \"", extension, "\" not supported!"));
+	}
+
 #define LOAD_GL_FUNC(FUNC, TYPE) FUNC = (TYPE)Get(#FUNC)
 
 	void LoadDummyExtensions()
 	{
+		LOAD_GL_FUNC(wglCreateContextAttribsARB, PFNWGLCREATECONTEXTATTRIBSARBPROC);
 		LOAD_GL_FUNC(wglChoosePixelFormatARB, PFNWGLCHOOSEPIXELFORMATARBPROC);
+
+		if (wglCreateContextAttribsARB == nullptr)
+			Debug::FatalError("Could not load vital openGL extension \"wglCreateContextAttribsARB\"!!! Oh no!!!");
 
 		if (wglChoosePixelFormatARB == nullptr)
 			Debug::FatalError("Could not load vital openGL extension \"wglChoosePixelFormatARB\"!!! Oh no!!!");
@@ -151,15 +167,24 @@ namespace GL
 	void LoadExtensions(const Window& window)
 	{
 		//Windows extensions
+		LOAD_GL_FUNC(wglCreateContextAttribsARB, PFNWGLCREATECONTEXTATTRIBSARBPROC);
 		LOAD_GL_FUNC(wglChoosePixelFormatARB, PFNWGLCHOOSEPIXELFORMATARBPROC);
 		LOAD_GL_FUNC(wglGetExtensionsStringARB, PFNWGLGETEXTENSIONSSTRINGARBPROC);
+		LOAD_GL_FUNC(glGetStringi, PFNGLGETSTRINGIPROC);
 
-		const char *extensions = (char*)glGetString(GL_EXTENSIONS);
+		int extCount;
+		glGetIntegerv(GL_NUM_EXTENSIONS, &extCount);
+
+		Buffer<const char*> extensions;
+		extensions.SetSize(extCount);
+
+		for (int i = 0; i < extCount; ++i)
+			extensions[i] = (const char*)glGetStringi(GL_EXTENSIONS, i);
+		
 		const char *winExtensions = wglGetExtensionsStringARB(window._hdc);
-
+		
 		AssertExtension(extensions, "WGL_EXT_swap_control");
 		AssertExtension(winExtensions, "WGL_EXT_swap_control");
-
 
 		LOAD_GL_FUNC(wglSwapIntervalEXT, PFNWGLSWAPINTERVALEXTPROC);
 

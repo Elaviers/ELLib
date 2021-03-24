@@ -105,6 +105,8 @@ Mesh_Static* IO::ReadOBJFile(const String& objSrc)
 
 		Buffer<String> lines = objSrc.Split("\r\n");
 
+		Vector3 bmin, bmax;
+
 		for (uint32 i = 0; i < lines.GetSize(); ++i)
 		{
 			Buffer<String> tokens = lines[i].Split(" ");
@@ -121,23 +123,23 @@ Mesh_Static* IO::ReadOBJFile(const String& objSrc)
 
 							const Vector3 &newPos = positions.Last();
 
-							if (newPos.x < mesh->bounds.min.x)
-								mesh->bounds.min.x = newPos.x;
+							if (newPos.x < bmin.x)
+								bmin.x = newPos.x;
 
-							if (newPos.y < mesh->bounds.min.y)
-								mesh->bounds.min.y = newPos.y;
+							if (newPos.y < bmin.y)
+								bmin.y = newPos.y;
 
-							if (newPos.z < mesh->bounds.min.z)
-								mesh->bounds.min.z = newPos.z;
+							if (newPos.z < bmin.z)
+								bmin.z = newPos.z;
 
-							if (newPos.x > mesh->bounds.max.x)
-								mesh->bounds.max.x = newPos.x;
+							if (newPos.x > bmax.x)
+								bmax.x = newPos.x;
 
-							if (newPos.y > mesh->bounds.max.y)
-								mesh->bounds.max.y = newPos.y;
+							if (newPos.y > bmax.y)
+								bmax.y = newPos.y;
 
-							if (newPos.z > mesh->bounds.max.z)
-								mesh->bounds.max.z = newPos.z;
+							if (newPos.z > bmax.z)
+								bmax.z = newPos.z;
 						}
 					}
 
@@ -189,7 +191,7 @@ Mesh_Static* IO::ReadOBJFile(const String& objSrc)
 			}
 		}
 		
-		mesh->bounds.RecalculateSphereBounds();
+		mesh->BoundingBox().SetTransform(Transform((bmin + bmax) / 2.f, Rotation(), bmax - bmin));
 		mesh->UpdateRenderer();
 	}
 

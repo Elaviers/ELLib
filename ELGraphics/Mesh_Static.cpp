@@ -1,7 +1,7 @@
 #include "Mesh_Static.hpp"
 #include "IO.hpp"
 
-Mesh_Static::Mesh_Static(const Buffer<Vertex17F>& vertices, const Buffer<uint32>& elements) : vertices(vertices), elements(elements)
+Mesh_Static::Mesh_Static(const Buffer<Vertex17F>& vertices, const Buffer<uint32>& elements) : Mesh(&_box), vertices(vertices), elements(elements)
 {
 }
 
@@ -17,78 +17,76 @@ enum class EEFileVersion
 
 constexpr byte CURRENT_FILE_VERSION = (byte)EEFileVersion::V1;
 
-void Mesh_Static::Read(ByteReader& iterator)
+void Mesh_Static::Read(ByteReader& reader)
 {
-	iterator.IncrementIndex(1); //Skip type
+	reader.IncrementIndex(1); //Skip type
 
-	byte version = iterator.Read_byte();
+	byte version = reader.Read_byte();
 
 	if (version == (byte)EEFileVersion::V1)
 	{
-		uint32 vertCount = iterator.Read_uint32();
+		uint32 vertCount = reader.Read_uint32();
 
 		vertices.SetSize(vertCount);
 
 		for (uint32 i = 0; i < vertCount; ++i)
 		{
-			vertices[i].pos.Read(iterator);
-			vertices[i].normal.Read(iterator);
-			vertices[i].uv.Read(iterator);
+			vertices[i].pos.Read(reader);
+			vertices[i].normal.Read(reader);
+			vertices[i].uv.Read(reader);
 
 			if ((i + 1) % 3 == 0)
 				Vertex17F::CalculateTangents(vertices[i - 2], vertices[i - 1], vertices[i - 2]);
 		}
 
-		uint32 elemCount = iterator.Read_uint32();
+		uint32 elemCount = reader.Read_uint32();
 
 		elements.SetSize(elemCount);
 
 		for (uint32 i = 0; i < elemCount; ++i)
 		{
-			elements[i] = iterator.Read_uint32();
+			elements[i] = reader.Read_uint32();
 
 			if ((i + 1) % 3 == 0)
 				Vertex17F::CalculateTangents(vertices[elements[i - 2]], vertices[elements[i - 1]], vertices[elements[i]]);
 		}
-
-		bounds.min.Read(iterator);
-		bounds.max.Read(iterator);
+		
+		_box.SetTransform(reader.Read<Transform>());
 
 		UpdateRenderer();
 	}
 }
 
-void Mesh_Static::Write(ByteWriter& iterator) const
+void Mesh_Static::Write(ByteWriter& writer) const
 {
-	iterator.EnsureSpace(
+	writer.EnsureSpace(
 		1 +													//Type (Static)
 		1 +													//Version
 		4 +													//Vert count
 		(4 * (3+3+2)) * vertices.GetSize() +				//Vertices
 		4 +													//Element count
 		4 * elements.GetSize() +							//Elements
-		4 * 3 +												//Bounds min
-		4 * 3);												//Bounds max
+		3 * 4 * 3											//Bounds
+	);
 
-	iterator.Write_byte(ASSET_MESH_STATIC);
-	iterator.Write_byte(CURRENT_FILE_VERSION);
+	writer.Write_byte(ASSET_MESH_STATIC);
+	writer.Write_byte(CURRENT_FILE_VERSION);
 
-	iterator.Write_uint32((uint32)vertices.GetSize());
+	writer.Write_uint32((uint32)vertices.GetSize());
 
 	for (size_t i = 0; i < vertices.GetSize(); ++i)
 	{
 		const Vertex17F& v = vertices[i];
 
-		v.pos.Write(iterator);
-		v.normal.Write(iterator);
-		v.uv.Write(iterator);
+		v.pos.Write(writer);
+		v.normal.Write(writer);
+		v.uv.Write(writer);
 	}
 
-	iterator.Write_uint32((uint32)elements.GetSize());
+	writer.Write_uint32((uint32)elements.GetSize());
 
 	for (size_t i = 0; i < elements.GetSize(); ++i)
-		iterator.Write_uint32(elements[i]);
+		writer.Write_uint32(elements[i]);
 
-	bounds.min.Write(iterator);
-	bounds.max.Write(iterator);
+	_box.GetTransform().Write(writer);
 }

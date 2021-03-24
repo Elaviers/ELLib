@@ -6,10 +6,17 @@
 
 class Mesh_Skeletal : public Mesh
 {
+private:
+	VBox _box;
+
 public:
-	Mesh_Skeletal() {}
+	Mesh_Skeletal() : Mesh(&_box) {}
 	virtual ~Mesh_Skeletal() {}
 
+	VBox& BoundingBox() { return _box; }
+	const VBox& BoundingBox() const { return _box; }
+
+	//todo- no public member variables here
 	Buffer<VertexSkeletal> vertices;
 	Buffer<uint32> elements;
 	Skeleton skeleton;

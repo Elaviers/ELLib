@@ -3,12 +3,12 @@
 
 using namespace Maths;
 
-void Transform::_MakeTransformationMatrix(Matrix4 &matrix) const
+void Transform::_MakeMatrix(Matrix4 &matrix) const
 {
 	matrix = Matrix4::Transformation(_position, _rotation.GetQuat(), _scale);
 }
 
-void Transform::_MakeInverseTransformationMatrix(Matrix4 &matrix) const
+void Transform::_MakeInverseMatrix(Matrix4 &matrix) const
 {
 	matrix = 
 		Matrix4::Translation(-1.f * _position) *
@@ -16,50 +16,50 @@ void Transform::_MakeInverseTransformationMatrix(Matrix4 &matrix) const
 		Matrix4::Scale(1.f / _scale);
 }
 
-Matrix4 Transform::GetTransformationMatrix() const
+Matrix4 Transform::GetMatrix() const
 {
 	//todo: hm.
 	Transform *disgusting = const_cast<Transform*>(this);
 
 	if (_matrixStatus != EMatrixStatus::TRANSFORM)
 	{
-		_MakeTransformationMatrix(disgusting->_matrix);
+		_MakeMatrix(disgusting->_matrix);
 		disgusting->_matrixStatus = EMatrixStatus::TRANSFORM;
 	}
 
 	return _matrix;
 }
 
-Matrix4 Transform::GetInverseTransformationMatrix() const
+Matrix4 Transform::GetInverseMatrix() const
 {
 	Transform *disgusting = const_cast<Transform*>(this);
 
 	if (_matrixStatus != EMatrixStatus::INVERSETRANSFORM)
 	{
-		_MakeInverseTransformationMatrix(disgusting->_matrix);
+		_MakeInverseMatrix(disgusting->_matrix);
 		disgusting->_matrixStatus = EMatrixStatus::INVERSETRANSFORM;
 	}
 
 	return _matrix;
 }
 
-Matrix4 Transform::MakeTransformationMatrix() const
+Matrix4 Transform::MakeMatrix() const
 {
 	if (_matrixStatus == EMatrixStatus::TRANSFORM)
 		return _matrix;
 
 	Matrix4 m;
-	_MakeTransformationMatrix(m);
+	_MakeMatrix(m);
 	return m;
 }
 
-Matrix4 Transform::MakeInverseTransformationMatrix() const
+Matrix4 Transform::MakeInverseMatrix() const
 {
 	if (_matrixStatus == EMatrixStatus::INVERSETRANSFORM)
 		return _matrix;
 
 	Matrix4 m;
-	_MakeInverseTransformationMatrix(m);
+	_MakeInverseMatrix(m);
 	return m;
 }
 
@@ -80,7 +80,7 @@ void Transform::Read(ByteReader &buffer)
 
 Transform& Transform::operator*=(const Transform &other)
 {
-	_position = (Vector4(_position, 1.f) * other.GetTransformationMatrix()).GetXYZ();
+	_position = (Vector4(_position, 1.f) * other.GetMatrix()).GetXYZ();
 	_rotation = _rotation * other._rotation;
 	_scale *= other._scale;
 	_Update();

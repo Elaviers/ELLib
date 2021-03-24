@@ -19,7 +19,7 @@ void UIRect::Render(RenderQueue& q) const
 	else
 		e.AddSetTexture(RCMDSetTexture::Type::WHITE, 0);
 	
-	e.AddSetTransform(_transform.GetTransformationMatrix());
+	e.AddSetTransform(_transform.GetMatrix());
 	e.AddCommand(RCMDSetUVOffset::Default());
 	e.AddCommand(RCMDSetUVScale::Default());
 	e.AddCommand(RCMDRenderMesh::PLANE);

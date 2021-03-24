@@ -45,4 +45,6 @@ public:
 
 	void AddEntry(const RenderEntry*, int priority = 0);
 	RenderEntry& CreateEntry(ERenderChannels renderChannels, int priority = 0);
+
+	RenderEntry& CreateCameraEntry(const Projection& projection, const Transform& transform, ERenderChannels renderChannels = ERenderChannels::ALL, int priority = 0);
 };

@@ -1,6 +1,7 @@
 #pragma once
 #include "Function.hpp"
 #include "Types.hpp"
+#include <cassert>
 
 template<typename T>
 class SharedPointer;
@@ -18,12 +19,11 @@ class SharedPointerData
 
 	void _Decrement()
 	{
-		if (_ptr == nullptr)
-			return;
+		if (_ptr == nullptr) return;
 
-		--_referenceCount;
+		assert(_referenceCount > 0);
 
-		if (_referenceCount == 0)
+		if (--_referenceCount == 0)
 			_onZeroReferences.TryCall(*this);
 	}
 
@@ -52,10 +52,17 @@ protected:
 	SharedPointerData<T>* _data;
 	
 	static const Function<void, SharedPointerData<T>&> _pDeletePointer;
+	static const Function<void, SharedPointerData<T>&> _pDeletePointerDataOnly;
+	
 	static void _DeletePointer(SharedPointerData<T>& data)
 	{
 		delete data.GetPtr();
 		delete &data;
+	}
+
+	static void _DeletePointerDataOnly(SharedPointerData<T>& data)
+	{
+		delete& data;
 	}
 	
 	static SharedPointerData<T>* _NullPtrData() { return reinterpret_cast<SharedPointerData<T>*>(&_nullPtrData); }
@@ -87,7 +94,7 @@ public:
 
 	explicit SharedPointer(T& obj)
 	{
-		_data = new SharedPointerData<T>(&obj, 1);
+		_data = new SharedPointerData<T>(&obj, 1, _pDeletePointerDataOnly);
 	}
 
 	~SharedPointer() { _data->_Decrement(); }
@@ -140,5 +147,5 @@ public:
 template<typename T>
 const Function<void, SharedPointerData<T>&> SharedPointer<T>::_pDeletePointer(&SharedPointer<T>::_DeletePointer);
 
-class Entity;
-typedef SharedPointer<Entity> EntityPointer;
+template<typename T>
+const Function<void, SharedPointerData<T>&> SharedPointer<T>::_pDeletePointerDataOnly(&SharedPointer<T>::_DeletePointerDataOnly);

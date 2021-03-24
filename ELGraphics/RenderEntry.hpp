@@ -73,6 +73,7 @@ public:
 
 	RCMDSetBool& AddSetIsFont(bool isFont) { return _AddCommand<RCMDSetBool>(RCMDSetBool::Type::FONT, isFont); }
 	RCMDSetFloat& AddSetLineWidth(float lineWidth) { return _AddCommand<RCMDSetFloat>(RCMDSetFloat::Type::LINE_WIDTH, lineWidth); }
+	RCMDSetUVec4& AddSetUVec4(RCMDSetUVec4::Type type, const uint32 uvec[4]) { return _AddCommand<RCMDSetUVec4>(type, uvec); }
 	RCMDSetMat4& AddSetMat4(RCMDSetMat4::Type type, const Matrix4& matrix) { return _AddCommand<RCMDSetMat4>(type, matrix); }
 	RCMDSetMat4& AddSetMat4(RCMDSetMat4::Type type, Matrix4&& matrix) { return _AddCommand<RCMDSetMat4>(type, matrix); }
 	RCMDSetUVOffset& AddSetUVOffset(const Vector2& uvOffset) { return _AddCommand<RCMDSetUVOffset>(uvOffset); }
@@ -80,9 +81,9 @@ public:
 	RCMDSetUVScale& AddSetUVScale(const Vector2& uvScale) { return _AddCommand<RCMDSetUVScale>(uvScale); }
 	RCMDSetUVScale& AddSetUVScale(Vector2&& uvScale = Vector2(1.f, 1.f)) { return _AddCommand<RCMDSetUVScale>(uvScale); }
 	RCMDSetColour& AddSetColour(const Colour& colour = Colour::White) { return _AddCommand<RCMDSetColour>(colour); }
-	RCMDSetColour& AddSetColourOverride(const Colour& colour = Colour::White) { return _AddCommand<RCMDSetColour>(colour, true); }
+	RCMDSetColour& AddPushColourOverride(const Colour& colour = Colour::White) { return _AddCommand<RCMDSetColour>(colour, true); }
 	RCMDSetColour& AddSetColour(const Colour& primary, const Colour& secondary, const Colour& tertiary) { return _AddCommand<RCMDSetColour>(primary, secondary, tertiary); }
-	RCMDSetColour& AddSetColourOverride(const Colour& primary, const Colour& secondary, const Colour& tertiary) { return _AddCommand<RCMDSetColour>(primary, secondary, tertiary, true); }
+	RCMDSetColour& AddPushColourOverride(const Colour& primary, const Colour& secondary, const Colour& tertiary) { return _AddCommand<RCMDSetColour>(primary, secondary, tertiary, true); }
 	RCMDPopColourOverride& AddPopColourOverride() { return _AddCommand<RCMDPopColourOverride>(); }
 	RCMDSetTexture& AddSetTexture(const Texture& texture, uint16 unit) { return _AddCommand<RCMDSetTexture>(texture, unit); }
 	RCMDSetTexture& AddSetTextureGL(GLuint tex, uint16 unit) { return _AddCommand<RCMDSetTexture>(tex, unit); }

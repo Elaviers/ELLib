@@ -11,9 +11,10 @@ namespace DefaultUniformVars
 	constexpr const char *mat4View = "M_View";
 	constexpr const char *mat4Model = "M_Model";
 
-	constexpr const char* mat4aBones = "Bones";
+	constexpr const char *mat4aBones = "Bones";
 
 	constexpr const char *vec4Colour = "Colour";
+	constexpr const char *uvec4Colour = "uColour";
 
 	constexpr const char *vec2UVOffset = "UVOffset";
 	constexpr const char *vec2UVScale = "UVScale";
@@ -33,7 +34,7 @@ namespace DefaultUniformVars
 
 	constexpr const char *boolIsFont = "IsFont";
 
-	constexpr const char* intLightCount = "LightCount";
+	constexpr const char *intLightCount = "LightCount";
 }
 
 class GLProgram
@@ -72,6 +73,7 @@ public:
 	void SetVec2(const char *name, const Vector2 &x) const			{ glUniform2fv(GetUniformLocation(name), 1, x.GetData()); }
 	void SetVec3(const char *name, const Vector3 &x) const			{ glUniform3fv(GetUniformLocation(name), 1, x.GetData()); }
 	void SetVec4(const char *name, const Vector4 &x) const			{ glUniform4fv(GetUniformLocation(name), 1, x.GetData()); }
+	void SetUVec4(const char* name, const uint32 x[4]) const		{ glUniform4uiv(GetUniformLocation(name), 1, x); }
 
 	bool GetBool(const char* name) const { return GetInt(name) != 0; }
 	GLint GetInt(const char* name) const { GLint x; glGetUniformiv(_id, GetUniformLocation(name), &x); return x; }

@@ -5,9 +5,15 @@
 
 class Mesh_Static : public Mesh
 {
+private:
+	VBox _box;
+
 public:
 	Mesh_Static(const Buffer<Vertex17F>& vertices = Buffer<Vertex17F>(), const Buffer<uint32>& elements = Buffer<uint32>());
 	virtual ~Mesh_Static() {}
+
+	VBox& BoundingBox() { return _box; }
+	const VBox& BoundingBox() const { return _box; }
 
 	Buffer<Vertex17F> vertices;
 	Buffer<uint32> elements;

@@ -1,31 +1,43 @@
 #include "Frustum.hpp"
 
-Vector3 ClosestPointOnPlane(const Vector3& planePoint, const Vector3& planeNormal, const Vector3& p)
+Frustum& Frustum::operator=(const Frustum& other)
 {
-	return (planePoint - p).Dot(planeNormal) * planeNormal + p;
+	normalNear = other.normalNear;
+	normalTop = other.normalTop;
+	normalBottom = other.normalBottom;
+	normalLeft = other.normalLeft;
+	normalRight = other.normalRight;
+	normalFar = other.normalFar;
+	nearBtmLeft = other.nearBtmLeft;
+	nearTopLeft = other.nearTopLeft;
+	nearBtmRight = other.nearBtmRight;
+	farBtmLeft = other.farBtmLeft;
+	farBtmRight = other.farBtmRight;
+	farTopLeft = other.farTopLeft;
+	farTopRight = other.farTopRight;
+	nearTopRight = other.nearTopRight;
+
+	return *this;
+}
+
+__forceinline bool _SphereOutsidePlane(const Vector3& point, const Vector3& planePoint2Point, const Vector3& planeNormal, float r)
+{
+	float dot = planePoint2Point.Dot(planeNormal);
+	return dot > 0.f && dot > r;
 }
 
 bool Frustum::OverlapsSphere(const Vector3& centre, float radius) const
 {
-	//todo- This could surely be faster?!
-	//todo- Doesn't work very well, at least with iso camera
+	const Vector3 ToFTL = centre - farTopLeft;
+	const Vector3 ToFBR = centre - farBtmRight;
 
-	Vector3 position2centre = centre - position;
+	if ((position - centre).LengthSquared() <= radius * radius) return true;
 
-	if ((centre - farBtmLeft).Dot(normalFar) > 0.f && (centre - ClosestPointOnPlane(farBtmLeft, normalFar, centre)).LengthSquared() >= (radius * radius))
-		return false;
-
-	if (position2centre.Dot(normalRight) > 0.f && (centre - ClosestPointOnPlane(position, normalRight, centre)).LengthSquared() >= (radius * radius))
-		return false;
-
-	if (position2centre.Dot(normalLeft) > 0.f && (centre - ClosestPointOnPlane(position, normalLeft, centre)).LengthSquared() >= (radius * radius))
-		return false;
-
-	if (position2centre.Dot(normalTop) > 0.f && (centre - ClosestPointOnPlane(position, normalTop, centre)).LengthSquared() >= (radius * radius))
-		return false;
-
-	if (position2centre.Dot(normalBottom) > 0.f && (centre - ClosestPointOnPlane(position, normalBottom, centre)).LengthSquared() >= (radius * radius))
-		return false;
+	if (_SphereOutsidePlane(centre, ToFTL, normalFar, radius)) return false;
+	if (_SphereOutsidePlane(centre, ToFBR, normalRight, radius)) return false;
+	if (_SphereOutsidePlane(centre, ToFTL, normalLeft, radius)) return false;
+	if (_SphereOutsidePlane(centre, ToFTL, normalTop, radius)) return false;
+	if (_SphereOutsidePlane(centre, ToFBR, normalBottom, radius)) return false;
 
 	return true;
 }
