@@ -66,6 +66,7 @@ public:
 
 	bool BroadOverlapCheck(const Transform& transform, const Collider& other, const Transform& otherTransform) const;
 
+	//The penetration vector will be our penetration into other if OVERLAPPING, and will be normalised if TOUCHING
 	EOverlapResult NarrowOverlapCheck(
 		const Transform& transform, 
 		const Collider& other, const Transform& otherTransform, 

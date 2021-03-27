@@ -13,11 +13,9 @@ class Transform
 	Rotation _rotation;
 	Vector3 _scale;
 
-	Callback _onChanged;
 	void _Update()
 	{
 		_matrixStatus = EMatrixStatus::EMPTY;
-		_onChanged.TryCall();
 	}
 
 	Matrix4 _matrix;
@@ -36,16 +34,13 @@ public:
 		_position(position), 
 		_rotation(rotation), 
 		_scale(scale), 
-		_onChanged(callback), 
 		_matrixStatus(EMatrixStatus::EMPTY) 
 	{
-		_onChanged.TryCall();
 	}
 
 	Transform(const Callback& callback = Callback()) : Transform(Vector3(), Rotation(), Vector3(1, 1, 1), callback) {}
 	
 	Transform(const Transform& other) : 
-		_onChanged(),
 		_position(other._position), 
 		_rotation(other._rotation), 
 		_scale(other._scale), 
@@ -54,7 +49,6 @@ public:
 	{}
 
 	Transform(const Transform&& other) noexcept :
-		_onChanged(),
 		_position(other._position),
 		_rotation(other._rotation),
 		_scale(other._scale),
@@ -71,8 +65,6 @@ public:
 		_scale = other._scale;
 		_matrix = other._matrix;
 		_matrixStatus = other._matrixStatus;
-
-		_Update();
 		return *this;
 	}
 
@@ -85,7 +77,6 @@ public:
 	void SetPosition(const Vector3 &position)	{ _position = position; _Update(); }
 	void SetRotation(const Rotation &rotation)	{ _rotation = rotation; _Update(); }
 	void SetScale(const Vector3 &scale)			{ _scale = scale;		_Update(); }
-	void SetCallback(const Callback& callback)	{ _onChanged = callback; _onChanged.TryCall(); }
 
 	void Move(const Vector3 &delta)				{ _position += delta;				_Update(); }
 	void Rotate(const Rotation &delta)			{ _rotation = delta * _rotation;	_Update(); }

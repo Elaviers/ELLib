@@ -67,6 +67,9 @@ class PhysicsBody : public FixedBody
 	Transform _lastTransform;
 	Vector3 _lastVelocity;
 
+	Transform _iTransform;
+	Vector3 _iVelocity;
+
 	float _mass;
 
 	bool _lockRotation;
@@ -92,10 +95,12 @@ public:
 	PhysicsBody& operator=(const PhysicsBody&) = delete;
 	PhysicsBody& operator=(PhysicsBody&) = delete;
 
+	const Transform& GetITransform() const { return _iTransform; }
 	const Transform& GetLastTransform() const { return _lastTransform; }
 	const Vector3& GetLastPosition() const { return _lastTransform.GetPosition(); }
 	const Rotation& GetLastRotation() const { return _lastTransform.GetRotation(); }
 	const Vector3& GetLastScale() const { return _lastTransform.GetScale(); }
+	const Vector3& GetIVelocity() const { return _iVelocity; }
 	const Vector3& GetVelocity() const { return _velocity; }
 	const Vector3& GetLastVelocity() const { return _lastVelocity; }
 	const Vector3& GetAngularVelocity() const { return _angularVelocity; }
@@ -111,10 +116,11 @@ public:
 	void SetMass(float mass) { _mass = mass; }
 	void SetRotationLocked(bool lockRotation) { _lockRotation = lockRotation; }
 
-	void ApplyForce(const Vector3& position, const Vector3& direction, float newtons);
+	void ApplyAccelerationAtLocation(const Vector3& position, const Vector3& direction, float newtons);
 
 	void Integrate(float deltaSeconds);
+	void UpdateInterpolatedData(float alpha);
 
-	void ResolveCollision(const FixedBody& body);
-	static void ResolveCollision(PhysicsBody& bodyA, PhysicsBody& bodyB);
+	void ResolveCollision(const FixedBody& body, float minBounceVel);
+	static void ResolveCollision(PhysicsBody& bodyA, PhysicsBody& bodyB, float minBounceVel);
 };

@@ -22,11 +22,14 @@ void PhysSimulation::Simulate(float deltaSeconds, int maxSteps)
 						_ppCollisions.Emplace(&bodyA, &bodyB);
 		}
 
+		//todo: minBounceVel is currently hardcoded
+		const float minBounceVel = 1.f;
+
 		for (Pair<PhysicsBody*, FixedBody*>& collision : _pfCollisions)
-			collision.first->ResolveCollision(*collision.second);
+			collision.first->ResolveCollision(*collision.second, minBounceVel);
 
 		for (Pair<PhysicsBody*>& collision : _ppCollisions)
-			PhysicsBody::ResolveCollision(*collision.first, *collision.second);
+			PhysicsBody::ResolveCollision(*collision.first, *collision.second, minBounceVel);
 
 		for (PhysicsBody& body : _physicsBodies)
 		{
@@ -38,6 +41,11 @@ void PhysSimulation::Simulate(float deltaSeconds, int maxSteps)
 
 		_timeSinceLastStep -= _stepTime;
 	}
+
+	const float alpha = _timeSinceLastStep / _stepTime;
+	for (PhysicsBody& pb : _physicsBodies)
+		pb.UpdateInterpolatedData(alpha);
+
 }
 
 template <typename T>

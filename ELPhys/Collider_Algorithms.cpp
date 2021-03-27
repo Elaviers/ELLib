@@ -653,8 +653,7 @@ EOverlapResult Collider::NarrowOverlapCheck(const Transform& transform, const Co
 
 					float d = GJKDist(info, cpA, cpB);
 
-					//temp!!! todo!! GJKDist doesn't work properly!!!!!!!
-					if (d < 0.0001f || d > shallowContactRadius * 2.f)
+					if (d < 0.01f || d > shallowContactRadius * 2.f)
 					{
 						info.expand = 0.f;
 						EOverlapResult result = GJK(info);
@@ -667,7 +666,12 @@ EOverlapResult Collider::NarrowOverlapCheck(const Transform& transform, const Co
 						}
 
 						if (!isTouching && result == EOverlapResult::TOUCHING)
+						{
+							if (out_PenetrationVector)
+								*out_PenetrationVector = (cpB - cpA).Normalise();
+
 							isTouching = true;
+						}
 					}
 					else
 					{
@@ -677,6 +681,9 @@ EOverlapResult Collider::NarrowOverlapCheck(const Transform& transform, const Co
 						if (pa < 0.0001f)
 						{
 							isTouching = true;
+							if (out_PenetrationVector)
+								*out_PenetrationVector = pd;
+
 							continue;
 						}
 
@@ -690,9 +697,6 @@ EOverlapResult Collider::NarrowOverlapCheck(const Transform& transform, const Co
 
 		if (isTouching)
 		{
-			if (out_PenetrationVector)
-				*out_PenetrationVector = Vector3();
-
 			return EOverlapResult::TOUCHING;
 		}
 	}
