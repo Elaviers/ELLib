@@ -17,7 +17,9 @@ public:
 		T y;
 	};
 
-	Vector2T(const T& x = (T)0, const T& y = (T)0) : x(x), y(y) {}
+
+	Vector2T(const T& n = (T)0) : x(n), y(n) {}
+	Vector2T(const T& x, const T& y) : x(x), y(y) {}
 	Vector2T(const Vector2T& other) : x(other.x), y(other.y) {}
 
 	const T* GetData() const { return _data; }

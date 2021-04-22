@@ -18,7 +18,8 @@ public:
 		T z;
 	};
 
-	Vector3T(const T& x = (T)0, const T& y = (T)0, const T& z = (T)0) : x(x), y(y), z(z) {}
+	Vector3T(const T& n = (T)0) : x(n), y(n), z(n) {}
+	Vector3T(const T& x, const T& y, const T& z) : x(x), y(y), z(z) {}
 	Vector3T(const Vector3T& other) : x(other.x), y(other.y), z(other.z) {}
 	Vector3T(Vector3T&& other) noexcept : x(other.x), y(other.y), z(other.z) {}
 
