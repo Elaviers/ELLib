@@ -210,7 +210,7 @@ Vector3 EPA(const Vector3 simplex[4], const GJKInfo& info)
 	pool.Clear();
 
 	//Array of closest faces, closest first, farthest last
-	List<Face> closestFaces(NewHandler(pool, &PoolType::NewArray), DeleteHandler(pool, &PoolType::DeleteHandler));
+	List<Face> closestFaces(NewHandler(&PoolType::NewArray, pool), DeleteHandler(&PoolType::DeleteHandler, pool));
 
 	closestFaces.Add(Face(simplex[3], simplex[0], simplex[1]));
 	InsertFace(closestFaces, Face(simplex[3], simplex[1], simplex[2]));
@@ -229,7 +229,7 @@ Vector3 EPA(const Vector3 simplex[4], const GJKInfo& info)
 		if (newDot - oldDot <= EPA_TOLERANCE)
 			return closestFace.closestPointToOrigin;
 
-		List<Pair<Vector3>> edges(NewHandler(pool, &PoolType::NewArray), DeleteHandler(pool, &PoolType::DeleteHandler));
+		List<Pair<Vector3>> edges(NewHandler(&PoolType::NewArray, pool), DeleteHandler(&PoolType::DeleteHandler, pool));
 
 		//Remove any faces that the new point is in front of
 		for (auto it = closestFaces.begin(); it.IsValid();)

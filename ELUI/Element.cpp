@@ -3,8 +3,8 @@
 
 UIElement::UIElement(UIElement* parent) : _parent(parent), _markedForDelete(false), _hasFocus(false), _focusOnClick(true), _hover(false), _z(0.f), _cursor(ECursor::DEFAULT)
 {
-	onFocusGained += Function<void, UIElement&>(*this, &UIElement::_SetFocus);
-	onFocusLost += Function<void, UIElement&>(*this, &UIElement::_ClearFocus);
+	onFocusGained += Function<void, UIElement&>(&UIElement::_SetFocus, *this);
+	onFocusLost += Function<void, UIElement&>(&UIElement::_ClearFocus, *this);
 
 	if (_parent)
 	{

@@ -13,7 +13,7 @@ class Map
 
 	Node* _NewNode(const K& key, const V& value) const
 	{
-		if (_handlerNew.IsValid())
+		if (_handlerNew)
 			return new (_handlerNew(sizeof(Node))) Node(key, value);
 
 		return new Node(key, value);
@@ -21,7 +21,7 @@ class Map
 
 	void _DeleteNode(Node* node) const
 	{
-		if (_handlerDelete.IsValid())
+		if (_handlerDelete)
 		{
 			node->~Node();
 			_handlerDelete((byte*)node);

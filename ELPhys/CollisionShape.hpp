@@ -36,8 +36,7 @@ public:
 	virtual float GetBoundingRadius() const = 0;
 
 	virtual bool IntersectsRay(const Ray&, RaycastHitInformation&, const Transform& transform) const = 0;
-	virtual Vector3 GetNormalForPoint(const Vector3& point, const Transform& transform) const = 0;
-
+	
 	struct OrientedPoint
 	{
 		Vector3 position;

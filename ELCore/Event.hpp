@@ -37,6 +37,7 @@ public:
 	void operator()(ARGS... args) const 
 	{
 		for (const Function<void, ARGS...>& fp : _list)
-			fp.TryCall(args...);
+			if (fp)
+				fp(std::forward<ARGS>(args)...);
 	}
 };

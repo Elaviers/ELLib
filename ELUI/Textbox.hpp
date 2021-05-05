@@ -51,7 +51,7 @@ public:
 	{
 		SetCursor(ECursor::IBEAM);
 
-		UIElement::onFocusLost += Function<void, UIElement&>(*this, &UITextbox::_OnFocusLost);
+		UIElement::onFocusLost += Function(&UITextbox::_OnFocusLost, *this);
 	}
 
 	virtual ~UITextbox() {}

@@ -4,7 +4,7 @@
 Collider::Collider(ECollisionChannels channels, const CollisionShape& shape) : 
 	_channels(channels), _shapes({ shape.Clone() })
 {
-	_shapes[0]->_onChanged = Callback(*this, &Collider::_OnShapeChanged);
+	_shapes[0]->_onChanged = Callback(&Collider::_OnShapeChanged, *this);
 
 	_OnShapeChanged();
 }
@@ -16,7 +16,7 @@ Collider::Collider(ECollisionChannels channels, const Buffer<CollisionShape>& sh
 	for (size_t i = 0; i < _shapes.GetSize(); ++i)
 	{
 		_shapes[i] = shapes[i].Clone();
-		_shapes[i]->_onChanged = Callback(*this, &Collider::_OnShapeChanged);
+		_shapes[i]->_onChanged = Callback(&Collider::_OnShapeChanged, *this);
 	}
 
 	_OnShapeChanged();
@@ -29,7 +29,7 @@ Collider::Collider(const Collider& other) :
 	for (size_t i = 0; i < _shapes.GetSize(); ++i)
 	{
 		_shapes[i] = other._shapes[i]->Clone();
-		_shapes[i]->_onChanged = Callback(*this, &Collider::_OnShapeChanged);
+		_shapes[i]->_onChanged = Callback(&Collider::_OnShapeChanged, *this);
 	}
 
 	_OnShapeChanged();
@@ -58,7 +58,7 @@ Collider& Collider::operator=(const Collider& other)
 	for (size_t i = 0; i < _shapes.GetSize(); ++i)
 	{
 		_shapes[i] = other._shapes[i]->Clone();
-		_shapes[i]->_onChanged = Callback(*this, &Collider::_OnShapeChanged);
+		_shapes[i]->_onChanged = Callback(&Collider::_OnShapeChanged, *this);
 	}
 
 	_OnShapeChanged();

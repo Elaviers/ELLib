@@ -3,7 +3,7 @@
 
 RenderEntry::~RenderEntry()
 {
-	if (_deleteHandler.IsValid())
+	if (_deleteHandler)
 	{
 		for (_Command& command : _commands)
 			if (command.bDelete)
@@ -17,7 +17,7 @@ RenderEntry::~RenderEntry()
 
 void RenderEntry::Clear()
 {
-	if (_deleteHandler.IsValid())
+	if (_deleteHandler)
 	{
 		for (_Command& command : _commands)
 			if (command.bDelete)

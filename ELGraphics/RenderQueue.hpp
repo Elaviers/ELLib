@@ -37,7 +37,7 @@ private:
 	List<const RenderEntry*>& _GetQueue(int priority);
 
 public:
-	RenderQueue() : _entries(NewHandler(_entryPool, &_EntryPoolType::NewArray), DeleteHandler(_entryPool, &_EntryPoolType::DeleteHandler)) {}
+	RenderQueue() : _entries(NewHandler(&_EntryPoolType::NewArray, _entryPool), DeleteHandler(&_EntryPoolType::DeleteHandler, _entryPool)) {}
 	~RenderQueue() {}
 
 	void Clear();

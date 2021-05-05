@@ -14,7 +14,7 @@ class List
 	template <typename... ARGS>
 	Node* _NewNode(Node* next, ARGS&&... args) const
 	{
-		if (_handlerNew.IsValid())
+		if (_handlerNew)
 			return new (_handlerNew(sizeof(Node))) Node(next, static_cast<ARGS&&>(args)...);
 
 		return new Node(next, static_cast<ARGS&&>(args)...);
@@ -22,7 +22,7 @@ class List
 
 	void _DeleteNode(Node* node) const
 	{
-		if (_handlerDelete.IsValid())
+		if (_handlerDelete)
 		{
 			node->~Node();
 			_handlerDelete((byte*)node);
@@ -509,7 +509,7 @@ public:
 
 	List& operator=(List&& other) noexcept
 	{
-		if (_handlerNew.IsValid() || other._handlerNew.IsValid() || _handlerDelete.IsValid() || other._handlerDelete.IsValid())
+		if (_handlerNew || other._handlerNew || _handlerDelete || other._handlerDelete)
 			return operator=((const List&)*this);
 
 		Clear();

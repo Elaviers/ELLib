@@ -87,11 +87,6 @@ bool CollisionCapsule::IntersectsRay(const Ray& ray, RaycastHitInformation& resu
     return true;
 }
 
-Vector3 CollisionCapsule::GetNormalForPoint(const Vector3& point, const Transform& worldTransform) const
-{
-    return Vector3();
-}
-
 inline Vector3 SphereRayExitPoint(float startY, const Vector3& dir,  float radius)
 {
     //D.D = 1

@@ -29,7 +29,7 @@ class Hashmap
 	class Node;
 	Node* _NewNode(H_TYPE hash) const
 	{
-		if (_handlerNew.IsValid())
+		if (_handlerNew)
 			return new (_handlerNew(sizeof(Node))) Node(hash, _handlerNew, _handlerDelete);
 
 		return new Node(hash, _handlerNew, _handlerDelete);
@@ -37,7 +37,7 @@ class Hashmap
 
 	void _DeleteNode(Node* node) const
 	{
-		if (_handlerDelete.IsValid())
+		if (_handlerDelete)
 		{
 			node->~Node();
 			_handlerDelete((byte*)node);

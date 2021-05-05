@@ -31,7 +31,7 @@ protected:
 	requires Concepts::DerivedFrom<T, RenderCommand>
 		T& _AddCommand(ARGS&&... args)
 	{
-		if (_newHandler.IsValid())
+		if (_newHandler)
 		{
 			byte* mem = _newHandler(sizeof(T));
 			T* cmd = new(mem) T(static_cast<ARGS&&>(args)...);

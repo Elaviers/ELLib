@@ -27,8 +27,8 @@ public:
 
 	UIComboBox(UIElement* parent = nullptr) : UITextButton(parent), _listBox(this), _selecting(false), _readOnly(false)
 	{
-		UITextButton::onPressed += Function<void, UIButton&>(*this, &UIComboBox::_OnPressed);
-		_listBox.onSelectionSubmitted += Function<void, UILabel&>(*this, &UIComboBox::_OnSelectionSubmitted);
+		UITextButton::onPressed += Function(&UIComboBox::_OnPressed, *this);
+		_listBox.onSelectionSubmitted += Function(&UIComboBox::_OnSelectionSubmitted, *this);
 	}
 
 	virtual ~UIComboBox() {}

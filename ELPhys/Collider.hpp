@@ -46,7 +46,7 @@ public:
 	T& AddShape(const T& shape)										
 	{ 
 		T& shape = *_shapes.Add(shape.Clone());
-		shape._onChanged = Callback(*this, &Collider::_OnShapeChanged);
+		shape._onChanged = Callback(&Collider::_OnShapeChanged, *this);
 		return shape;
 	}
 

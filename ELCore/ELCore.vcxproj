@@ -194,6 +194,7 @@
     <ClInclude Include="List.hpp" />
     <ClInclude Include="MacroUtilities.hpp" />
     <ClInclude Include="Map.hpp" />
+    <ClInclude Include="MemberFunction.hpp" />
     <ClInclude Include="NumberedSet.hpp" />
     <ClInclude Include="Pair.hpp" />
     <ClInclude Include="Pool.hpp" />

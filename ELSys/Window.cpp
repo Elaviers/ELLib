@@ -80,13 +80,13 @@ void Window::Win32SetIconResource(int resource)
 Window::Window() : 
 	_hwnd(NULL), _hdc(NULL), 
 	_closeDestroysWindow(true),
-	_eventList(NewHandler(_eventPool, &_EventPoolType::NewArray), DeleteHandler(_eventPool, &_EventPoolType::DeleteHandler))
+	_eventList(NewHandler(&_EventPoolType::NewArray, _eventPool), DeleteHandler(&_EventPoolType::DeleteHandler, _eventPool))
 {
 }
 
 Window::Window(Window&& other) :
 	_hwnd(other._hwnd), _hdc(other._hdc), _closeDestroysWindow(other._closeDestroysWindow),
-	_eventList(NewHandler(_eventPool, &_EventPoolType::NewArray), DeleteHandler(_eventPool, &_EventPoolType::DeleteHandler))
+	_eventList(NewHandler(&_EventPoolType::NewArray, _eventPool), DeleteHandler(&_EventPoolType::DeleteHandler, _eventPool))
 {
 	other._hwnd = NULL;
 	other._hdc = NULL;

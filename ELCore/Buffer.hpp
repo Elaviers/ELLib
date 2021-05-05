@@ -27,7 +27,7 @@ private:
 
 	byte* _AllocRawData(size_t newSize) const
 	{
-		if (_handlerNew.IsValid())
+		if (_handlerNew)
 			return _handlerNew(sizeof(T) * newSize);
 
 		return new byte[sizeof(T) * newSize];
@@ -38,7 +38,7 @@ private:
 		for (size_t i = 0; i < _size; ++i)
 			_elements[i].~T();
 
-		if (_handlerDelete.IsValid())
+		if (_handlerDelete)
 			_handlerDelete(_raw);
 		else
 			delete[] _raw;
@@ -314,7 +314,7 @@ public:
 
 	Buffer& operator=(Buffer&& other) noexcept
 	{
-		if (_handlerNew.IsValid() || other._handlerNew.IsValid() || _handlerDelete.IsValid() || other._handlerDelete.IsValid())
+		if (_handlerNew || other._handlerNew || _handlerDelete || other._handlerDelete)
 		{
 			operator=((const Buffer&)other);
 			other.Clear();

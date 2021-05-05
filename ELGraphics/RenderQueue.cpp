@@ -11,14 +11,14 @@ List<const RenderEntry*>& RenderQueue::_GetQueue(int priority)
 			return _queues.Insert(
 				it, 
 				priority,
-				NewHandler(_ptrPool, &_PtrPoolType::NewArray), 
-				DeleteHandler(_ptrPool, &_PtrPoolType::DeleteHandler))->queue;
+				NewHandler(&_PtrPoolType::NewArray, _ptrPool), 
+				DeleteHandler(&_PtrPoolType::DeleteHandler, _ptrPool))->queue;
 
 		if (it->priority == priority)
 			return it->queue;
 	}
 
-	return _queues.Emplace(priority, NewHandler(_ptrPool, &_PtrPoolType::NewArray), DeleteHandler(_ptrPool, &_PtrPoolType::DeleteHandler))->queue;
+	return _queues.Emplace(priority, NewHandler(&_PtrPoolType::NewArray, _ptrPool), DeleteHandler(&_PtrPoolType::DeleteHandler, _ptrPool))->queue;
 }
 
 void RenderQueue::Clear()
@@ -53,7 +53,7 @@ void RenderQueue::AddEntry(const RenderEntry* entry, int priority)
 
 RenderEntry& RenderQueue::CreateEntry(ERenderChannels renderChannels, int priority)
 {
-	RenderEntry& entry = *_entries.Emplace(renderChannels, NewHandler(_entryPool, &_EntryPoolType::NewArray), DeleteHandler(_entryPool, &_EntryPoolType::DeleteHandler));
+	RenderEntry& entry = *_entries.Emplace(renderChannels, NewHandler(&_EntryPoolType::NewArray, _entryPool), DeleteHandler(&_EntryPoolType::DeleteHandler, _entryPool));
 	_GetQueue(priority).Emplace(&entry);
 	return entry;
 }

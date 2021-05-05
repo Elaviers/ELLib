@@ -23,8 +23,8 @@ class SharedPointerData
 
 		assert(_referenceCount > 0);
 
-		if (--_referenceCount == 0)
-			_onZeroReferences.TryCall(*this);
+		if (--_referenceCount == 0 && _onZeroReferences)
+			_onZeroReferences(*this);
 	}
 
 public:

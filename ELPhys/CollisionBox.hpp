@@ -14,6 +14,5 @@ public:
 	float GetBoundingRadius() const override { return GetTransform().GetScale().Length(); }
 
 	virtual bool IntersectsRay(const Ray&, RaycastHitInformation&, const Transform& = Transform()) const override;
-	virtual Vector3 GetNormalForPoint(const Vector3& point, const Transform& transform) const override;
 	virtual OrientedPoint GetFarthestPointInDirection(const Vector3& axis, const Transform&) const override;
 };

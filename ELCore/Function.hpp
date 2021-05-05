@@ -2,190 +2,169 @@
 #include "Concepts.hpp"
 #include "Utilities.hpp"
 
-template<typename T, typename RETURNTYPE, typename ...ARGS>
-class MemberFunction
-{
-private:
-	union
-	{
-		RETURNTYPE(T::* _function)(ARGS...);
-		RETURNTYPE(T::* _constFunction)(ARGS...) const;
-
-		void* _voidPtr;
-	};
-
-	const bool _isConstFunction;
-
-public:
-	MemberFunction() : _isConstFunction(false), _function(nullptr) {}
-	MemberFunction(RETURNTYPE(T::* function)(ARGS...)) : _isConstFunction(false), _function(function)		{}
-	MemberFunction(RETURNTYPE(T::* function)(ARGS...) const) :	_isConstFunction(true), _constFunction(function)	{}
-
-	RETURNTYPE Call(T& obj, ARGS ...args) const
-	{
-		if (_isConstFunction)
-			return (obj.*_constFunction)(std::forward<ARGS>(args)...);
-		
-		return (obj.*_function)(std::forward<ARGS>(args)...);
-	}
-
-	RETURNTYPE Call(const T& obj, ARGS ...args) const
-	{
-		//todo: not this
-		return (obj.*_constFunction)(std::forward<ARGS>(args)...);
-	}
-
-	void* GetRawPointer() const { return _voidPtr; }
-
-	bool operator==(const MemberFunction& other) const { return _voidPtr == other._voidPtr && _isConstFunction == other._isConstFunction; }
-	bool operator!=(const MemberFunction& other) const { return _voidPtr != other._voidPtr || _isConstFunction != other._isConstFunction; }
-};
-
 /*
 	Function
 
 	A reference to any static function/lambda
 */
 
-template <typename RETURNTYPE, typename ...ARGS>
+template <typename ReturnType, typename... Args>
 class Function
 {
-	class Callable
+	class ClosureContainerBase
 	{
 	public:
-		virtual ~Callable() {}
-
-		virtual RETURNTYPE Call(ARGS...) const = 0;
-
-		//Allocs to heap placement is nullptr
-		virtual Callable* Clone(void* placement) const = 0;
-
-		virtual bool operator==(const Callable& other) const = 0;
+		virtual ~ClosureContainerBase() {}
+		virtual ClosureContainerBase* Clone() const = 0;
+		virtual ClosureContainerBase* Clone(void* placement) const = 0;
+		virtual ReturnType operator()(Args... args) const = 0;
 	};
 
-	class BasicCallable : public Callable
+	template <typename L>
+	class ClosureContainer : public ClosureContainerBase
 	{
-		RETURNTYPE (*_fptr)(ARGS...);
+		L _closure;
 
 	public:
-		BasicCallable(RETURNTYPE(*fptr)(ARGS...)) : _fptr(fptr) {}
-		virtual ~BasicCallable() {}
+		template <typename... CtorArgs>
+		ClosureContainer(CtorArgs&&... args) : _closure(std::forward<CtorArgs>(args)...) {}
 
-		virtual RETURNTYPE Call(ARGS... args) const override { return _fptr(std::forward<ARGS>(args)...); }
-		virtual Callable* Clone(void* placement) const override { return placement ? (new (placement) BasicCallable(_fptr)) : new BasicCallable(_fptr); }
-
-		virtual bool operator==(const Callable& other) const override
-		{
-			const BasicCallable* b = dynamic_cast<const BasicCallable*>(&other);
-			return b ? (_fptr == b->_fptr) : false;
-		}
+		virtual ~ClosureContainer() {}
+		virtual ClosureContainerBase* Clone() const override { return new ClosureContainer<L>(_closure); }
+		virtual ClosureContainerBase* Clone(void* placement) const override { return new (placement) ClosureContainer<L>(_closure); }
+		virtual ReturnType operator()(Args... args) const override { return _closure(std::forward<Args>(args)...); }
 	};
 
 	template <typename T>
-	class InstancedCallable : public Callable
+	class SimpleClosure
 	{
-		T* _obj;
-		MemberFunction<T, RETURNTYPE, ARGS...> _fptr;
+		ReturnType(T::* _fptr)(Args...);
+		T* _instance;
 
 	public:
-		InstancedCallable(T& object, RETURNTYPE(T::* function)(ARGS...)) : _obj(&object), _fptr(function) {}
-		InstancedCallable(T& object, RETURNTYPE(T::* function)(ARGS...) const) : _obj(&object), _fptr(function) {}
-		virtual ~InstancedCallable() {}
-
-		virtual RETURNTYPE Call(ARGS... args) const override { return _fptr.Call(*_obj, std::forward<ARGS>(args)...); }
-		virtual Callable* Clone(void* placement) const override { return placement ? (new (placement) InstancedCallable<T>(*this)) : (new InstancedCallable<T>(*this)); }
-
-		virtual bool operator==(const Callable& other) const override
-		{
-			const InstancedCallable<T>* i = dynamic_cast<const InstancedCallable<T>*>(&other);
-			return i ? (i->_obj == _obj && i->_fptr == _fptr) : false;
-		}
+		SimpleClosure(ReturnType(T::* fptr)(Args...), T* instance) : _fptr(fptr), _instance(instance) {}
+		ReturnType operator()(Args... args) const { return (_instance->*_fptr)(std::forward<Args>(args)...); }
 	};
 
 	template <typename T>
-	class GenericCallable : public Callable
+	class SimpleClosureConst
 	{
-		T _callable;
+		ReturnType(T::* _fptr)(Args...) const;
+		const T* _instance;
 
 	public:
-		GenericCallable(const T& callable) : _callable(callable) {}
-		virtual ~GenericCallable() {}
-
-		virtual RETURNTYPE Call(ARGS... args) const override { return _callable(std::forward<ARGS>(args)...); }
-		virtual Callable* Clone(void* placement) const override { return placement ? (new (placement) GenericCallable(_callable)) : (new GenericCallable(_callable)); }
-
-		virtual bool operator==(const Callable& other) const override { return false; }
+		SimpleClosureConst(ReturnType(T::* fptr)(Args...) const, const T* instance) : _fptr(fptr), _instance(instance) {}
+		ReturnType operator()(Args... args) const { return (_instance->*_fptr)(std::forward<Args>(args)...); }
 	};
 
-	/////
-	alignas(InstancedCallable<BasicCallable>) byte _static[sizeof(InstancedCallable<BasicCallable>)]; //Assumes InstancedCallable<BasicCallable> is the largest any BasicCallable or InstancedCallable can be
-	
-	Callable* _callable;
+	ClosureContainerBase* _cc;
+	ReturnType(*_fptr)(Args...);
 
-	bool _IsAllocated() const { return (byte*)_callable != _static; }
+	//Static memory for simple closures (so we can avoid heap allocations)
+	//Note that this assumes that SimpleClosure<ClosureContainerBase> is the biggest SimpleClosure possible!
+	using LargestSimpleClosureContainer = ClosureContainer<SimpleClosure<ClosureContainerBase>>;
+	alignas(LargestSimpleClosureContainer) byte _static[sizeof(LargestSimpleClosureContainer)];
+
+	//Does not make cc nullptr!
+	void _DeleteCC()
+	{
+		if (_cc == (void*)_static)
+		{
+			_cc->~ClosureContainerBase();
+		}
+		else
+		{
+			delete _cc;
+		}
+	}
 
 public:
-	Function() : _callable(nullptr), _static() {}
+	Function(ReturnType(*fptr)(Args...) = nullptr) : _cc(nullptr), _fptr(fptr)
+	{}
+
+	template <typename C>
+	Function(ReturnType(C::* fptr)(Args...), C& instance)
+	{
+		_cc = new (_static) ClosureContainer<SimpleClosure<C>>(fptr, &instance);
+	}
+
+	template <typename C>
+	Function(ReturnType(C::* fptr)(Args...) const, const C& instance)
+	{
+		_cc = new (_static) ClosureContainer<SimpleClosureConst<C>>(fptr, &instance);
+	}
+
+	template<typename L>
+	requires Concepts::Function<L, ReturnType, Args...>
+		Function(const L& closure)
+	{
+		_cc = new ClosureContainer<L>(closure);
+	}
+
 	Function(const Function& other)
 	{
-		if (other._IsAllocated()) _callable = other._callable ? other._callable->Clone(nullptr) : nullptr;
-		else _callable = other._callable->Clone(_static);
-	}
-
-	Function(Function&& other)
-	{
-		if (other._IsAllocated())
+		if (other._cc)
 		{
-			_callable = other._callable;
-			other._callable = nullptr;
+			_cc = (other._cc == (void*)other._static) ? other._cc->Clone(_static) : other._cc->Clone();
+			_fptr = nullptr;
 		}
-		else _callable = other._callable->Clone(_static);
-	}
-	
-	~Function() 
-	{ 
-		if (_IsAllocated()) delete _callable; 
-		else _callable->~Callable();
+		else
+		{
+			_cc = nullptr;
+			_fptr = other._fptr;
+		}
 	}
 
-	Function(RETURNTYPE(*fptr)(ARGS...)) { _callable = new (_static) BasicCallable(fptr); }
-
-	template <typename T>
-	Function(T& obj, RETURNTYPE(T::* fptr)(ARGS...)) { _callable = new (_static) InstancedCallable<T>(obj, fptr); }
-	
-	template <typename T>
-	Function(T& obj, RETURNTYPE(T::* fptr)(ARGS...) const) { _callable = new (_static) InstancedCallable<T>(obj, fptr); }
-	
-	template <typename T>
-	Function(const T& function) { _callable = new GenericCallable<T>(function); }
-
-	Function& operator=(const Function& other)
+	Function(Function&& other) noexcept : _fptr(other._fptr), _cc((other._cc == (void*)other._static) ? other._cc->Clone(_static) : other._cc)
 	{
-		if (_IsAllocated()) delete _callable;
+		other._fptr = nullptr;
+		other._cc = nullptr;
+	}
 
-		if (other._IsAllocated()) _callable = other._callable ? other._callable->Clone(nullptr) : nullptr;
-		else _callable = other._callable->Clone(_static);
+	~Function()
+	{
+		_DeleteCC();
+	}
+
+	Function& operator=(const Function<ReturnType, Args...>& other)
+	{
+		_DeleteCC();
+
+		if (other._cc)
+		{
+			_cc = (other._cc == (void*)other._static) ? other._cc->Clone(_static) : other._cc->Clone();
+			_fptr = nullptr;
+		}
+		else
+		{
+			_cc = nullptr;
+			_fptr = other._fptr;
+		}
 
 		return *this;
 	}
 
-	Function& operator=(Function&& other)
+	Function& operator=(Function<ReturnType, Args...>&& other) noexcept
 	{
-		if (_IsAllocated()) delete _callable;
+		_DeleteCC();
 
-		if (other._IsAllocated())
-			_callable = other._callable;
-		else _callable = other._callable->Clone(_static);
-		
-		other._callable = nullptr;
-
+		_cc = (other._cc == (void*)other._static) ? other._cc->Clone(_static) : other._cc;
+		_fptr = other._fptr;
+		other._cc = nullptr;
+		other._fptr = nullptr;
 		return *this;
 	}
-	
-	RETURNTYPE operator()(ARGS ...args) const	{ return _callable->Call(std::forward<ARGS>(args)...); }
 
-	bool IsValid() const { return _callable != nullptr; }
-	void TryCall(ARGS ...args) const { if (_callable) _callable->Call(std::forward<ARGS>(args)...); }
+	ReturnType operator()(Args... args) const
+	{
+		if (_cc) return (*_cc)(std::forward<Args>(args)...);
+		return _fptr(std::forward<Args>(args)...);
+	}
+
+	operator bool() const
+	{
+		return _cc || _fptr;
+	}
 };
 
 typedef Function<void> Callback;
@@ -193,14 +172,8 @@ typedef Function<void> Callback;
 template<typename T>
 using Getter = Function<T>;
 
-template<typename T, typename RETURNTYPE>
-using MemberGetter = MemberFunction<T, RETURNTYPE>;
-
 template<typename T>
 using Setter = Function<void, const T&>;
-
-template<typename T, typename V>
-using MemberSetter = MemberFunction<T, void, const V&>;
 
 using NewHandler = Function<byte*, size_t>;
 
@@ -210,16 +183,7 @@ class Context;
 typedef Function<void, const Buffer<String>&, const Context&> CommandPtr;
 
 template<typename T>
-using MemberCommandPtr = MemberFunction<T, void, const Buffer<String>&, const Context&>;
-
-template<typename T>
 using ContextualGetter = Function<T, const Context&>;
-
-template<typename T, typename RETURNTYPE>
-using ContextualMemberGetter = MemberFunction<T, RETURNTYPE, const Context&>;
 
 template<typename T>
 using ContextualSetter = Function<void, const T&, const Context&>;
-
-template<typename T, typename V>
-using ContextualMemberSetter = MemberFunction<T, void, const V&, const Context&>;

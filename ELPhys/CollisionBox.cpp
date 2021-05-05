@@ -83,25 +83,6 @@ bool CollisionBox::IntersectsRay(const Ray &ray, RaycastHitInformation &result, 
 	t = (min.x - O.x)/d.x
 */
 
-Vector3 CollisionBox::GetNormalForPoint(const Vector3& point, const Transform& worldTransform) const
-{
-	Vector3 p = (Vector4(point, 1.f) * (_transform * worldTransform).GetInverseMatrix()).GetXYZ();
-
-	float x = Maths::Abs(point.x), y = Maths::Abs(point.y), z = Maths::Abs(point.z);
-
-	if (x > y)
-	{
-		if (x > z)
-			return Vector3(point.x > 0 ? 1.f : -1.f, 0.f, 0.f);
-		else
-			return Vector3(0.f, 0.f, point.z > 0 ? 1.f : -1.f);
-	}
-
-	if (y > z) return Vector3(0.f, point.y > 0 ? 1.f : -1.f, 0.f);
-
-	return Vector3(0.f, 0.f, point.z > 0 ? 1.f : -1.f);
-}
-
 CollisionShape::OrientedPoint CollisionBox::GetFarthestPointInDirection(const Vector3& axisIn, const Transform& worldTransform) const
 {
 	Transform ft = _transform * worldTransform;

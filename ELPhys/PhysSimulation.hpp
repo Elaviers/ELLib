@@ -26,8 +26,8 @@ public:
 	PhysSimulation() :
 		_stepTime(1.f / 60.f), _timeSinceLastStep(0.f),
 		_gravity(0.f, -9.8f, 0.f),
-		_pfCollisions(NewHandler(_pfPool, &PFPoolType::NewArray), DeleteHandler(_pfPool, &PFPoolType::DeleteHandler)),
-		_ppCollisions(NewHandler(_ppPool, &PPPoolType::NewArray), DeleteHandler(_ppPool, &PPPoolType::DeleteHandler)),
+		_pfCollisions(NewHandler(&PFPoolType::NewArray, _pfPool), DeleteHandler(&PFPoolType::DeleteHandler, _pfPool)),
+		_ppCollisions(NewHandler(&PFPoolType::NewArray, _ppPool), DeleteHandler(&PPPoolType::DeleteHandler, _pfPool)),
 		_nextUID(1)
 	{}
 
