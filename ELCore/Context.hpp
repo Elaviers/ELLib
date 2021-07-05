@@ -30,7 +30,7 @@ public:
 	template <typename T>
 	T* GetPtr(bool assert = true) const
 	{
-		void* const * ptr = _ptrs.Get(typeid(T).hash_code());
+		void* const * ptr = _ptrs.TryGet(typeid(T).hash_code());
 
 		Debug::Assert(!assert || ptr != nullptr, CSTR("Context::GetPtr could not find pointer for type ", typeid(T).name()));
 

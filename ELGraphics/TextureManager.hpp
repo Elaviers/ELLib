@@ -15,8 +15,8 @@ private:
 		SharedPointer<const Texture> tBlack, tWhite, tGrey, tNormalDefault;
 	} _colours;
 
-	virtual Texture* _CreateResource(const Buffer<byte>& data, const String& name, const String& extension, const Context& ctx) override;
-	virtual void _ResourceRead(Texture& texture, const Buffer<byte>& data, const String& extension, const Context& ctx) override;
+	virtual Texture* _CreateResource(const Array<byte>& data, const String& name, const String& extension, const Context& ctx) override;
+	virtual void _ResourceRead(Texture& texture, const Array<byte>& data, const String& extension, const Context& ctx) override;
 
 	byte _maxAnisotropy;
 	byte _maxMipLevels;

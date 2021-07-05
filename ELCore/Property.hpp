@@ -1,5 +1,6 @@
 #pragma once
 #include "Buffer.hpp"
+#include "Function.hpp"
 #include "MemberFunction.hpp"
 #include "String.hpp"
 #include "Types.hpp"
@@ -45,7 +46,7 @@ public:
 	virtual String GetAsString(const void* obj, const Context& ctx) const { return ""; }
 	virtual void SetAsString(void* obj, const String& value, const Context& ctx) const {}
 	virtual void TransferTo(const void* from, void* to, const Context& ctx) const {}
-	virtual String HandleCommand(void* obj, const Buffer<String>& args, const Context& ctx) const 
+	virtual String HandleCommand(void* obj, const Array<String>& args, const Context& ctx) const 
 	{ 
 		String combinedArgs;
 
@@ -75,7 +76,7 @@ public:
 
 	virtual Property* Clone() const override { return new FunctionProperty(*this); }
 
-	virtual String HandleCommand(void* obj, const Buffer<String>& tokens, const Context& ctx) const override { _fptr.Call(GetSubClass(obj), tokens, ctx); return ""; }
+	virtual String HandleCommand(void* obj, const Array<String>& tokens, const Context& ctx) const override { _fptr.Call(GetSubClass(obj), tokens, ctx); return ""; }
 };
 
 template <typename V>
@@ -108,7 +109,7 @@ public:
 	virtual void Set(void* obj, const CommandPtr& value, const Context& ctx) const = 0;
 
 	virtual String GetAsString(const void* obj, const Context& ctx) const override { return "(function)"; }
-	virtual String HandleCommand(void* obj, const Buffer<String>& args, const Context& ctx) const
+	virtual String HandleCommand(void* obj, const Array<String>& args, const Context& ctx) const
 	{
 		Get(obj, ctx)(args, ctx);
 		return "";

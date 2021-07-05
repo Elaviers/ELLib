@@ -7,9 +7,9 @@
 #include <ELCore/Utilities.hpp>
 #include <ELSys/Debug.hpp>
 
-Material* MaterialManager::_CreateResource(const Buffer<byte>& data, const String& name, const String& ext, const Context& ctx)
+Material* MaterialManager::_CreateResource(const Array<byte>& data, const String& name, const String& ext, const Context& ctx)
 {
-	Material* mat = Material::FromText(data, ctx);
+	Material* mat = Material::FromText(String(data.begin(), data.GetSize()), ctx);
 
 	if (mat == nullptr)
 		Debug::Error(CSTR("Could not load material \"", name, '\"'));

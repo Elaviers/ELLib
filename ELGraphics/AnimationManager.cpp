@@ -1,6 +1,6 @@
 #include "AnimationManager.hpp"
 
-Animation* AnimationManager::_CreateResource(const Buffer<byte>& data, const String& name, const String& ext, const Context& ctx)
+Animation* AnimationManager::_CreateResource(const Array<byte>& data, const String& name, const String& ext, const Context& ctx)
 {
 	Animation* anim = Animation::FromData(data);
 

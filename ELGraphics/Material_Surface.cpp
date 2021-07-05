@@ -23,7 +23,7 @@ MaterialSurface::MaterialSurface(const SharedPointer<const Texture>& diffuse,
 {
 }
 
-void MaterialSurface::CMD_tex(const Buffer<String>& args, const Context& ctx)
+void MaterialSurface::CMD_tex(const Array<String>& args, const Context& ctx)
 {
 	if (args.GetSize() >= 2)
 	{

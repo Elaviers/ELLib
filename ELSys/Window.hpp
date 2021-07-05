@@ -2,7 +2,7 @@
 #include "EKeycode.hpp"
 #include "GL.hpp"
 #include <ELCore/MacroUtilities.hpp>
-#include <ELCore/Pool.hpp>
+#include <ELCore/PagedMemory.hpp>
 #include <ELCore/Types.hpp>
 #include <ELMaths/Vector2.hpp>
 #include <Windows.h>
@@ -116,9 +116,8 @@ protected:
 
 	bool _closeDestroysWindow;
 
-	typedef MultiPool<byte, sizeof(WindowEvent) * 8> _EventPoolType;
-	_EventPoolType _eventPool;
-	List<WindowEvent> _eventList;
+	PagedMemory<> _eventMemory;
+	List<WindowEvent, PagedMemory<>::Allocator<WindowEvent>> _eventList;
 
 	static HINSTANCE _programInstance;
 	static LPCTSTR _wclassDefault;

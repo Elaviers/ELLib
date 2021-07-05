@@ -20,8 +20,8 @@ public:
 
 	void Clear();
 
-	String HandleCommand(const Buffer<String>& tokens, const Context& ctx) const;
-	String HandleCommand(const String& command, const Context& ctx) const { return HandleCommand(command.Split(" "), ctx); }
+	String HandleCommand(const Array<String>& tokens, const Context& ctx) const;
+	String HandleCommand(const String& command, const Context& ctx) const { return HandleCommand(command.Split<VAllocator<String>>(" "), ctx); }
 
 	RigidProperty* Find(const String& name) const;
 	

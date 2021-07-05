@@ -1,7 +1,7 @@
 #include "ByteReader.hpp"
 #include "IEEE754.hpp"
 
-bool ByteReader::SetIndex(size_t index)
+constexpr bool ByteReader::SetIndex(size_t index)
 {
 	_index = index;
 

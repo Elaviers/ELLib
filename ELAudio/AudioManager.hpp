@@ -22,7 +22,7 @@ class AudioManager : public AssetManager<WaveSound>
 
 	List<Sampler> _playingSounds;
 
-	virtual WaveSound* _CreateResource(const Buffer<byte>& data, const String& name, const String& extension, const Context&) override;
+	virtual WaveSound* _CreateResource(const Array<byte>& data, const String& name, const String& extension, const Context&) override;
 	virtual void _DestroyResource(WaveSound& sound) override;
 
 public:
@@ -41,5 +41,5 @@ public:
 
 	void FillBuffer();
 	
-	void CMD_play(const Buffer<String> &args, const Context&);
+	void CMD_play(const Array<String> &args, const Context&);
 };

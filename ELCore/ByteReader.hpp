@@ -1,9 +1,10 @@
 #pragma once
 #include "Buffer.hpp"
+#include "Types.hpp"
 
 class ByteReader
 {
-	const Buffer<byte>* _buffer;
+	const Array<byte>* _buffer;
 	const byte* _rawBuffer;
 
 	const byte* _pointer;
@@ -11,17 +12,19 @@ class ByteReader
 	size_t _bufferSize;
 
 public:
-	ByteReader(const Buffer<byte>& buffer, size_t index = 0) : 
+	constexpr ByteReader(const Array<byte>& buffer, size_t index = 0) noexcept : 
 		_buffer(&buffer), _rawBuffer(nullptr), _pointer(nullptr) { if (!SetIndex(index)) _index = 0; }
 
-	ByteReader(const byte* data, size_t size) :
+	constexpr ByteReader(const Buffer<byte>& buffer, size_t index = 0) noexcept : ByteReader((const Array<byte>&)buffer, index) {}
+
+	constexpr ByteReader(const byte* data, size_t size) noexcept :
 		_buffer(nullptr), _rawBuffer(data), _bufferSize(size) { SetIndex(0); }
 
-	size_t GetIndex() const { return _index; }
-	const byte* Ptr() const { return _pointer; }
-	bool IsValid() const { return _index < _bufferSize; }
+	constexpr size_t GetIndex() const noexcept { return _index; }
+	constexpr const byte* Ptr() const noexcept { return _pointer; }
+	constexpr bool IsValid() const noexcept { return _index < _bufferSize; }
 
-	bool SetIndex(size_t index);
+	constexpr bool SetIndex(size_t index);
 	bool IncrementIndex(size_t amount);
 	size_t GetRemainingSpace();
 

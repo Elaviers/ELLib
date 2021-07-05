@@ -29,7 +29,7 @@ void UILabel::UpdateBounds()
 		float availableW = _absoluteBounds.w - _margin * 2.f;
 		float availableH = _absoluteBounds.h - _margin * 2.f;
 		float fontSize = availableH;
-		float w = _font->CalculateStringWidth(_text.ToString().GetData(), fontSize);
+		float w = _font->CalculateStringWidth(_text.ToString().begin(), fontSize);
 
 		/* behaviour disabled, prefer clipping to scaling text
 		if (w > availableW)
@@ -115,10 +115,10 @@ void UILabel::Render(RenderQueue& q) const
 		if (_shadowOffset.x != 0.f && _shadowOffset.y != 0.f)
 		{
 			_shadowColour.Apply(e);
-			_font->RenderString(e, _text.ToString().GetData(), _shadowTransform, 0.f, _shadowClip);
+			_font->RenderString(e, _text.ToString().begin(), _shadowTransform, 0.f, _shadowClip);
 		}
 
 		_colour.Apply(e);
-		_font->RenderString(e, _text.ToString().GetData(), _transform, 0.f, _clip);
+		_font->RenderString(e, _text.ToString().begin(), _transform, 0.f, _clip);
 	}
 }

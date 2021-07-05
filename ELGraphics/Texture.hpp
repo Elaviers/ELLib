@@ -16,9 +16,9 @@ public:
 		GLint wrapx;
 		GLint wrapy;
 
-		void CMD_min(const Buffer<String>& args, const Context&);
-		void CMD_mag(const Buffer<String>& args, const Context&);
-		void CMD_wrap(const Buffer<String>& args, const Context&);
+		void CMD_min(const Array<String>& args, const Context&);
+		void CMD_mag(const Array<String>& args, const Context&);
+		void CMD_wrap(const Array<String>& args, const Context&);
 
 		void SetDefault()
 		{
@@ -42,7 +42,7 @@ private:
 
 	GLTexture _glTexture;
 
-	void _CMD_img(const Buffer<String>& args, const Context&);
+	void _CMD_img(const Array<String>& args, const Context&);
 
 public:
 	Info info;

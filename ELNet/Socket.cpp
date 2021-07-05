@@ -11,7 +11,7 @@ PADDRINFOA ResolveAddress(const char* ipv4, ushort port)
 	hints.ai_family = AF_INET; //ipv4
 
 	PADDRINFOA result;
-	if (INT error = getaddrinfo(ipv4, String::FromInt(port).GetData(), &hints, &result))
+	if (INT error = getaddrinfo(ipv4, String::FromInt(port).begin(), &hints, &result))
 	{
 		Debug::Error(CSTR("Unable to resolve ipv4 address ", ipv4, ':', port, " (getaddrinfo returned ", error, ')'));
 		return NULL;

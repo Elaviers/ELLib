@@ -9,7 +9,7 @@ Client Client::MakeServerConnection(const Address& server)
 	Client client(false);
 	client._localSlot = 0;
 	client._remote = server;
-	client._tcp.ConnectTo(serverIP.GetData(), serverPort);
+	client._tcp.ConnectTo(serverIP.begin(), serverPort);
 	
 	//todo: hard-coded client UDP port
 	client._udp.Open(7777);
@@ -30,9 +30,9 @@ bool Client::Send(const Buffer<byte>& message, ENetProtocol protocol) const
 	switch (protocol)
 	{
 	case ENetProtocol::TCP:
-		return _tcp.Send(message.Elements(), (int)message.GetSize());
+		return _tcp.Send(message.begin(), (int)message.GetSize());
 	case ENetProtocol::UDP:
-		return _udp.SendTo(_remote, message.Elements(), (int)message.GetSize());
+		return _udp.SendTo(_remote, message.begin(), (int)message.GetSize());
 	}
 
 	return false;

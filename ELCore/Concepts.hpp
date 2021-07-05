@@ -1,8 +1,4 @@
 #pragma once
-#ifdef __INTELLISENSE__
-#define __cpp_lib_concepts //C'mon intellisense.. keep up!
-#endif // __INTELLISENSE__
-
 #include <concepts>
 #include <functional>
 #include <type_traits>
@@ -15,9 +11,12 @@ namespace Concepts
 	template<typename T>
 	concept Callback = requires(const T& t) { t(); };
 
-	template<typename T, typename RETURN, typename... ARGS>
-	concept Function = requires(const T& t, ARGS... args) { requires std::convertible_to<decltype(t(std::forward<ARGS>(args)...)), RETURN>; };
-	
+	template <typename T, typename ReturnType, typename... Args>
+	concept Function = requires(const T & func, Args ...args)
+	{
+		{ func(args...) } -> std::convertible_to<ReturnType>;
+	};
+
 	template<typename T, typename Arg>
 	concept Predicate = Function<T, bool, Arg>;
 }

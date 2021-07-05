@@ -25,7 +25,7 @@ public:
 				return *this;
 		*/
 
-		_list.Add(function);
+		_list.EmplaceBack(function);
 		return *this;
 	}
 

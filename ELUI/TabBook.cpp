@@ -1,4 +1,5 @@
 #include "TabBook.hpp"
+#include <ELCore/IteratorUtils.hpp>
 
 void UITabBook::_UpdateClientBounds()
 {
@@ -25,9 +26,9 @@ void UITabBook::_UpdateClientBounds()
 
 void UITabBook::_OnChildGained(UIElement* child)
 {
-	if (_createTabsFromChildren && !_tabs.FirstWhere([child](const _UITabBookElement& a) { return a.page == child; }).IsValid())
+	if (_createTabsFromChildren && IteratorUtils::FirstWhere(_tabs.begin(), _tabs.end(), [child](const auto& it) { return it->page == child; }) == _tabs.end())
 	{
-		_UITabBookElement& tab = *_tabs.Emplace();
+		_UITabBookElement& tab = _tabs.EmplaceBack();
 		tab.page = child;
 
 		_createTabsFromChildren = false; //This is a little bit jank
@@ -41,7 +42,7 @@ void UITabBook::_OnChildGained(UIElement* child)
 
 void UITabBook::_OnChildLost(UIElement* child)
 {
-	_tabs.Remove([child](const _UITabBookElement& element) { return element.page == child; }, false);
+	_tabs.Remove(IteratorUtils::FirstWhere(_tabs.begin(), _tabs.end(), [child](const auto& it) { return it->page == child; }));
 
 	_UpdateTabs();
 }
@@ -57,7 +58,7 @@ void UITabBook::_UpdateTabs()
 		tab.SetBorderSize(_tabBorderSize);
 		lab.SetFont(_tabFont);
 
-		float desiredWidth = lab.GetFont()->CalculateStringWidth(lab.GetText().ToString().GetData(), lab.GetAbsoluteBounds().h);
+		float desiredWidth = lab.GetFont()->CalculateStringWidth(lab.GetText().ToString().begin(), lab.GetAbsoluteBounds().h);
 		float w = Maths::Clamp(desiredWidth, _minimumTabSize, _maximumTabSize);
 
 		UIBounds bounds(UICoord(0.f, x), UICoord(1.f, 0.f), UICoord(0.f, w), UICoord(0.f, _tabBarSize));
@@ -145,9 +146,9 @@ Text UITabBook::GetTabName(const UIElement& page) const
 {
 	if (page.GetParent() == this)
 	{
-		List<_UITabBookElement>::ConstIterator tab = _tabs.FirstWhere([&page](const _UITabBookElement& element) { return element.page == &page; });
+		List<_UITabBookElement>::ConstIterator tab = IteratorUtils::FirstWhere(_tabs.begin(), _tabs.end(), [&page](const List<_UITabBookElement>::ConstIterator& element) { return element->page == &page; });
 		
-		if (tab.IsValid())
+		if (tab == _tabs.end())
 			return tab->label.GetText();
 	}
 
@@ -160,11 +161,11 @@ bool UITabBook::SetActiveTab(const UIElement* page)
 	{
 		if (page->GetParent() == this)
 		{
-			List<_UITabBookElement>::Iterator element = _tabs.FirstWhere([page](const _UITabBookElement& element) { return element.page == page; });
+			List<_UITabBookElement>::Iterator tab = IteratorUtils::FirstWhere(_tabs.begin(), _tabs.end(), [&page](const List<_UITabBookElement>::Iterator& element) { return element->page == page; });
 
-			if (element.IsValid())
+			if (tab != _tabs.end())
 			{
-				_activeTab = &*element;
+				_activeTab = &*tab;
 				_activeTab->page->UpdateBounds();
 				_UpdateTabs();
 				return true;
@@ -185,9 +186,12 @@ bool UITabBook::SetTabName(const UIElement& page, const Text& name)
 {
 	if (page.GetParent() == this)
 	{
-		List<_UITabBookElement>::Iterator tab = _tabs.FirstWhere([&page](const _UITabBookElement& element) { return element.page == &page; });
-
-		if (tab.IsValid())
+		List<_UITabBookElement>::Iterator tab =
+			IteratorUtils::FirstWhere(
+				_tabs.begin(), _tabs.end(),
+				[&page](const List<_UITabBookElement>::Iterator& element) { return element->page == &page; });
+		
+		if (tab != _tabs.end())
 		{
 			tab->label.SetText(name);
 			return true;

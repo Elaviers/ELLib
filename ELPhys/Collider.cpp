@@ -106,7 +106,7 @@ inline Vector3 ScaleRelativeToPoint(const Vector3& x, const Vector3& point, floa
 void Collider::RemoveShape(size_t index)
 {
 	delete _shapes[index];
-	_shapes.RemoveIndex(index);
+	_shapes.Remove(index);
 }
 
 void Collider::ClearShapes()

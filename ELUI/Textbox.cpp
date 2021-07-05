@@ -24,8 +24,8 @@ void UITextbox::_UpdateSelectionBox()
 {
 	_selectionTransform = _label.GetRenderTransform();
 
-	float startX = _selectionStart == 0 ? 0 : _label.GetFont()->CalculateStringWidth(_label.GetText().ToString().GetData(), _selectionTransform.GetScale().x, _selectionStart);
-	float endX = _selectionEnd == 0 ? 0 : _label.GetFont()->CalculateStringWidth(_label.GetText().ToString().GetData(), _selectionTransform.GetScale().x, _selectionEnd);
+	float startX = _selectionStart == 0 ? 0 : _label.GetFont()->CalculateStringWidth(_label.GetText().ToString().begin(), _selectionTransform.GetScale().x, _selectionStart);
+	float endX = _selectionEnd == 0 ? 0 : _label.GetFont()->CalculateStringWidth(_label.GetText().ToString().begin(), _selectionTransform.GetScale().x, _selectionEnd);
 
 	if (startX > endX) Utilities::Swap(startX, endX);
 
@@ -61,7 +61,7 @@ UITextbox& UITextbox::SetCaretPosition(size_t pos)
 		_CalculateTextStartStop(_label.GetAbsoluteBounds(), _caretTransform, _label.GetMargin(), pstart, pstop);
 
 		const Font* font = _label.GetFont().Ptr();
-		const char* str = _label.GetText().ToString().GetData();
+		const char* str = _label.GetText().ToString().begin();
 		float pcaret = _caretOffset * _caretTransform.GetScale().x + _caretPos == 0 ? 0 : font->CalculateStringWidth(str, _caretTransform.GetScale().x, _caretPos);
 
 		float width = pstop - pstart - _label.GetMargin();
@@ -138,7 +138,7 @@ bool UITextbox::OnKeyDown(bool blocked, EKeycode key)
 		{
 			RequestFocus();
 
-			SetCaretPosition(_label.GetFont()->GetPositionOf(_lastMouseX, _lastMouseY, _label.GetText().ToString().GetData(), _label.GetRenderTransform()));
+			SetCaretPosition(_label.GetFont()->GetPositionOf(_lastMouseX, _lastMouseY, _label.GetText().ToString().begin(), _label.GetRenderTransform()));
 
 			_selecting = true;
 			_selectionStart = _caretPos;
@@ -243,7 +243,7 @@ bool UITextbox::OnMouseMove(bool blocked, float x, float y)
 
 	if (_selecting)
 	{
-		SetCaretPosition(_label.GetFont()->GetPositionOf(_lastMouseX, _lastMouseY, _label.GetText().ToString().GetData(), _label.GetRenderTransform()));
+		SetCaretPosition(_label.GetFont()->GetPositionOf(_lastMouseX, _lastMouseY, _label.GetText().ToString().begin(), _label.GetRenderTransform()));
 		_selectionEnd = _caretPos;
 
 		_UpdateSelectionBox();

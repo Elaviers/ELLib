@@ -1,326 +1,474 @@
 #pragma once
-#include "Buffer.hpp"
-#include "Function.hpp"
-#include "List.hpp"
-#include "Hashing.hpp"
+#include "Allocator.hpp"
+#include "KeyDoesNotExist.hpp"
 #include "Pair.hpp"
-#include "Types.hpp"
+#include "MurmurHash3.hpp"
+#include "Utilities.hpp"
+#include <utility>
 
-//For string hashing
-#include "String.hpp"
-
-template <typename T>
-class Hasher
+template <typename K, typename V,
+	typename HasherType = MurmurHash3_32_FixedSeed,
+	typename AllocatorType = DefaultAllocator<Pair<const K, V>>>
+	class Hashmap
 {
 public:
-	template <typename K>
-	static T Hash(const K& key) { return Hashing::MurmurHash2(&key, sizeof(key)); }
+	using size_type = size_t;
+	using key_type = K;
+	using value_type = V;
 
-	template<>
-	static T Hash<String>(const String& key) { return Hashing::MurmurHash2(key.GetData(), key.GetLength()); }
-};
-
-template <typename K, typename V, typename H_TYPE = uint32>
-class Hashmap
-{
-	NewHandler _handlerNew;
-	DeleteHandler _handlerDelete;
-
-	class Node;
-	Node* _NewNode(H_TYPE hash) const
+private:
+	struct VNode
 	{
-		if (_handlerNew)
-			return new (_handlerNew(sizeof(Node))) Node(hash, _handlerNew, _handlerDelete);
+		Pair<const K, V> kv;
+		VNode* next;
+		VNode* iNext;
 
-		return new Node(hash, _handlerNew, _handlerDelete);
-	}
+		template <typename... Args>
+		VNode(const K& key, Args&&... vargs) : kv{ key, V(std::forward<Args>(vargs)...) }, next(nullptr), iNext(nullptr) {}
+	};
 
-	void _DeleteNode(Node* node) const
-	{
-		if (_handlerDelete)
-		{
-			node->~Node();
-			_handlerDelete((byte*)node);
-			return;
-		}
+	using _HashType = HasherType::HashType;
 
-		delete node;
-	}
-
-	static H_TYPE _Hash(const K& key) { return Hasher<H_TYPE>::template Hash<K>(key); }
-
-	typedef Pair<const K, V> KVPair;
-	typedef Pair<const K, const V> KVPairConst;
-
-	class Node
+	using _NodePtrAlloc = Utilities::ReplaceParam<AllocatorType, VNode*>::Type;
+	using _NodeAlloc = Utilities::ReplaceParam<AllocatorType, VNode>::Type;
+	class Proxy1 : public HasherType, public _NodeAlloc
 	{
 	public:
-		const H_TYPE hash;
-		List<KVPair> keys;
+		VNode* iFirst;
+
+		constexpr Proxy1() noexcept : iFirst(nullptr) {}
+		constexpr Proxy1(const AllocatorType& allocator, const HasherType& hasher) : HasherType(hasher), _NodeAlloc(allocator), iFirst(nullptr) {}
 		
-		Node *left, *right;
+		constexpr Proxy1(const Proxy1& other) : HasherType((const HasherType&)other), _NodeAlloc((const _NodeAlloc&)other), iFirst(nullptr) {}
 
-		Node(H_TYPE hash, const NewHandler& newHandler, const DeleteHandler& deleteHandler) : hash(hash), keys(newHandler, deleteHandler), left(nullptr), right(nullptr) {}
-		~Node() {}
-
-		void DeleteChildren(const Hashmap& map) const
+		constexpr Proxy1(Proxy1&& other) noexcept : HasherType(std::move((HasherType&)other)), _NodeAlloc(std::move((_NodeAlloc&)other)), iFirst(other.iFirst)
 		{
-			if (left) map._DeleteNode(left);
-			if (right) map._DeleteNode(right);
+			other.iFirst = nullptr;
 		}
 
-		uint32 Count() const
+		constexpr Proxy1& operator=(const Proxy1& other)
 		{
-			uint32 amount = 1;
-
-			if (left) amount += left->Count();
-			if (right) amount += right->Count();
-
-			return amount;
-		}
-
-		V* GetValueForKey(const K &key)
-		{
-			for (KVPair& kv : keys)
-				if (kv.first == key)
-					return &kv.second;
-
-			return nullptr;
-		}
-
-		Node* Find(H_TYPE h)
-		{
-			if (h < hash)
-			{
-				if (left) return left->Find(h);
-				return nullptr;
-			}
-			else if (h > hash)
-			{
-				if (right) return right->Find(h);
-				return nullptr;
-			}
-
-			return this;
-		}
-
-		Node& Get(H_TYPE h, const Hashmap& map)
-		{
-			if (h < hash)
-			{
-				if (left) return left->Get(h, map);
-				return *(left = map._NewNode(h));
-			}
-			else if (h > hash)
-			{
-				if (right) return right->Get(h, map);
-				return *(right = map._NewNode(h));
-			}
+			HasherType::operator=((const HasherType&)other);
+			_NodeAlloc::operator=((const _NodeAlloc&)other);
+			iFirst = nullptr;
 
 			return *this;
 		}
 
-		KVPair* GetWithValue(const V& v)
+		constexpr Proxy1& operator=(Proxy1&& other) noexcept
 		{
-			for (KVPair& kv : keys)
-				if (kv.second == v)
-					return &kv;
+			HasherType::operator=(std::move((HasherType&)other));
+			_NodeAlloc::operator=(std::move((_NodeAlloc&)other));
+			iFirst = other.iFirst;
+			other.iFirst = nullptr;
 
-			KVPair* pair;
-			if (left && (pair =		left->GetWithValue(v)))		return pair;
-			if (right && (pair =	right->GetWithValue(v)))	return pair;
-			return nullptr;
+			return *this;
+		}
+	} _proxy_nodeAlloc_hasher_iFirst;
+
+	class Proxy2 : public _NodePtrAlloc
+	{
+	public:
+		VNode* iLast;
+
+		constexpr Proxy2() : iLast(nullptr) {}
+		constexpr Proxy2(const AllocatorType& allocator) : _NodePtrAlloc(allocator), iLast(nullptr) {}
+
+		constexpr Proxy2(const Proxy2& other) : _NodePtrAlloc((const _NodePtrAlloc&)other), iLast(nullptr) {}
+
+		constexpr Proxy2(Proxy2&& other) noexcept : _NodePtrAlloc(std::move((_NodePtrAlloc&)other)), iLast(other.iLast) {}
+
+		constexpr Proxy2& operator=(const Proxy2& other) 
+		{
+			_NodePtrAlloc::operator=((const _NodePtrAlloc&)other);
+			iLast = nullptr;
+
+			return *this;
 		}
 
-		Node* Copy(const Hashmap& map)
+		constexpr Proxy2& operator=(Proxy2&& other) noexcept
 		{
-			Node* node = map->_NewNode(hash);
-			node->keys = keys;
+			_NodePtrAlloc::operator=(std::move((_NodePtrAlloc&)other));
+			iLast = other.iLast;
+			other.iLast = nullptr;
 
-			if (left)	node->left =	left->Copy();
-			if (right)	node->right =	right->Copy();
+			return *this;
+		}
+	} _proxy_nodePtrAlloc_iLast;
 
-			return node;
+	VNode*& _iFirst = _proxy_nodeAlloc_hasher_iFirst.iFirst;
+	VNode*& _iLast = _proxy_nodePtrAlloc_iLast.iLast;
+	VNode** _buckets;
+	size_type _bucketCount;
+	size_type _iSize;
+	float _maxLoad;
+
+	//
+
+	__forceinline constexpr void _Hash2Bucket(_HashType& hash) const noexcept
+	{
+		hash &= (_bucketCount - 1);
+	}
+
+	constexpr void _Rehash()
+	{
+		_HashType bindex;
+		for (VNode* node = _iFirst; node; node = node->iNext)
+		{
+			Hashing::HashObject(_proxy_nodeAlloc_hasher_iFirst, node->kv.first, bindex);
+			_Hash2Bucket(bindex);
+
+			node->next = nullptr;
+			VNode* bucket = _buckets[bindex];
+			if (bucket)
+			{
+				while (bucket->next)
+					bucket = bucket->next;
+
+				bucket->next = node;
+			}
+			else
+			{
+				_buckets[bindex] = node;
+			}
+		}
+	}
+
+	constexpr void _EnforceLoad()
+	{
+		if (_bucketCount <= 0)
+		{
+			_bucketCount = 4;
+			_buckets = _proxy_nodePtrAlloc_iLast.allocate(_bucketCount);
+			_NullBuckets();
 		}
 
-		void AddToK(Buffer<const K*>& buffer) const
+		if ((float)_iSize / (float)_bucketCount > _maxLoad)
 		{
-			for (const KVPair& kv : keys)
-				buffer.Add(&kv.first);
+			_bucketCount *= 2;
+			_proxy_nodePtrAlloc_iLast.deallocate(_buckets, _bucketCount);
+			_buckets = _proxy_nodePtrAlloc_iLast.allocate(_bucketCount);
+			_NullBuckets();
 
-			if (left)	left->AddToK(buffer);
-			if (right)	right->AddToK(buffer);
+			_Rehash();
+		}
+	}
+
+	constexpr void _DestroyVNodes()
+	{
+		VNode* next;
+		while (_iFirst)
+		{
+			next = _iFirst->next;
+			delete _iFirst;
+			_iFirst = next;
+		}
+	}
+
+	__forceinline constexpr void _NullBuckets() noexcept
+	{
+		for (size_type i = 0; i < _bucketCount; ++i)
+			_buckets[i] = nullptr;
+	}
+
+	template <typename... Args>
+	constexpr VNode* _Set(bool evenIfPresent, const K& key, Args&&... ctorArgs)
+	{
+		_EnforceLoad();
+
+		_HashType bindex;
+		Hashing::HashObject(_proxy_nodeAlloc_hasher_iFirst, key, bindex);
+		_Hash2Bucket(bindex);
+
+		VNode* bucket = _buckets[bindex];
+		while (bucket)
+		{
+			if (bucket->kv.first == key)
+			{
+				if (evenIfPresent)
+				{
+					bucket->kv.second.~V();
+					new (&bucket->kv.second) V(std::forward<Args>(ctorArgs)...);
+				}
+
+				return bucket;
+			}
+			else
+			{
+				if (bucket->next)
+				{
+					bucket = bucket->next;
+					continue;
+				}
+
+				//end
+				VNode* node = new (_proxy_nodeAlloc_hasher_iFirst.allocate(1)) VNode(key, std::forward<Args>(ctorArgs)...);
+				_iLast->iNext = bucket->next = node;
+				_iLast = node;
+				++_iSize;
+				return node;
+			}
 		}
 
-		void AddTo(Buffer<KVPair*> &buffer, int depth, int currentDepth = 0)
+		VNode* node = new (_proxy_nodeAlloc_hasher_iFirst.allocate(1)) VNode(key, std::forward<Args>(ctorArgs)...);
+		_buckets[bindex] = node;
+
+		if (_iFirst)
 		{
-			if (depth < 0 || currentDepth == depth)
-				for (KVPair& kv : keys)
-					buffer.Add(&kv);
-			
-			if (left)	left->AddTo(buffer, depth, currentDepth + 1);
-			if (right)	right->AddTo(buffer, depth, currentDepth + 1);
+			_iLast->iNext = node;
+			_iLast = node;
+		}
+		else
+		{
+			_iFirst = _iLast = node;
 		}
 
-		void AddTo(Buffer<KVPairConst*>& buffer, int depth, int currentDepth = 0)
-		{
-			if (depth < 0 || currentDepth == depth)
-				for (KVPair& kv : keys)
-					buffer.Add(reinterpret_cast<KVPairConst*>(&kv));
-
-			if (left)	left->AddTo(buffer, depth, currentDepth + 1);
-			if (right)	right->AddTo(buffer, depth, currentDepth + 1);
-		}
-
-		template <typename Function>
-		void ForEach(Function function)
-		{
-			for (KVPair& kv : keys)
-				function((const K&)kv.first, (V&)kv.second);
-			
-			if (left)	left->ForEach(function);
-			if (right)	right->ForEach(function);
-		}
-	};
-
-	Node *_data;
+		++_iSize;
+		return node;
+	}
 
 public:
-	Hashmap() : _data(nullptr) {}
-	Hashmap(const NewHandler& newHandler, const DeleteHandler& deleteHandler) : _handlerNew(newHandler), _handlerDelete(deleteHandler), _data(nullptr) {}
-	Hashmap(const Hashmap& other) : _data(nullptr) { if (other._data) _data = other._data->Copy(); }
-	Hashmap(Hashmap&& other) : _data(other._data)
+	constexpr static const float defaultMaxLoad = 1.2f;
+
+	constexpr Hashmap() noexcept : _buckets(nullptr), _bucketCount(0), _iSize(0), _maxLoad(defaultMaxLoad) {}
+
+	constexpr Hashmap(const HasherType& hasher, const AllocatorType& allocator = AllocatorType()) noexcept :
+		_proxy_nodeAlloc_hasher_iFirst(allocator, hasher),
+		_proxy_nodePtrAlloc_iLast(allocator),
+		_buckets(nullptr), _bucketCount(0), _iSize(0), _maxLoad(defaultMaxLoad) {}
+
+	constexpr Hashmap(const AllocatorType& allocator) noexcept : Hashmap(HasherType(), allocator) {}
+
+	template <typename AllocType>
+	constexpr Hashmap(const Hashmap<K, V, HasherType, AllocType>& other) :
+		_proxy_nodeAlloc_hasher_iFirst(other._proxy_nodeAlloc_hasher_iFirst),
+		_proxy_nodePtrAlloc_iLast(other._proxy_nodePtrAlloc_iLast),
+		_bucketCount(other._bucketCount), _iSize(0), _maxLoad(other._maxLoad)
 	{
-		other._data = nullptr;
+		_buckets = _proxy_nodePtrAlloc_iLast.allocate(_bucketCount);
+		_NullBuckets();
 
-		if (other._handlerNew != _handlerNew || other._handlerDelete != _handlerDelete)
-			operator=((const Hashmap&)*this);
+		//todo: optimise HashTable copy?
+		for (const Pair<const K, V>& kv : other)
+			GetOrDefault(kv.first, kv.second);
 	}
 
-	~Hashmap() 
+	constexpr Hashmap(Hashmap&& other) noexcept :
+		_proxy_nodeAlloc_hasher_iFirst(std::move(other._proxy_nodeAlloc_hasher_iFirst)),
+		_proxy_nodePtrAlloc_iLast(std::move(other._proxy_nodePtrAlloc_iLast)),
+		_buckets(other._buckets),
+		_bucketCount(other._bucketCount),
+		_iSize(other._iSize),
+		_maxLoad(other._maxLoad)
 	{
-		if (_data)
-		{
-			_data->DeleteChildren(*this);
-			_DeleteNode(_data);
-		}
+		other._buckets = nullptr;
+		other._bucketCount = other._iSize = 0;
+		other._maxLoad = defaultMaxLoad;
 	}
 
-	void Clear()			
-	{ 
-		if (_data)
-		{
-			_data->DeleteChildren(*this);
-			_DeleteNode(_data);
-			_data = nullptr;
-		}
-	}
-
-	uint32 GetSize() const	{ return _data ? _data->Count() : 0; }
-	bool IsEmpty() const	{ return _data == nullptr; }
-
-	const K* const FindFirstKey(const V& value) const
+	constexpr ~Hashmap()
 	{
-		if (_data)
-		{
-			KVPair* pair = _data->GetWithValue(value);
-			if (pair) return &pair->first;
-		}
-
-		return nullptr;
+		_proxy_nodePtrAlloc_iLast.deallocate(_buckets, _bucketCount);
+		_DestroyVNodes();
 	}
 
-	const V* Get(const K& key) const
-	{
-		if (_data)
-		{
-			H_TYPE hash = _Hash(key);
-
-			auto node = _data->Find(hash);
-			if (node) return node->GetValueForKey(key);
-		}
-
-		return nullptr;
-	}
-
-	V& operator[](const K& key)
-	{
-		if (_data)
-		{
-			Node& node = _data->Get(_Hash(key), *this);
-
-			V* value = node.GetValueForKey(key);
-			if (value) return *value;
-
-			return node.keys.Emplace(key)->second;
-		}
-
-		_data = _NewNode(_Hash(key));
-		return _data->keys.Emplace(key)->second;
-	}
-
-	V& Set(const K& key, const V& value)
-	{
-		if (_data)
-		{
-			Node& node = _data->Get(_Hash(key), *this);
-		
-			V* v = node.GetValueForKey(key);
-			if (v)
-				return (*v = value);
-
-			return node.keys.Emplace(key, value)->second;
-		}
-
-		_data = _NewNode(_Hash(key));
-		return _data->keys.Emplace(key, value)->second;
-	}
-
-	V* Get(const K& key) { return const_cast<V*>(((const Hashmap*)this)->Get(key)); }
-
-	Hashmap& operator=(const Hashmap& other)
+	template <typename AllocType>
+	constexpr Hashmap& operator=(const Hashmap<K, V, HasherType, AllocType>& other)
 	{
 		Clear();
-		if (other._data) _data = other._data->Copy();
-		return *this;
-	}
 
-	Hashmap& operator=(Hashmap&& other)
-	{
-		_data = other._data;
-		other._data = nullptr;
+		_proxy_nodeAlloc_hasher_iFirst = other._proxy_nodeAlloc_hasher_iFirst;
+		_proxy_nodePtrAlloc_iLast = other._proxy_nodePtrAlloc_iLast;
 
-		if (other._handlerNew != _handlerNew || other._handlerDelete != _handlerDelete)
-			return operator=((const Hashmap&)*this);
+		for (const Pair<const K, V>& kv : other)
+			GetOrDefault(kv.first, kv.second);
 
 		return *this;
 	}
 
-	Buffer<const K*> ToKBuffer() const
+	constexpr Hashmap& operator=(Hashmap&& other) noexcept
 	{
-		Buffer<const K*> buffer;
-		if (_data) _data->AddToK(buffer);
-		return buffer;
+		Clear();
+
+		_proxy_nodeAlloc_hasher_iFirst = std::move(other._proxy_nodeAlloc_hasher_iFirst);
+		_proxy_nodePtrAlloc_iLast = std::move(other._proxy_nodePtrAlloc_iLast);
+
+		_buckets = other._buckets;
+		_bucketCount = other._bucketCount;
+		_iSize = other._iSize;
+		_maxLoad = other._maxLoad;
+
+		other._buckets = nullptr;
+		other._bucketCount = 0;
+		other._iSize = 0;
+		other._maxLoad = defaultMaxLoad;
+
+		return *this;
 	}
 
-	Buffer<KVPair*> ToKVBuffer(int depth = -1)
+	constexpr size_type GetSize() const noexcept { return _iSize; }
+	constexpr float GetMaxLoad() const noexcept { return _maxLoad; }
+
+	//If the average items per bucket exceeds the max load then table size will be increased
+	constexpr void SetMaxLoad(float maxLoad)
 	{
-		Buffer<KVPair*> buffer;
-		if (_data) _data->AddTo(buffer, depth);
-		return buffer;
+		if (_maxLoad != maxLoad)
+		{
+			_maxLoad = maxLoad;
+			_EnforceLoad();
+		}
 	}
 
-	Buffer<KVPairConst*> ToKVBuffer() const
+	constexpr void Clear()
 	{
-		Buffer<KVPairConst*> buffer;
-		if (_data) _data->AddTo(buffer, -1);
-		return buffer;
+		_proxy_nodePtrAlloc_iLast.deallocate(_buckets, _bucketCount);
+		_DestroyVNodes();
+
+		_buckets = nullptr;
+		_bucketCount = 0;
+		_iSize = 0;
+		_iFirst = _iLast = nullptr;
 	}
 
-	template <typename Function>
-	requires Concepts::Function<Function, void, const K&, V&>
-	void ForEach(Function function)
+	/*
+		MEMBER ACCESS
+	*/
+
+	constexpr V* TryGet(const K& key) noexcept
 	{
-		if (_data) _data->ForEach(function);
+		if (_bucketCount)
+		{
+			_HashType bindex;
+			Hashing::HashObject(_proxy_nodeAlloc_hasher_iFirst, key, bindex);
+			_Hash2Bucket(bindex);
+
+			VNode* bucket = _buckets[bindex];
+			while (bucket)
+			{
+				if (bucket->kv.first == key)
+					return &bucket->kv.second;
+
+				bucket = bucket->next;
+			}
+		}
+
+		return nullptr;
 	}
+
+	constexpr V& Get(const K& key)
+	{
+		if (_bucketCount)
+		{
+			_HashType bindex;
+			Hashing::HashObject(_proxy_nodeAlloc_hasher_iFirst, key, bindex);
+			_Hash2Bucket(bindex);
+
+			VNode* bucket = _buckets[bindex];
+			while (bucket)
+			{
+				if (bucket->kv.first == key)
+					return bucket->kv.second;
+
+				bucket = bucket->next;
+			}
+		}
+
+		throw KeyDoesNotExist();
+	}
+
+	constexpr const V* TryGet(const K& key) const noexcept
+	{
+		return (const_cast<Hashmap*>(this)->TryGet(key));
+	}
+
+	constexpr const V& Get(const K& key) const
+	{
+		return (const_cast<Hashmap*>(this)->Get(key));
+	}
+
+	template <typename... Args>
+	constexpr V& GetOrDefaultEmplace(const K& key, Args&&... defaultCtorArgs)
+	{
+		return _Set(false, key, std::forward<Args>(defaultCtorArgs)...)->kv.second;
+	}
+
+	constexpr V& GetOrDefault(const K& key, const V& defaultValue)
+	{
+		return _Set(false, key, defaultValue)->kv.second;
+	}
+
+	constexpr V& operator[](const K& key)
+	{
+		return GetOrDefaultEmplace(key);
+	}
+
+	template <typename... Args>
+	constexpr V& Emplace(const K& key, Args&&... ctorArgs)
+	{
+		return _Set(true, key, std::forward<Args>(ctorArgs)...)->kv.second;
+	}
+
+	constexpr V& Set(const K& key, const V& value)
+	{
+		return _Set(true, key, value)->kv.second;
+	}
+
+	/*
+		ITERATION
+	*/
+
+	class Iterator
+	{
+		VNode* _node;
+
+		friend Hashmap;
+		constexpr Iterator(VNode* node) noexcept : _node(node) {}
+
+	public:
+		constexpr Iterator() noexcept : _node(nullptr) {}
+
+		constexpr Iterator& operator++() noexcept
+		{
+			_node = _node->iNext;
+			return *this;
+		}
+
+		constexpr Pair<const K, V>& operator*() const { return _node->kv; }
+		constexpr Pair<const K, V>* operator->() const { return &_node->kv; }
+
+		constexpr operator bool() const noexcept { return _node; }
+		constexpr bool operator==(const Iterator& other) const noexcept { return _node == other._node; }
+		constexpr bool operator!=(const Iterator& other) const noexcept { return _node != other._node; }
+	};
+
+	class ConstIterator
+	{
+		const VNode* _node;
+
+		friend Hashmap;
+		constexpr ConstIterator(const VNode* node) noexcept : _node(node) {}
+
+	public:
+		constexpr ConstIterator() noexcept : _node(nullptr) {}
+
+		constexpr ConstIterator(const Iterator& iterator) : _node(iterator.node) {}
+
+		constexpr ConstIterator& operator++() noexcept
+		{
+			_node = _node->iNext;
+			return *this;
+		}
+
+		constexpr const Pair<const K, V>& operator*() const { return _node->kv; }
+		constexpr const Pair<const K, V>* operator->() const { return &_node->kv; }
+
+		constexpr operator bool() const noexcept { return _node; }
+		constexpr bool operator==(const ConstIterator& other) const noexcept { return _node == other._node; }
+		constexpr bool operator!=(const ConstIterator& other) const noexcept { return _node != other._node; }
+	};
+
+	constexpr Iterator begin() noexcept { return _iFirst; }
+	constexpr Iterator end() noexcept { return nullptr; }
+	constexpr ConstIterator begin() const noexcept { return _iFirst; }
+	constexpr ConstIterator end() const noexcept { return nullptr; }
 };

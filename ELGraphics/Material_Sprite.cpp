@@ -12,7 +12,7 @@ const PropertyCollection& MaterialSprite::GetProperties()
 	return properties;
 }
 
-void MaterialSprite::_CMD_tex(const Buffer<String>& args, const Context& ctx)
+void MaterialSprite::_CMD_tex(const Array<String>& args, const Context& ctx)
 {
 	if (args.GetSize() > 0)
 	{

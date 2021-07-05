@@ -19,7 +19,7 @@ const PropertyCollection& FontTTF::GetProperties()
 	return properties;
 }
 
-void FontTTF::_CMD_LoadFont(const Buffer<String>& args, const Context& ctx)
+void FontTTF::_CMD_LoadFont(const Array<String>& args, const Context& ctx)
 {
 	if (args.GetSize() > 0)
 	{
@@ -34,11 +34,11 @@ void FontTTF::_CMD_LoadFont(const Buffer<String>& args, const Context& ctx)
 			{
 				fp = paths[i] + args[0];
 
-				if (IO::FileExists(fp.GetData()))
+				if (IO::FileExists(fp.begin()))
 					break;
 			}
 
-			FT_Error error = FT_New_Face(*ftLib, fp.GetData(), 0, &_face);
+			FT_Error error = FT_New_Face(*ftLib, fp.begin(), 0, &_face);
 			if (error)
 			{
 				Debug::Error(CSTR("Could not load font file \"", fp, '\"'));
@@ -105,7 +105,7 @@ float FontTTF::CalculateStringWidth(const char* string, float scaleX, size_t max
 		}
 		else if (*c == '\t')
 		{
-			const TTFGlyph* space = _charMap.Get(' ');
+			const TTFGlyph* space = _charMap.TryGet(' ');
 			float stopWidth = (space->advance >> 6) * scale * 5.f;
 			float nextStop = Maths::Trunc(currentLineW, stopWidth) + stopWidth;
 
@@ -120,7 +120,7 @@ float FontTTF::CalculateStringWidth(const char* string, float scaleX, size_t max
 		}
 		else
 		{
-			const TTFGlyph* glyph = _charMap.Get(*c);
+			const TTFGlyph* glyph = _charMap.TryGet(*c);
 			if (glyph)
 				currentLineW += (float)(glyph->advance >> 6) * scale;
 		}
@@ -165,14 +165,14 @@ size_t FontTTF::GetPositionOf(float pX, float pY, const char* string, const Tran
 		}
 		else if (*c == '\t')
 		{
-			const TTFGlyph* space = _charMap.Get(' ');
+			const TTFGlyph* space = _charMap.TryGet(' ');
 			float stopWidth = (space->advance >> 6) * scale * 5.f;
 			float nextStop = Maths::Trunc(currentLineW, stopWidth) + stopWidth;
 			currentCharW = (nextStop - currentLineW);
 		}
 		else
 		{
-			const TTFGlyph* glyph = _charMap.Get(*c);
+			const TTFGlyph* glyph = _charMap.TryGet(*c);
 			if (glyph)
 			{
 				currentCharW = (glyph->advance >> 6) * scale;
@@ -194,7 +194,7 @@ size_t FontTTF::GetPositionOf(float pX, float pY, const char* string, const Tran
 		++i;
 	}
 
-	return StringLength(string);
+	return StringUtils::Length(string);
 }
 
 void FontTTF::RenderString(RenderEntry& e, const char* string, const Transform& transform, float lineHeight, const RectF& clip) const
@@ -244,13 +244,13 @@ void FontTTF::RenderString(RenderEntry& e, const char* string, const Transform& 
 		}
 		else if (*c == '\t')
 		{
-			const TTFGlyph* space = _charMap.Get(' ');
+			const TTFGlyph* space = _charMap.TryGet(' ');
 			float stopWidth = (space->advance >> 6) * scale * 5.f;
 			x = Maths::Trunc(x, stopWidth) + stopWidth;
 		}
 		else if (!clipped)
 		{
-			const TTFGlyph* glyph = _charMap.Get(*c);
+			const TTFGlyph* glyph = _charMap.TryGet(*c);
 			if (glyph)
 			{
 				gW = glyph->size.x * scale;

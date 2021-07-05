@@ -1,9 +1,11 @@
 #pragma once
 #include "ERenderChannels.hpp"
 #include "RenderCommand.hpp"
+#include <ELCore/Allocator.hpp>
 #include <ELCore/Axes.hpp>
 #include <ELCore/Concepts.hpp>
 #include <ELCore/List.hpp>
+#include <ELCore/PagedMemory.hpp>
 #include <ELMaths/Vector3.hpp>
 
 class Projection;
@@ -11,46 +13,39 @@ class Transform;
 
 class RenderEntry
 {
+public:
+	template <typename T>
+	using AllocatorType = PagedMemory<>::Allocator<T>;
+
 protected:
 	struct _Command
 	{
 		const RenderCommand* command;
 		bool bDelete;
 
-		_Command(const RenderCommand* command, bool bDelete) : command(command), bDelete(bDelete) {}
+		constexpr _Command(const RenderCommand* command, bool bDelete) noexcept : command(command), bDelete(bDelete) {}
 	};
 
-	List<_Command> _commands;
-
-	NewHandler _newHandler;
-	DeleteHandler _deleteHandler;
-
+	List<_Command, AllocatorType<_Command>> _commands;
 	ERenderChannels _renderChannels;
-
+	AllocatorType<RenderCommand> _allocator;
+	
 	template <typename T, typename ...ARGS>
 	requires Concepts::DerivedFrom<T, RenderCommand>
 		T& _AddCommand(ARGS&&... args)
 	{
-		if (_newHandler)
-		{
-			byte* mem = _newHandler(sizeof(T));
-			T* cmd = new(mem) T(static_cast<ARGS&&>(args)...);
-			_commands.Emplace(cmd, true);
-			return *cmd;
-		}
-
-		T* cmd = new T(static_cast<ARGS&&>(args)...);
-		_commands.Emplace(cmd, true);
+		void* mem = ((AllocatorType<T>&)_allocator).allocate(1);
+		T* cmd = new (mem) T(std::forward<ARGS>(args)...);
+		_commands.EmplaceBack(cmd, true);
 		return *cmd;
 	}
 
 public:
-	RenderEntry(ERenderChannels renderChannels) : _renderChannels(renderChannels) {}
-	RenderEntry(ERenderChannels renderChannels, const NewHandler& newHandler, const DeleteHandler& deleteHandler) :  
-		_commands(newHandler, deleteHandler), 
-		_newHandler(newHandler),
-		_deleteHandler(deleteHandler),
-		_renderChannels(renderChannels) {}
+	constexpr RenderEntry(ERenderChannels renderChannels, const AllocatorType<RenderCommand>& allocator) : 
+		_commands(allocator), _renderChannels(renderChannels), _allocator(allocator) {}
+	
+	RenderEntry(ERenderChannels renderChannels);
+
 	RenderEntry(const RenderEntry&) = delete;
 	~RenderEntry();
 
@@ -62,9 +57,9 @@ public:
 
 	void Render(RenderContext&) const;
 
-	void AddCommand(const RenderCommand& command)
+	constexpr void AddCommand(const RenderCommand& command)
 	{
-		_commands.Emplace(&command, false);
+		_commands.EmplaceBack(&command, false);
 	}
 
 	//This whole block isn't really neccessary.

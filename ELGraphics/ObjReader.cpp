@@ -43,11 +43,11 @@ OBJVertexDef ParseOBJVertex(const String &term)
 	}
 
 	OBJVertexDef result = {};
-	result.pos_index = atoi(term.GetData());
+	result.pos_index = atoi(term.begin());
 	if (uvStringIndex)
-		result.uv_index = atoi(term.GetData() + uvStringIndex);
+		result.uv_index = atoi(term.begin() + uvStringIndex);
 	if (normalStringIndex)
-		result.normal_index = atoi(term.GetData() + normalStringIndex);
+		result.normal_index = atoi(term.begin() + normalStringIndex);
 
 	return result;
 }
@@ -121,7 +121,7 @@ Mesh_Static* IO::ReadOBJFile(const String& objSrc)
 						{
 							positions.Add(Vector3(tokens[1].ToFloat() * scale, tokens[2].ToFloat() * scale, tokens[3].ToFloat() * scale));
 
-							const Vector3 &newPos = positions.Last();
+							const Vector3 &newPos = positions[positions.GetSize() - 1];
 
 							if (newPos.x < bmin.x)
 								bmin.x = newPos.x;
@@ -162,9 +162,9 @@ Mesh_Static* IO::ReadOBJFile(const String& objSrc)
 
 					if (tokens.GetSize() >= 4)		//Triangle
 					{
-						uint32 v1 = GetVertexIndex(mesh->vertices, vertexCount, positions, normals, uvs, tokens[1].GetData());
-						uint32 v2 = GetVertexIndex(mesh->vertices, vertexCount, positions, normals, uvs, tokens[2].GetData());
-						uint32 v3 = GetVertexIndex(mesh->vertices, vertexCount, positions, normals, uvs, tokens[3].GetData());
+						uint32 v1 = GetVertexIndex(mesh->vertices, vertexCount, positions, normals, uvs, tokens[1].begin());
+						uint32 v2 = GetVertexIndex(mesh->vertices, vertexCount, positions, normals, uvs, tokens[2].begin());
+						uint32 v3 = GetVertexIndex(mesh->vertices, vertexCount, positions, normals, uvs, tokens[3].begin());
 
 						size_t last = mesh->elements.GetSize();
 						mesh->elements.Grow(3);
@@ -176,7 +176,7 @@ Mesh_Static* IO::ReadOBJFile(const String& objSrc)
 
 						if (tokens.GetSize() == 5)	//Quad, add another triangle
 						{
-							uint32 v4 = GetVertexIndex(mesh->vertices, vertexCount, positions, normals, uvs, tokens[4].GetData());
+							uint32 v4 = GetVertexIndex(mesh->vertices, vertexCount, positions, normals, uvs, tokens[4].begin());
 
 							size_t last = mesh->elements.GetSize();
 							mesh->elements.Grow(3);

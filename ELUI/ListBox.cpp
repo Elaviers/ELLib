@@ -20,7 +20,7 @@ void UIListBox::Add(const Text& item)
 {
 	size_t index = _labels.GetSize() + 1;
 
-	UILabel& newLabel = *_labels.Emplace(this);
+	UILabel& newLabel = _labels.EmplaceBack(this);
 	newLabel.SetBounds(UIBounds(0.f, UICoord(1.f, index * -_itemHeight), 1.f, UICoord(0.f, _itemHeight)));
 	newLabel.SetFont(_font);
 	newLabel.SetColour(_textColour);

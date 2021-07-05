@@ -18,13 +18,13 @@ void Animation::Evaluate(Buffer<Matrix4>& skinningMatrices, const Skeleton& skel
 {
 	skinningMatrices.SetSize(skeleton.GetJointCount());
 
-	for (auto it = skeleton.FirstListElement(); it.IsValid(); ++it)
+	for (auto it = skeleton.FirstListElement(); it; ++it)
 	{
 		const Joint& j = *it;
 
-		auto translationTrack = _translationTracks.Get(j.name);
-		auto rotationTrack = _rotationTracks.Get(j.name);
-		auto scalingTrack = _scalingTracks.Get(j.name);
+		auto translationTrack = _translationTracks.TryGet(j.name);
+		auto rotationTrack = _rotationTracks.TryGet(j.name);
+		auto scalingTrack = _scalingTracks.TryGet(j.name);
 
 		Vector3 translation, scale;
 		Quaternion rotation;
@@ -98,20 +98,16 @@ void Animation::Write(ByteWriter &iterator) const
 
 	iterator.Write_byte(ASSET_ANIMATION);
 
-	auto tTrackBuffer = _translationTracks.ToKVBuffer();
-	auto rTrackBuffer = _rotationTracks.ToKVBuffer();
-	auto sTrackBuffer = _scalingTracks.ToKVBuffer();
-
 	Debug::PrintLine("TRANSLATION TRACKS:\n{");
 
-	iterator.Write_uint32((uint32)tTrackBuffer.GetSize());
-	for (uint32 i = 0; i < tTrackBuffer.GetSize(); ++i)
+	iterator.Write_uint32((uint32)_translationTracks.GetSize());
+	for (const Pair<const String, AnimationTrack<Vector3>>& kv : _translationTracks)
 	{
-		Debug::PrintLine(CSTR("\t\"", tTrackBuffer[i]->first, "\":\n\t{"));
+		Debug::PrintLine(CSTR("\t\"", kv.first, "\":\n\t{"));
 
-		iterator.Write_cstr(tTrackBuffer[i]->first.GetData());
+		iterator.Write_cstr(kv.first.begin());
 		
-		auto keyframes = tTrackBuffer[i]->second.GetKeyframes();
+		auto keyframes = kv.second.GetKeyframes();
 		
 		iterator.Write_uint32((uint32)keyframes.GetSize());
 		for (uint32 j = 0; j < keyframes.GetSize(); ++j)
@@ -128,14 +124,14 @@ void Animation::Write(ByteWriter &iterator) const
 
 	Debug::PrintLine("}\n\nROTATION TRACKS:\n{");
 
-	iterator.Write_uint32((uint32)rTrackBuffer.GetSize());
-	for (uint32 i = 0; i < rTrackBuffer.GetSize(); ++i)
+	iterator.Write_uint32((uint32)_rotationTracks.GetSize());
+	for (const Pair<const String, AnimationTrack<Quaternion>>& kv : _rotationTracks)
 	{
-		Debug::PrintLine(CSTR("\t\"", tTrackBuffer[i]->first, "\":\n\t{"));
+		Debug::PrintLine(CSTR("\t\"", kv.first, "\":\n\t{"));
 
-		iterator.Write_cstr(rTrackBuffer[i]->first.GetData());
+		iterator.Write_cstr(kv.first.begin());
 
-		auto keyframes = rTrackBuffer[i]->second.GetKeyframes();
+		auto keyframes = kv.second.GetKeyframes();
 
 		iterator.Write_uint32((uint32)keyframes.GetSize());
 		for (uint32 j = 0; j < keyframes.GetSize(); ++j)
@@ -152,14 +148,14 @@ void Animation::Write(ByteWriter &iterator) const
 
 	Debug::PrintLine("}\n\nSCALING TRACKS:\n{");
 
-	iterator.Write_uint32((uint32)sTrackBuffer.GetSize());
-	for (uint32 i = 0; i < sTrackBuffer.GetSize(); ++i)
+	iterator.Write_uint32((uint32)_scalingTracks.GetSize());
+	for (const Pair<const String, AnimationTrack<Vector3>>& kv : _scalingTracks)
 	{
-		Debug::PrintLine(CSTR("\t\"", tTrackBuffer[i]->first, "\":\n\t{"));
+		Debug::PrintLine(CSTR("\t\"", kv.first, "\":\n\t{"));
 
-		iterator.Write_cstr(sTrackBuffer[i]->first.GetData());
+		iterator.Write_cstr(kv.first.begin());
 
-		auto keyframes = sTrackBuffer[i]->second.GetKeyframes();
+		auto keyframes = kv.second.GetKeyframes();
 
 		iterator.Write_uint32((uint32)keyframes.GetSize());
 		for (uint32 j = 0; j < keyframes.GetSize(); ++j)

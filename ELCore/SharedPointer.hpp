@@ -67,6 +67,11 @@ protected:
 	
 	static SharedPointerData<T>* _NullPtrData() { return reinterpret_cast<SharedPointerData<T>*>(&_nullPtrData); }
 
+	SharedPointer(T* addr) 
+	{
+		_data = addr ? new SharedPointerData<T>(addr, 1, _pDeletePointer) : _NullPtrData();
+	}
+
 public:
 	SharedPointer() : _data(_NullPtrData()) {}
 	SharedPointer(const SharedPointer& other) : _data(other._data)
@@ -87,9 +92,9 @@ public:
 	/*
 		Note: addr will be deleted when all SharedPointer instances are out of scope
 	*/
-	explicit SharedPointer(T* addr)
+	static SharedPointer Create(T* addr)
 	{
-		_data = addr ? new SharedPointerData<T>(addr, 1, _pDeletePointer) : _NullPtrData();
+		return SharedPointer(addr);
 	}
 
 	explicit SharedPointer(T& obj)

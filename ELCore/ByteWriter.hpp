@@ -1,5 +1,6 @@
 #pragma once
 #include "Buffer.hpp"
+#include "Types.hpp"
 
 class ByteWriter
 {

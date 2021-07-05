@@ -1,35 +1,55 @@
 #pragma once
 #include "Hashmap.hpp"
 
-typedef uint16 NSInt;
-
-template<typename T>
-class NumberedSet 
+template <typename ValueType, typename IdType = uint32, typename AllocatorType = DefaultAllocator<ValueType>>
+class NumberedSet
 {
-	Hashmap<NSInt, T> _map;
-	NSInt nextId;
+public:
+	using id_type = IdType;
+
+private:
+	using _Value2IdAlloc = Utilities::ReplaceParam<AllocatorType, Pair<ValueType, IdType>>::Type;
+	using _Id2ValueAlloc = Utilities::ReplaceParam<AllocatorType, Pair<IdType, ValueType>>::Type;
+
+	Hashmap<ValueType, IdType, MurmurHash3_32_FixedSeed, _Value2IdAlloc> _value2id;
+	Hashmap<IdType, ValueType, MurmurHash3_32_FixedSeed, _Id2ValueAlloc> _id2value;
+
+	id_type _nextID;
 
 public:
-	NumberedSet(uint32 initialID = 1) : nextId(initialID) {}
-	~NumberedSet() {}
+	constexpr NumberedSet(id_type firstID = (id_type)1, const AllocatorType& allocator = AllocatorType()) noexcept : _value2id(allocator), _id2value(allocator), _nextID(firstID) {}
 
-	T* Get(NSInt id) { return _map.Get(id); }
-	const T* Get(NSInt id) const { return _map.Get(id); }
-
-	const NSInt* IDOf(const T &value) const { return _map.FindFirstKey(value); }
-
-	//Adds item if not present, returns ID
-	NSInt Add(const T &value) 
+	constexpr void Set(id_type id, const ValueType& value)
 	{
-		const NSInt* existingID = _map.FindFirstKey(value);
-		if (existingID)
-			return *existingID;
-
-		_map[nextId] = value;
-		return nextId++;
+		auto sz = _id2value.GetSize();
+		_id2value.Set(id, value);
+		if (_id2value.GetSize() > sz)
+			_value2id.Set(value, id);
 	}
 
-	Buffer<Pair<const NSInt, const String>*> ToKVBuffer() const { return _map.ToKVBuffer(); }
+	constexpr id_type Add(const ValueType& value)
+	{ 
+		id_type id = _value2id.GetOrDefault(value, _nextID);
+		if (id == _nextID)
+		{
+			//added new bucket
+			_id2value.Set(id, value);
+			++_nextID;
+		}
 
-	T& operator[](NSInt id) { return _map[id]; }
+		return id;
+	}
+
+	constexpr const ValueType* TryGet(id_type id) const
+	{
+		return _id2value.TryGet(id);
+	}
+
+	constexpr const id_type* IDOf(const ValueType& value)
+	{
+		return _value2id.TryGet(value);
+	}
+
+	constexpr const auto begin() const noexcept { return _id2value.begin(); }
+	constexpr const auto end() const noexcept { return _id2value.end(); }
 };

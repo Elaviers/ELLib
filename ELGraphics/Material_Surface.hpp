@@ -8,7 +8,7 @@ class MaterialSurface : public Material
 private:
 	SharedPointer<const Texture> _diffuse, _normal, _specular, _reflection;
 	
-	void CMD_tex(const Buffer<String>& args, const Context&);
+	void CMD_tex(const Array<String>& args, const Context&);
 public:
 	MaterialSurface(
 		const SharedPointer<const Texture>& diffuse = SharedPointer<const Texture>(),

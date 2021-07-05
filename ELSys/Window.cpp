@@ -80,20 +80,20 @@ void Window::Win32SetIconResource(int resource)
 Window::Window() : 
 	_hwnd(NULL), _hdc(NULL), 
 	_closeDestroysWindow(true),
-	_eventList(NewHandler(&_EventPoolType::NewArray, _eventPool), DeleteHandler(&_EventPoolType::DeleteHandler, _eventPool))
+	_eventList(_eventMemory.GetAllocator<WindowEvent>())
 {
 }
 
 Window::Window(Window&& other) :
 	_hwnd(other._hwnd), _hdc(other._hdc), _closeDestroysWindow(other._closeDestroysWindow),
-	_eventList(NewHandler(&_EventPoolType::NewArray, _eventPool), DeleteHandler(&_EventPoolType::DeleteHandler, _eventPool))
+	_eventList(_eventMemory.GetAllocator<WindowEvent>())
 {
 	other._hwnd = NULL;
 	other._hdc = NULL;
 
 	_eventList = other._eventList;
 	other._eventList.Clear();
-	other._eventPool.Clear();
+	other._eventMemory.Clear();
 }
 
 void Window::Create(const char* title, const Window* parent, WindowFlags flags)
@@ -184,11 +184,11 @@ bool Window::PollEvent(WindowEvent& out)
 		::DispatchMessage(&msg);
 	}
 
-	if (_eventList.begin().IsValid())
+	if (_eventList.GetSize())
 	{
 		out = *_eventList.begin();
-		if (!_eventList.RemoveIndex(0).IsValid())
-			_eventPool.Clear();
+		if (!_eventList.RemoveFront())
+			_eventMemory.Clear();
 
 		return true;
 	}
@@ -230,13 +230,13 @@ LRESULT CALLBACK WindowFunctions_Win32::WindowProc(Window* window, HWND hwnd, UI
 		if (window->_closeDestroysWindow)
 			::DestroyWindow(hwnd);
 		else
-			window->_eventList.Emplace(WindowEvent::CLOSED);
+			window->_eventList.EmplaceBack(WindowEvent::CLOSED);
 
 		break;
 
 	case WM_DESTROY:
 		if (window->_closeDestroysWindow)
-			window->_eventList.Emplace(WindowEvent::CLOSED);
+			window->_eventList.EmplaceBack(WindowEvent::CLOSED);
 		
 		break;
 
@@ -254,7 +254,7 @@ LRESULT CALLBACK WindowFunctions_Win32::WindowProc(Window* window, HWND hwnd, UI
 
 		if (!done)
 		{
-			auto& e = *window->_eventList.Emplace(WindowEvent::RESIZE);
+			auto& e = window->_eventList.EmplaceBack(WindowEvent::RESIZE);
 			e.data.resize.w = LOWORD(lparam);
 			e.data.resize.h = HIWORD(lparam);
 		}
@@ -262,11 +262,11 @@ LRESULT CALLBACK WindowFunctions_Win32::WindowProc(Window* window, HWND hwnd, UI
 		break;
 		
 	case WM_SETFOCUS:
-		window->_eventList.Emplace(WindowEvent::FOCUS_GAINED);
+		window->_eventList.EmplaceBack(WindowEvent::FOCUS_GAINED);
 		break;
 
 	case WM_KILLFOCUS:
-		window->_eventList.Emplace(WindowEvent::FOCUS_LOST);
+		window->_eventList.EmplaceBack(WindowEvent::FOCUS_LOST);
 		break;
 
 	case WM_MOUSEMOVE:
@@ -283,7 +283,7 @@ LRESULT CALLBACK WindowFunctions_Win32::WindowProc(Window* window, HWND hwnd, UI
 
 		if (!done)
 		{
-			auto& e = *window->_eventList.Emplace(WindowEvent::MOUSEMOVE);
+			auto& e = window->_eventList.EmplaceBack(WindowEvent::MOUSEMOVE);
 			e.data.mouseMove.x = GET_X_LPARAM(lparam);
 			e.data.mouseMove.y = GET_Y_LPARAM(lparam);
 		}
@@ -291,31 +291,31 @@ LRESULT CALLBACK WindowFunctions_Win32::WindowProc(Window* window, HWND hwnd, UI
 		break;
 
 	case WM_LBUTTONDOWN:
-		window->_eventList.Emplace(WindowEvent::LEFTMOUSEDOWN);
+		window->_eventList.EmplaceBack(WindowEvent::LEFTMOUSEDOWN);
 		break;
 
 	case WM_LBUTTONUP:
-		window->_eventList.Emplace(WindowEvent::LEFTMOUSEUP);
+		window->_eventList.EmplaceBack(WindowEvent::LEFTMOUSEUP);
 		break;
 
 	case WM_RBUTTONDOWN:
-		window->_eventList.Emplace(WindowEvent::RIGHTMOUSEDOWN);
+		window->_eventList.EmplaceBack(WindowEvent::RIGHTMOUSEDOWN);
 		break;
 
 	case WM_RBUTTONUP:
-		window->_eventList.Emplace(WindowEvent::RIGHTMOUSEUP);
+		window->_eventList.EmplaceBack(WindowEvent::RIGHTMOUSEUP);
 		break;
 
 	case WM_MOUSEWHEEL:
 	{
-		auto& e = *window->_eventList.Emplace(WindowEvent::SCROLLWHEEL);
+		auto& e = window->_eventList.EmplaceBack(WindowEvent::SCROLLWHEEL);
 		e.data.scrollWheel.lines = (int16)HIWORD(wparam) / WHEEL_DELTA;
 	}
 		break;
 
 	case WM_KEYDOWN:
 	{
-		auto& e = *window->_eventList.Emplace(WindowEvent::KEYDOWN);
+		auto& e = window->_eventList.EmplaceBack(WindowEvent::KEYDOWN);
 		e.data.keyDown.key = (EKeycode)WindowFunctions_Win32::SplitKeyWPARAMLeftRight(wparam);
 		e.data.keyDown.isRepeat = lparam & (1 << 30);
 	}
@@ -323,14 +323,14 @@ LRESULT CALLBACK WindowFunctions_Win32::WindowProc(Window* window, HWND hwnd, UI
 
 	case WM_KEYUP:
 	{
-		auto& e = *window->_eventList.Emplace(WindowEvent::KEYUP);
+		auto& e = window->_eventList.EmplaceBack(WindowEvent::KEYUP);
 		e.data.keyUp.key = (EKeycode)WindowFunctions_Win32::SplitKeyWPARAMLeftRight(wparam);
 	}
 		break;
 
 	case WM_CHAR:
 	{
-		auto& e = *window->_eventList.Emplace(WindowEvent::CHAR);
+		auto& e = window->_eventList.EmplaceBack(WindowEvent::CHAR);
 		e.data.character = (char)wparam;
 	}
 		break;
@@ -347,7 +347,7 @@ LRESULT CALLBACK WindowFunctions_Win32::WindowProc(Window* window, HWND hwnd, UI
 
 		GetRawInputData((HRAWINPUT)lparam, RID_INPUT, &buffer[0], &size, sizeof(RAWINPUTHEADER));
 
-		RAWINPUT* input = (RAWINPUT*)buffer.Elements();
+		RAWINPUT* input = (RAWINPUT*)buffer.begin();
 		if (input->header.dwType == RIM_TYPEMOUSE)
 		{
 			bool done = false;
@@ -362,7 +362,7 @@ LRESULT CALLBACK WindowFunctions_Win32::WindowProc(Window* window, HWND hwnd, UI
 
 			if (!done)
 			{
-				auto& e = *window->_eventList.Emplace(WindowEvent::RAWINPUT);
+				auto& e = window->_eventList.EmplaceBack(WindowEvent::RAWINPUT);
 				e.data.rawInput.type = WindowEvent::RawInputType::MOUSE;
 				e.data.rawInput.mouse.lastX = (int16)input->data.mouse.lLastX;
 				e.data.rawInput.mouse.lastY = (int16)input->data.mouse.lLastY;

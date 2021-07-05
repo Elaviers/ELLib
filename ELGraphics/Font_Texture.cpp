@@ -21,7 +21,7 @@ const PropertyCollection& FontTexture::GetProperties()
 	return properties;
 }
 
-void FontTexture::_CMD_texture(const Buffer<String>& args, const Context& ctx)
+void FontTexture::_CMD_texture(const Array<String>& args, const Context& ctx)
 {
 	if (args.GetSize() > 0)
 	{
@@ -29,7 +29,7 @@ void FontTexture::_CMD_texture(const Buffer<String>& args, const Context& ctx)
 	}
 }
 
-void FontTexture::_CMD_region(const Buffer<String>& args, const Context& ctx)
+void FontTexture::_CMD_region(const Array<String>& args, const Context& ctx)
 {
 	if (args.GetSize() >= 6)
 	{
@@ -112,7 +112,7 @@ float FontTexture::CalculateStringWidth(const char* string, float scaleX, size_t
 		}
 		else if (*c == '\t')
 		{
-			const Glyph* space = _charMap.Get(' ');
+			const Glyph* space = _charMap.TryGet(' ');
 			float stopWidth = space->width * scale * 5.f;
 			float nextStop = Maths::Trunc(currentLineW, stopWidth) + stopWidth;
 
@@ -127,7 +127,7 @@ float FontTexture::CalculateStringWidth(const char* string, float scaleX, size_t
 		}
 		else
 		{
-			const Glyph* glyph = _charMap.Get(*c);
+			const Glyph* glyph = _charMap.TryGet(*c);
 			if (glyph)
 				currentLineW += (glyph->width + glyph->advance) * scale;
 		}
@@ -172,14 +172,14 @@ size_t FontTexture::GetPositionOf(float pX, float pY, const char* string, const 
 		}
 		else if (*c == '\t')
 		{
-			const Glyph* space = _charMap.Get(' ');
+			const Glyph* space = _charMap.TryGet(' ');
 			float stopWidth = space->width * scale * 5.f;
 			float nextStop = Maths::Trunc(currentLineW, stopWidth) + stopWidth;
 			currentCharW = (nextStop - currentLineW);
 		}
 		else
 		{
-			const Glyph* glyph = _charMap.Get(*c);
+			const Glyph* glyph = _charMap.TryGet(*c);
 			if (glyph)
 			{
 				currentCharW = (glyph->width + glyph->advance) * scale;
@@ -201,7 +201,7 @@ size_t FontTexture::GetPositionOf(float pX, float pY, const char* string, const 
 		++i;
 	}
 
-	return StringLength(string);
+	return StringUtils::Length(string);
 }
 
 void FontTexture::RenderString(RenderEntry& e, const char* string, const Transform& transform, float lineHeight, const RectF& clip) const
@@ -309,13 +309,13 @@ void FontTexture::RenderString(RenderEntry& e, const char* string, const Transfo
 		}
 		else if (*c == '\t')
 		{
-			const Glyph* space = _charMap.Get(' ');
+			const Glyph* space = _charMap.TryGet(' ');
 			float stopWidth = space->width * xScale * 5.f;
 			x = Maths::Trunc(x, stopWidth) + stopWidth;
 		}
 		else if (!clipped)
 		{
-			const Glyph* glyph = _charMap.Get(*c);
+			const Glyph* glyph = _charMap.TryGet(*c);
 			if (glyph)
 			{
 				gX = 0.f;

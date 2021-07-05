@@ -6,6 +6,7 @@
 #include <ELCore/ByteReader.hpp>
 #include <ELCore/ByteWriter.hpp>
 #include <ELCore/String.hpp>
+#include <ELCore/Utilities.hpp>
 
 template <typename T>
 union Matrix4T

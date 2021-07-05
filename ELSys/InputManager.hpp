@@ -2,6 +2,7 @@
 #include "EKeycode.hpp"
 #include <ELCore/Function.hpp>
 #include <ELCore/Hashmap.hpp>
+#include <ELCore/List.hpp>
 
 enum class EInputAxis
 {
@@ -89,15 +90,15 @@ public:
 
 	void Clear();
 
-	void BindAxis(EInputAxis axis, float *axisPtr) { _axisBinds[axis].Add(axisPtr); }
+	void BindAxis(EInputAxis axis, float *axisPtr) { _axisBinds[axis].AddBack(axisPtr); }
 
 	template <typename T>
-	void BindKeyDown(EKeycode key, const T &callback) { _keyBinds[key].Add(new KeyBind_CallbackDown<T>(callback)); }
+	void BindKeyDown(EKeycode key, const T &callback) { _keyBinds[key].AddBack(new KeyBind_CallbackDown<T>(callback)); }
 	
 	template <typename T>
-	void BindKeyUp(EKeycode key, const T &callback) { _keyBinds[key].Add(new KeyBind_CallbackUp<T>(callback)); }
+	void BindKeyUp(EKeycode key, const T &callback) { _keyBinds[key].AddBack(new KeyBind_CallbackUp<T>(callback)); }
 	
-	void BindKeyAxis(EKeycode key, float *axisPtr, float axisDisplacement) { _keyBinds[key].Add(new KeyBind_Axis(axisPtr, axisDisplacement)); }
+	void BindKeyAxis(EKeycode key, float *axisPtr, float axisDisplacement) { _keyBinds[key].AddBack(new KeyBind_Axis(axisPtr, axisDisplacement)); }
 
 	bool IsKeyDown(EKeycode key) const { return _keyStates[(byte)key] == 1; }
 

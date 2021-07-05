@@ -29,7 +29,7 @@ void UISplitter::UpdateBounds()
 				{
 					UIBounds newBounds = child->GetBounds();
 
-					if (_after.Contains(child))
+					if (IteratorUtils::FirstEqualPosition(_after.begin(), _after.end(), child) != _after.end())
 					{
 						float relH = _absoluteBounds.h / parent->GetAbsoluteBounds().h;
 						newBounds.y = relY + relH;
@@ -57,7 +57,7 @@ void UISplitter::UpdateBounds()
 				{
 					UIBounds newBounds = child->GetBounds();
 
-					if (_after.Contains(child))
+					if (IteratorUtils::FirstEqualPosition(_after.begin(), _after.end(), child) != _after.end())
 					{
 						float relW = _absoluteBounds.w / parent->GetAbsoluteBounds().w;
 						newBounds.x = relX + relW;

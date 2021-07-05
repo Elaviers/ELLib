@@ -4,7 +4,7 @@
 #include <ELCore/Context.hpp>
 #include <ELCore/MacroUtilities.hpp>
 
-void Texture::Info::CMD_min(const Buffer<String>& args, const Context& ctx)
+void Texture::Info::CMD_min(const Array<String>& args, const Context& ctx)
 {
 	if (args.GetSize() > 0)
 	{
@@ -20,7 +20,7 @@ void Texture::Info::CMD_min(const Buffer<String>& args, const Context& ctx)
 
 }
 
-void Texture::Info::CMD_mag(const Buffer<String>& args, const Context& ctx)
+void Texture::Info::CMD_mag(const Array<String>& args, const Context& ctx)
 {
 	if (args.GetSize() > 0)
 	{
@@ -41,7 +41,7 @@ GLint StringToWrap(const String& stringin)
 	return 0;
 }
 
-void Texture::Info::CMD_wrap(const Buffer<String>& args, const Context& ctx)
+void Texture::Info::CMD_wrap(const Array<String>& args, const Context& ctx)
 {
 	if (args.GetSize() == 1)
 	{
@@ -57,7 +57,7 @@ void Texture::Info::CMD_wrap(const Buffer<String>& args, const Context& ctx)
 	}
 }
 
-void Texture::_CMD_img(const Buffer<String>& args, const Context& ctx)
+void Texture::_CMD_img(const Array<String>& args, const Context& ctx)
 {
 	if (args.GetSize() > 0)
 	{
@@ -71,9 +71,9 @@ void Texture::_CMD_img(const Buffer<String>& args, const Context& ctx)
 				String filename = paths[paths.GetSize() - 1 - i] + args[0];
 
 				Buffer<byte> data;
-				if (IO::FileExists(filename.GetData()) && IO::ReadPNGFile(filename.GetData(), data, _width, _height))
+				if (IO::FileExists(filename.begin()) && IO::ReadPNGFile(filename.begin(), data, _width, _height))
 				{
-					Create(data.Elements(), _width, _height, textureManager->GetMaxMipLevels(), textureManager->GetMaxAnisotropy());
+					Create(data.begin(), _width, _height, textureManager->GetMaxMipLevels(), textureManager->GetMaxAnisotropy());
 					break;
 				}
 			}

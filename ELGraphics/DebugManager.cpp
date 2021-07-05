@@ -1,6 +1,7 @@
 #include "DebugManager.hpp"
 #include "DebugObject.hpp"
 #include "Font.hpp"
+#include <ELCore/IteratorUtils.hpp>
 #include <ELCore/String.hpp>
 
 void DebugManager::Update(float deltaTime)
@@ -14,7 +15,7 @@ void DebugManager::Update(float deltaTime)
 		if (_worldObjects[i]->ShouldBeRemoved())
 		{
 			delete _worldObjects[i];
-			_worldObjects.RemoveIndex(i);
+			_worldObjects.Remove(i);
 		}
 		else
 			i++;
@@ -27,7 +28,7 @@ void DebugManager::Update(float deltaTime)
 		if (_screenObjects[i]->ShouldBeRemoved())
 		{
 			delete _screenObjects[i];
-			_screenObjects.RemoveIndex(i);
+			_screenObjects.Remove(i);
 		}
 		else
 			i++;

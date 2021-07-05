@@ -7,7 +7,7 @@ Mesh_Static::Mesh_Static(const Buffer<Vertex17F>& vertices, const Buffer<uint32>
 
 void Mesh_Static::UpdateRenderer()
 {
-	_renderer.GL().Create(vertices.Elements(), (GLsizei)vertices.GetSize(), elements.Elements(), (GLsizei)elements.GetSize());
+	_renderer.GL().Create(vertices.begin(), (GLsizei)vertices.GetSize(), elements.begin(), (GLsizei)elements.GetSize());
 }
 
 enum class EEFileVersion

@@ -5,25 +5,29 @@
 #include <ELMaths/Maths.hpp>
 #include <ELSys/Debug.hpp>
 
-#define TRYRELEASE(noob) if (noob != NULL) noob->Release();
+template <typename T>
+__forceinline void TryRelease(T * ptr)
+{
+	if (ptr) ptr->Release();
+}
 
 AudioManager::~AudioManager()
 {
 	if (_audioClient) _audioClient->Stop();
 
-	TRYRELEASE(_renderClient);
-	TRYRELEASE(_audioClient);
-	TRYRELEASE(_audioDevice);
-	TRYRELEASE(_enumerator);
+	TryRelease(_renderClient);
+	TryRelease(_audioClient);
+	TryRelease(_audioDevice);
+	TryRelease(_enumerator);
 }
 
-WaveSound* AudioManager::_CreateResource(const Buffer<byte>& data, const String& name, const String& extension, const Context&)
+WaveSound* AudioManager::_CreateResource(const Array<byte>& data, const String& name, const String& extension, const Context&)
 {
 	String filename;
 	float volume = 1.f;
 	ESoundCategory category = ESoundCategory::GENERIC;
 
-	Buffer<String> lines = String(data).ToLower().Split("\r\n");
+	Buffer<String> lines = String(data.begin(), data.GetSize()).ToLower().Split("\r\n");
 
 	for (const String& line : lines)
 	{
@@ -40,7 +44,7 @@ WaveSound* AudioManager::_CreateResource(const Buffer<byte>& data, const String&
 		}
 	}
 
-	WaveSound* sound = IO::ReadWaveFile((this->GetRootPath() + filename).GetData());
+	WaveSound* sound = IO::ReadWaveFile((this->GetRootPath() + filename).begin());
 	sound->volume = volume;
 	sound->category = category;
 
@@ -148,18 +152,16 @@ void AudioManager::FillBuffer()
 
 		List<Sampler>::Iterator it = _playingSounds.begin();
 
-		while (it.IsValid())
+		while (it)
 		{
-			List<Sampler>::Iterator next = it.Next();
-
 			uint32 framesWritten = it->ReadToSoundBuffer(buffer, availableFrames, _waveFormat.nSamplesPerSec, _waveFormat.nChannels, .5f);
 
 			destFramesWritten = Maths::Max(destFramesWritten, framesWritten);
 
 			if (framesWritten == 0)
-				_playingSounds.Remove(it);
-
-			it = next;
+				it = _playingSounds.Remove(it);
+			else
+				++it;
 		}
 
 		result = _renderClient->ReleaseBuffer(destFramesWritten, 0);
@@ -174,13 +176,12 @@ Finished:
 
 void AudioManager::PlaySound(const WaveSound& sound)
 {
-	List<Sampler>::Iterator it = _playingSounds.Add(Sampler());
-
-	it->SetSound(sound);
-	it->SetLooping(false);
+	Sampler& sampler = _playingSounds.AddBack(Sampler());
+	sampler.SetSound(sound);
+	sampler.SetLooping(false);
 }
 
-void AudioManager::CMD_play(const Buffer<String> &args, const Context& ctx)
+void AudioManager::CMD_play(const Array<String> &args, const Context& ctx)
 {
 	if (args.GetSize() > 0)
 		this->PlaySound(args[0]);

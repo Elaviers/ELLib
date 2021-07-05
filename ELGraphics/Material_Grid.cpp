@@ -20,7 +20,7 @@ const PropertyCollection& MaterialGrid::GetProperties()
 	return properties;
 }
 
-void MaterialGrid::_CMD_texture(const Buffer<String> &args, const Context& ctx)
+void MaterialGrid::_CMD_texture(const Array<String> &args, const Context& ctx)
 {
 	if (args.GetSize() > 0)
 	{
@@ -33,7 +33,7 @@ void MaterialGrid::_CMD_texture(const Buffer<String> &args, const Context& ctx)
 	}
 }
 
-void MaterialGrid::_CMD_rows(const Buffer<String> &args, const Context& ctx)
+void MaterialGrid::_CMD_rows(const Array<String> &args, const Context& ctx)
 {
 	_rowHeights.Clear();
 
@@ -43,7 +43,7 @@ void MaterialGrid::_CMD_rows(const Buffer<String> &args, const Context& ctx)
 	_TryCalculateElements();
 }
 
-void MaterialGrid::_CMD_columns(const Buffer<String> &args, const Context& ctx)
+void MaterialGrid::_CMD_columns(const Array<String> &args, const Context& ctx)
 {
 	_columnWidths.Clear();
 
@@ -53,7 +53,7 @@ void MaterialGrid::_CMD_columns(const Buffer<String> &args, const Context& ctx)
 	_TryCalculateElements();
 }
 
-void MaterialGrid::_CMD_element(const Buffer<String>& args, const Context& ctx)
+void MaterialGrid::_CMD_element(const Array<String>& args, const Context& ctx)
 {
 	if (args.GetSize() >= 5)
 	{

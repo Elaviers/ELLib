@@ -4,40 +4,39 @@
 #include "TextureManager.hpp"
 #include "RenderEntry.hpp"
 #include <ELCore/Concepts.hpp>
-#include <ELCore/Pool.hpp>
+#include <ELCore/PagedMemory.hpp>
 #include <ELMaths/Transform.hpp>
 
 class Projection;
 
-struct QueueGroup
-{
-	const int priority;
-	List<const RenderEntry*> queue;
-
-	QueueGroup(
-		int priority,
-		const NewHandler& newHandler,
-		const DeleteHandler& deleteHandler)
-		: priority(priority), queue(newHandler, deleteHandler)
-	{}
-};
-
 class RenderQueue
 {
+public:
+	template <typename T>
+	using AllocatorType = PagedMemory<>::Allocator<T>;
+	
+	using EntryPtrListType = List<const RenderEntry*, AllocatorType<RenderEntry*>>;
+
+	struct QueueGroup
+	{
+		const int priority;
+		EntryPtrListType queue;
+
+		QueueGroup(int priority, const AllocatorType<RenderEntry*>& alloc)
+			: priority(priority), queue(alloc)
+		{}
+	};
+
 private:
-	typedef MultiPool<byte, sizeof(RenderEntry) * 32> _EntryPoolType;
-	typedef MultiPool<byte, sizeof(const RenderEntry*) * 32> _PtrPoolType;
+	PagedMemory<> _memory;
 
-	_EntryPoolType _entryPool;
-	_PtrPoolType _ptrPool;
-
-	List<RenderEntry> _entries;
+	List<RenderEntry, AllocatorType<RenderEntry>> _entries;
 	List<QueueGroup> _queues;
 	
-	List<const RenderEntry*>& _GetQueue(int priority);
+	EntryPtrListType& _GetQueue(int priority);
 
 public:
-	RenderQueue() : _entries(NewHandler(&_EntryPoolType::NewArray, _entryPool), DeleteHandler(&_EntryPoolType::DeleteHandler, _entryPool)) {}
+	RenderQueue() : _entries(_memory.GetAllocator<RenderEntry>()) {}
 	~RenderQueue() {}
 
 	void Clear();

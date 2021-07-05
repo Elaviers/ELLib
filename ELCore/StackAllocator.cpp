@@ -8,7 +8,7 @@ byte* StackAllocator::Push(StackFrameSize size)
 	while (_currentIndex + requiredBytes > _allocedSize)
 	{
 		byte* newData = new byte[_allocedSize + _pageSize];
-		
+
 		Utilities::CopyBytes(_data, newData, _currentIndex);
 		delete[] _data;
 		_data = newData;

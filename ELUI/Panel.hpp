@@ -16,7 +16,7 @@ class UIPanel : public UIElement
 
 	Vector2 _uvScaling;
 public:
-	UIPanel(UIElement *parent = nullptr) : UIElement(parent), _material(nullptr), _colour(Colour::White), _borderSize(0.f) {}
+	UIPanel(UIElement *parent = nullptr) : UIElement(parent), _colour(Colour::White), _borderSize(0.f) {}
 	virtual ~UIPanel() {}
 
 	virtual void UpdateBounds() override;

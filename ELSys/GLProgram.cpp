@@ -67,7 +67,7 @@ void GLProgram::Load(const char *vertFile, const char *fragFile)
 	String vertSrc = IO::ReadFileString(vertFile);
 	String fragSrc = IO::ReadFileString(fragFile);
 
-	Create(vertSrc.GetData(), fragSrc.GetData());
+	Create(vertSrc.begin(), fragSrc.begin());
 }
 
 GLint GLProgram::GetUniformLocation(const char *name) const

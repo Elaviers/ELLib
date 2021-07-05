@@ -5,7 +5,7 @@
 #include <ELSys/GL.hpp>
 #include <vector>
 
-Texture* TextureManager::_CreateResource(const Buffer<byte>& data, const String& name, const String& extension, const Context& ctx)
+Texture* TextureManager::_CreateResource(const Array<byte>& data, const String& name, const String& extension, const Context& ctx)
 {
 	if (extension == ".png")
 	{
@@ -17,7 +17,7 @@ Texture* TextureManager::_CreateResource(const Buffer<byte>& data, const String&
 		return tex;
 	}
 
-	Texture* tex = Asset::FromText<Texture>(data, ctx);
+	Texture* tex = Asset::FromText<Texture>(String(data.begin(), data.GetSize()), ctx);
 
 	if (tex == nullptr)
 		Debug::Error(CSTR("Could not load texture \"", name, '\"'));
@@ -25,7 +25,7 @@ Texture* TextureManager::_CreateResource(const Buffer<byte>& data, const String&
 	return tex;
 }
 
-void TextureManager::_ResourceRead(Texture& texture, const Buffer<byte>& data, const String& extension, const Context& ctx)
+void TextureManager::_ResourceRead(Texture& texture, const Array<byte>& data, const String& extension, const Context& ctx)
 {
 	if (extension == ".png")
 	{
@@ -33,7 +33,7 @@ void TextureManager::_ResourceRead(Texture& texture, const Buffer<byte>& data, c
 		unsigned int w, h;
 		if (IO::ReadPNGFile(data, pngData, w, h))
 		{
-			texture.Create(pngData.Elements(), w, h, _maxMipLevels, _maxAnisotropy);
+			texture.Create(pngData.begin(), w, h, _maxMipLevels, _maxAnisotropy);
 		}
 	}
 	else AssetManager<Texture>::_ResourceRead(texture, data, extension, ctx);

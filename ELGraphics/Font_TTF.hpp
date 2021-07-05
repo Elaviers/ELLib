@@ -30,7 +30,7 @@ private:
 
 	int _size;
 
-	void _CMD_LoadFont(const Buffer<String>& args, const Context& ctx);
+	void _CMD_LoadFont(const Array<String>& args, const Context& ctx);
 
 public:
 	FontTTF() : _face(nullptr), _vao(0), _vbo(0), _size(0), _descender(0) {}

@@ -1,32 +1,36 @@
 #include "RenderEntry.hpp"
 #include "RenderCommand.hpp"
 
+PagedMemory<> defaultRenderEntryMemory;
+
+RenderEntry::RenderEntry(ERenderChannels renderChannels) : RenderEntry(renderChannels, defaultRenderEntryMemory.GetAllocator<RenderCommand>())
+{
+}
+
 RenderEntry::~RenderEntry()
 {
-	if (_deleteHandler)
+	for (_Command& command : _commands)
 	{
-		for (_Command& command : _commands)
-			if (command.bDelete)
-				_deleteHandler((byte*)command.command);
+		if (command.bDelete)
+		{
+			RenderCommand* rcmd = const_cast<RenderCommand*>(command.command);
+			rcmd->~RenderCommand();
+			_allocator.deallocate(rcmd, 1);
+		}
 	}
-	else
-		for (_Command& command : _commands)
-			if (command.bDelete)
-				delete command.command;
 }
 
 void RenderEntry::Clear()
 {
-	if (_deleteHandler)
+	for (_Command& command : _commands)
 	{
-		for (_Command& command : _commands)
-			if (command.bDelete)
-				_deleteHandler((byte*)command.command);
+		if (command.bDelete)
+		{
+			RenderCommand* rcmd = const_cast<RenderCommand*>(command.command);
+			rcmd->~RenderCommand();
+			_allocator.deallocate(rcmd, 1);
+		}
 	}
-	else
-		for (_Command& command : _commands)
-			if (command.bDelete)
-				delete command.command;
 
 	_commands.Clear();
 }

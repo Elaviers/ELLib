@@ -3,7 +3,7 @@
 #include "CollisionBox.hpp"
 #include "CollisionSphere.hpp"
 #include <ELCore/List.hpp>
-#include <ELCore/Pool.hpp>
+#include <ELCore/PagedMemory.hpp>
 #include <ELMaths/LineSegment.hpp>
 #include <ELMaths/Ray.hpp>
 #include <ELMaths/Transform.hpp>
@@ -160,25 +160,27 @@ struct Face
 	}
 };
 
-void AddEdge(List<Pair<Vector3>>& edges, const Vector3& a, const Vector3& b)
+template <typename AllocType>
+void AddEdge(List<Pair<Vector3>, AllocType>& edges, const Vector3& a, const Vector3& b)
 {
-	for (auto it = edges.begin(); it.IsValid(); ++it)
+	for (auto it = edges.begin(); it; ++it)
 		if (a == it->second && b == it->first)
 			return;
 
-	edges.Add(Pair<Vector3>(a, b));
+	edges.EmplaceBack(a, b);
 }
 
-void InsertFace(List<Face>& closestFaces, const Face& face)
+template <typename AllocType>
+void InsertFace(List<Face, AllocType>& closestFaces, const Face& face)
 {
-	for (auto it = closestFaces.begin(); it.IsValid(); ++it)
+	for (auto it = closestFaces.begin(); it; ++it)
 		if (it->closestPointLengthSq > face.closestPointLengthSq)
 		{
-			closestFaces.Insert(face, it);
+			closestFaces.Add(it, face);
 			return;
 		}
 
-	closestFaces.Add(face);
+	closestFaces.EmplaceBack(face);
 }
 
 inline Vector3 Support(const GJKInfo& info, const Vector3& dir)
@@ -202,17 +204,15 @@ inline Vector3 Support(const GJKInfo& info, const Vector3& dir)
 //Not incredibly reliable right now...
 Vector3 EPA(const Vector3 simplex[4], const GJKInfo& info)
 {
-	typedef MultiPool<byte, 1000> PoolType;
-
 	//todo: this will cause problems with multithreading
-	static PoolType pool;
+	static PagedMemory<> pool;
 
 	pool.Clear();
 
 	//Array of closest faces, closest first, farthest last
-	List<Face> closestFaces(NewHandler(&PoolType::NewArray, pool), DeleteHandler(&PoolType::DeleteHandler, pool));
+	List<Face, PagedMemory<>::Allocator<Face>> closestFaces(pool.GetAllocator<Face>());
 
-	closestFaces.Add(Face(simplex[3], simplex[0], simplex[1]));
+	closestFaces.EmplaceBack(simplex[3], simplex[0], simplex[1]);
 	InsertFace(closestFaces, Face(simplex[3], simplex[1], simplex[2]));
 	InsertFace(closestFaces, Face(simplex[3], simplex[2], simplex[0]));
 	InsertFace(closestFaces, Face(simplex[0], simplex[1], simplex[2]));
@@ -229,10 +229,10 @@ Vector3 EPA(const Vector3 simplex[4], const GJKInfo& info)
 		if (newDot - oldDot <= EPA_TOLERANCE)
 			return closestFace.closestPointToOrigin;
 
-		List<Pair<Vector3>> edges(NewHandler(&PoolType::NewArray, pool), DeleteHandler(&PoolType::DeleteHandler, pool));
+		List<Pair<Vector3>, PagedMemory<>::Allocator<Pair<Vector3>>> edges(pool.GetAllocator<Face>());
 
 		//Remove any faces that the new point is in front of
-		for (auto it = closestFaces.begin(); it.IsValid();)
+		for (auto it = closestFaces.begin(); it;)
 		{
 			//Point on iterator face -> new point . iterator normal
 			if ((newPoint - it->a).Dot(it->normal) > 0.f)

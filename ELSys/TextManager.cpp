@@ -1,13 +1,13 @@
 #include "TextManager.hpp"
 
-TextProvider* TextManager::_CreateResource(const Buffer<byte>& data, const String& name, const String& extension, const Context& ctx)
+TextProvider* TextManager::_CreateResource(const Array<byte>& data, const String& name, const String& extension, const Context& ctx)
 {
 	TextProvider* provider = new TextProvider();
-	provider->Set(data);
+	provider->Set(String(data.begin(), data.GetSize()));
 	return provider;
 }
 
-void TextManager::_ResourceRead(TextProvider& provider, const Buffer<byte>& data, const String& extension, const Context& ctx)
+void TextManager::_ResourceRead(TextProvider& provider, const Array<byte>& data, const String& extension, const Context& ctx)
 {
-	provider.Set(data);
+	provider.Set(String(data.begin(), data.GetSize()));
 }

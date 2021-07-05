@@ -14,12 +14,15 @@ void PhysSimulation::Simulate(float deltaSeconds, int maxSteps)
 
 			for (FixedBody& bodyB : _fixedBodies)
 				if (bodyA.Collision().BroadOverlapCheck(bodyA.GetTransform(), bodyB.Collision(), bodyB.GetTransform()))
-					_pfCollisions.Emplace(&bodyA, &bodyB);
+					_pfCollisions.EmplaceBack(&bodyA, &bodyB);
 
 			for (PhysicsBody& bodyB : _physicsBodies)
 				if (bodyA != bodyB && bodyA.Collision().BroadOverlapCheck(bodyA.GetTransform(), bodyB.Collision(), bodyB.GetTransform()))
-					if (!_ppCollisions.FirstWhere([&bodyA, &bodyB](const Pair<PhysicsBody*>& p) { return p.first == &bodyB && p.second == &bodyA; }).IsValid())
-						_ppCollisions.Emplace(&bodyA, &bodyB);
+					if (IteratorUtils::FirstWhere(
+						_ppCollisions.begin(), _ppCollisions.end(), 
+						[&bodyA, &bodyB](const auto& it) { return it->first == &bodyB && it->second == &bodyA; }) == _ppCollisions.end()
+					)
+						_ppCollisions.EmplaceBack(&bodyA, &bodyB);
 		}
 
 		//todo: minBounceVel is currently hardcoded

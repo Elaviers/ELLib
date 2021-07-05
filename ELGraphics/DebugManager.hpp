@@ -4,7 +4,6 @@
 #include <ELCore/Utilities.hpp>
 
 class Font;
-class String;
 
 class DebugManager
 {

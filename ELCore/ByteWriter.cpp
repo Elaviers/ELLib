@@ -1,5 +1,7 @@
 #include "ByteWriter.hpp"
 #include "IEEE754.hpp"
+#include "Utilities.hpp"
+#include "String.hpp"
 
 bool ByteWriter::SetIndex(size_t index)
 {
@@ -168,7 +170,7 @@ bool ByteWriter::Write_double(double value)
 
 bool ByteWriter::Write_cstr(const char* string)
 {
-	size_t len = StringLength(string);
+	size_t len = StringUtils::Length(string);
 
 	if (EnsureSpace(len + 1))
 	{

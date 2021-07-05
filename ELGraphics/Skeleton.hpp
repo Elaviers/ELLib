@@ -1,6 +1,7 @@
 #pragma once
 #include "Joint.hpp"
 #include <ELCore/List.hpp>
+#include <ELCore/IteratorUtils.hpp>
 
 class Skeleton
 {
@@ -62,16 +63,16 @@ public:
 	Joint* CreateJoint(Joint *parent)
 	{
 		if (_CanAddJoint(parent))
-			return &*_joints.Add(Joint(_nextJointID++, parent));
+			return &_joints.AddBack(Joint(_nextJointID++, parent));
 
 		return nullptr;
 	}
 
 	Joint* GetJointWithID(int id)
 	{
-		auto it = _joints.Get(id);
+		auto it = IteratorUtils::Offset(_joints.begin(), id);
 
-		return it.IsValid() ? &*it : nullptr;
+		return it ? &*it : nullptr;
 	}
 
 	Joint* GetJointWithName(const String& name)

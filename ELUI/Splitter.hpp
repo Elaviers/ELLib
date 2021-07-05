@@ -1,5 +1,6 @@
 #pragma once
 #include "Rect.hpp"
+#include <ELCore/IteratorUtils.hpp>
 #include <ELCore/List.hpp>
 
 class UISplitter : public UIRect
@@ -41,14 +42,14 @@ public:
 
 	UISplitter& ShowSiblingBefore(UIElement* sibling)
 	{
-		_after.Remove(sibling);
+		_after.Remove(IteratorUtils::FirstEqualPosition(_after.begin(), _after.end(), sibling));
 		return *this;
 	}
 
 	UISplitter& ShowSiblingAfter(UIElement* sibling) 
 	{
-		if (!_after.Contains(sibling))
-			_after.Add(sibling);
+		if (IteratorUtils::FirstEqualPosition(_after.begin(), _after.end(), sibling) == _after.end())
+			_after.EmplaceBack(sibling);
 
 		return *this;
 	}

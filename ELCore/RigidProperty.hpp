@@ -31,7 +31,7 @@ public:
 
 	String GetAsString(const Context& ctx) const { return _baseProperty.GetAsString(_object, ctx); }
 	void SetAsString(const String& string, const Context& ctx) const { _baseProperty.SetAsString(_object, string, ctx); }
-	String HandleCommand(const Buffer<String>& args, const Context& ctx) const { return _baseProperty.HandleCommand(_object, args, ctx); }
+	String HandleCommand(const Array<String>& args, const Context& ctx) const { return _baseProperty.HandleCommand(_object, args, ctx); }
 };
 
 template<typename T>

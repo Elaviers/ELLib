@@ -23,7 +23,7 @@ RigidProperty* RigidPropertyCollection::Find(const String& name) const
 	return nullptr;
 }
 
-String RigidPropertyCollection::HandleCommand(const Buffer<String>& tokens, const Context& ctx) const
+String RigidPropertyCollection::HandleCommand(const Array<String>& tokens, const Context& ctx) const
 {
 	if (tokens.GetSize() > 0)
 	{
@@ -31,7 +31,7 @@ String RigidPropertyCollection::HandleCommand(const Buffer<String>& tokens, cons
 
 		if (property)
 		{
-			Buffer<String> args(&tokens[1], tokens.GetSize() - 1);
+			VBuffer<String> args(&tokens[1], tokens.GetSize() - 1);
 			return property->HandleCommand(args, ctx);
 		}
 	}

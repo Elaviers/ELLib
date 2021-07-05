@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="utf-8"?> 
+<AutoVisualizer xmlns="http://schemas.microsoft.com/vstudio/debugger/natvis/2010">
+	<Type Name="TString&lt;*&gt;">
+		<DisplayString>{_data}</DisplayString>
+		<StringView>_data</StringView>
+		<Expand>
+			<Item Name="Length">_length</Item>
+			<Item Name="Data">_data</Item>
+		</Expand>
+	</Type>
+
+	<Type Name="Array&lt;*&gt;">
+		<Expand>
+			<Item Name="Size">_size</Item>
+			<ArrayItems>
+				<Size>_size</Size>
+				<ValuePointer>_elements</ValuePointer>
+			</ArrayItems>
+		</Expand>
+	</Type>
+	
+	<Type Name="Buffer&lt;*&gt;">
+		<Expand>
+			<Item Name="Size">_size</Item>
+			<ArrayItems>
+				<Size>_size</Size>
+				<ValuePointer>_elements</ValuePointer>
+			</ArrayItems>
+		</Expand>
+	</Type>
+
+	<Type Name="List&lt;*&gt;">
+		<Expand>
+			<Item Name="Size">_size</Item>
+			<LinkedListItems>
+				<HeadPointer>_first</HeadPointer>
+				<NextPointer>next</NextPointer>
+				<ValueNode>value</ValueNode>
+			</LinkedListItems>
+		</Expand>
+	</Type>
+
+	<Type Name="Hashmap&lt;*&gt;">
+		<Expand>
+			<Item Name="Size">_iSize</Item>
+			<CustomListItems>
+				<Variable Name="node" InitialValue="_iFirst"/>
+				<Size>_iSize</Size>
+				<Loop>
+					<Break Condition="node == nullptr"/>
+					<Item Name="[{node->kv.first}]">node->kv.second</Item>
+					<Exec>node = node->iNext</Exec>
+				</Loop>
+			</CustomListItems>
+		</Expand>
+	</Type>
+
+	<Type Name="Map&lt;*&gt;">
+		<Expand>
+			<Item Name="Size">_iSize</Item>
+			<TreeItems>
+				<HeadPointer>_root</HeadPointer>
+				<LeftPointer>left</LeftPointer>
+				<RightPointer>right</RightPointer>
+				<ValueNode>kv</ValueNode>
+			</TreeItems>
+		</Expand>
+	</Type>
+
+	<Type Name="Pair&lt;*&gt;">
+		<DisplayString>[{first}][{second}]</DisplayString>
+	</Type>
+
+	<Type Name="Function&lt;*&gt;">
+		<DisplayString Condition="_cc == nullptr">Function (Raw)</DisplayString>
+		<DisplayString Condition="(void*)_cc == (void*)_static">Function (Static)</DisplayString>
+		<DisplayString Condition="_cc &amp;&amp; (void*)_cc != (void*)_static">Function (Allocated)</DisplayString>
+		<Expand>
+			<Item Condition="_cc == nullptr" Name="Static">_fptr</Item>
+			<ExpandedItem Condition="_cc">_cc</ExpandedItem>
+		</Expand>
+	</Type>
+</AutoVisualizer>

@@ -1,6 +1,7 @@
 #pragma once
 #include <ELCore/Buffer.hpp>
 #include <ELCore/Pair.hpp>
+#include <ELCore/String.hpp>
 
 namespace IO {
 	bool DirectoryExists(const char* path);
@@ -10,11 +11,13 @@ namespace IO {
 
 	Buffer<byte> ReadFile(const char *filename, bool silent = false);
 	bool WriteFile(const char *filename, const byte *data, size_t dataLength);
-	inline bool WriteFile(const char* filename, const Buffer<byte>& buffer) { return WriteFile(filename, buffer.Elements(), buffer.GetSize()); }
+	inline bool WriteFile(const char* filename, const Array<byte>& data) { return WriteFile(filename, data.begin(), data.GetSize()); }
 
 	inline String ReadFileString(const char* filename, bool silent = false)
 	{
-		return String((char*)(ReadFile(filename, silent) + '\0').Elements());
+		Buffer<byte> filedata = ReadFile(filename, silent);
+		filedata.Add('\0');
+		return String(filedata.begin(), filedata.GetSize());
 	}
 
 	//searchPath must have a wildcard in it, like C:/Example/*.poo

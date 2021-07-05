@@ -137,14 +137,14 @@ namespace GL
 
 	void AssertExtension(const char *extension_str, const char *extension)
 	{
-		if (!StringContains(extension_str, extension))
+		if (!StringUtils::Contains(extension_str, extension))
 			Debug::FatalError(CSTR("OpenGL extension \"", extension, "\" not supported!"));
 	}
 
 	void AssertExtension(const Buffer<const char*>& extensions, const char* extension)
 	{
 		for (const char* ext : extensions)
-			if (StringsEqual(ext, extension))
+			if (StringUtils::Equal(ext, extension))
 				return;
 
 		Debug::FatalError(CSTR("OpenGL extension \"", extension, "\" not supported!"));

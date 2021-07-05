@@ -175,12 +175,11 @@ using Getter = Function<T>;
 template<typename T>
 using Setter = Function<void, const T&>;
 
-using NewHandler = Function<byte*, size_t>;
-
-using DeleteHandler = Function<void, byte*>;
+#include "Array.hpp"
+#include "String.hpp"
 
 class Context;
-typedef Function<void, const Buffer<String>&, const Context&> CommandPtr;
+using CommandPtr = Function<void, const Array<String>&, const Context&>;
 
 template<typename T>
 using ContextualGetter = Function<T, const Context&>;

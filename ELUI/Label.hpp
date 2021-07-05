@@ -32,7 +32,7 @@ class UILabel : public UIElement
 
 public:
 	UILabel(UIElement *parent = nullptr) : 
-		UIElement(parent), _font(nullptr), _colour(Colour::White), _shadowOffset(2.f, -2.f), _shadowColour(Colour::Black), _margin(4.f), _alignment(ETextAlignment::LEFT) {}
+		UIElement(parent), _colour(Colour::White), _shadowOffset(2.f, -2.f), _shadowColour(Colour::Black), _margin(4.f), _alignment(ETextAlignment::LEFT) {}
 	virtual ~UILabel() {}
 
 	const SharedPointer<const Font>& GetFont() const { return _font; }

@@ -5,6 +5,7 @@
 #include <ELCore/Hashmap.hpp>
 #include <ELCore/SharedPointer.hpp>
 #include <ELCore/String.hpp>
+#include <ELCore/IteratorUtils.hpp>
 
 class AssetManagerBase
 {
@@ -18,7 +19,11 @@ protected:
 	template <typename T>
 	friend class AssetManager;
 
-	AssetManagerBase(const Buffer<String>& extensions) : _extensions(extensions), _fallbackAnywhere(false) { _paths.Add(""); /*Root dir*/ }
+	AssetManagerBase(const Array<String>& extensions) : _extensions(extensions), _fallbackAnywhere(false) 
+	{ 
+		_paths.Add(""); /*Root dir*/ 
+	}
+
 public:
 	virtual ~AssetManagerBase() {}
 
@@ -34,15 +39,15 @@ private:
 	Hashmap<String, SharedPointerData<T>> _map;
 	
 protected:
-	virtual T* _CreateResource(const Buffer<byte>& data, const String& name, const String& extension, const Context& ctx) = 0;
-	virtual void _ResourceRead(T& resource, const Buffer<byte>& data, const String& extension, const Context& ctx)
+	virtual T* _CreateResource(const Array<byte>& data, const String& name, const String& extension, const Context& ctx) = 0;
+	virtual void _ResourceRead(T& resource, const Array<byte>& data, const String& extension, const Context& ctx)
 	{
 		Asset* asset = dynamic_cast<Asset*>(&resource);
 		if (asset)
 		{
 			if (extension == ".txt")
 			{
-				asset->ReadText(String(data), ctx);
+				asset->ReadText(String(data.begin(), data.GetSize()), ctx);
 			}
 			else
 			{
@@ -69,24 +74,22 @@ protected:
 
 	void _DestroyAll()
 	{
-		Buffer<Pair<const String, SharedPointerData<T>>*> buffer = _map.ToKVBuffer();
-
-		for (size_t i = 0; i < buffer.GetSize(); ++i)
+		for (Pair<const String, SharedPointerData<T>>& kv : _map)
 		{
-			_DestroyResource(*buffer[i]->second.GetPtr());
-			delete buffer[i]->second.GetPtr();
-			buffer[i]->second.SetPtr(nullptr);
+			_DestroyResource(*kv.second.GetPtr());
+			delete kv.second.GetPtr();
+			kv.second.SetPtr(nullptr);
 		}
 	}
 
 	SharedPointerData<T>& _MapValue(const String& name)
 	{
-		SharedPointerData<T>* found = _map.Get(name);
+		SharedPointerData<T>* found = _map.TryGet(name);
 
 		if (found)
 			return *found;
 
-		return _map.Set(name, SharedPointerData<T>(nullptr, 0)); 
+		return _map.Emplace(name, nullptr, 0); 
 	}
 
 public:
@@ -96,8 +99,8 @@ public:
 	{
 		if (name.GetLength() > 0 && name[name.GetLength() - 1] != '/')
 		{
-			int slash = name.LastIndexOf('/');
-			return name[slash >= 0 ? slash + 1 : 0] != '_';
+			auto slash = IteratorUtils::IndexOfRev(name.begin(), name.end(), '/');
+			return name[(slash != IteratorUtils::INVALID_INDEX) ? (slash + 1) : 0] != '_';
 		}
 
 		return false;
@@ -109,11 +112,10 @@ public:
 		Initialise();
 
 		//Reload all assets that are still in use
-		Buffer<Pair<const String, SharedPointerData<T>>*> buffer = _map.ToKVBuffer();
-		for (size_t i = 0; i < buffer.GetSize(); ++i)
+		for (const Pair<const String, SharedPointerData<T>>& kv : _map)
 		{
-			if (buffer[i]->second.GetReferenceCount())
-				auto loadNewAsset = Get(buffer[i]->first, ctx);
+			if (kv.second.GetReferenceCount())
+				auto loadNewAsset = Get(kv.first, ctx);
 		}
 	}
 
@@ -122,10 +124,10 @@ public:
 	//Only adds if key does not exist, otherwise returns false
 	SharedPointer<T> Add(const String& name, T* value) 
 	{
-		if (_map.Get(name))
+		if (_map.TryGet(name))
 			return SharedPointer<T>();
 
-		return _map.Set(name, SharedPointerData<T>(value, 0));
+		return _map.Emplace(name, value, 0);
 	}
 
 	struct ResourcePathInfo
@@ -154,7 +156,7 @@ public:
 				for (const String& path : _paths)
 				{
 					info.fullpath = path + name;
-					if (IO::FileExists(info.fullpath.GetData()))
+					if (IO::FileExists(info.fullpath.begin()))
 					{
 						info.path = &path;
 						return true;
@@ -169,7 +171,7 @@ public:
 				for (const String& ext : _extensions)
 				{
 					info.fullpath = path + name + ext;
-					if (IO::FileExists(info.fullpath.GetData()))
+					if (IO::FileExists(info.fullpath.begin()))
 					{
 						info.extension = ext;
 						info.path = &path;
@@ -188,7 +190,7 @@ public:
 			return SharedPointer<T>();
 
 		String lowerName = name.ToLower();
-		SharedPointerData<T>* existing = _map.Get(lowerName);
+		SharedPointerData<T>* existing = _map.TryGet(lowerName);
 		if (existing && existing->GetPtr()) 
 			return SharedPointer<T>(*existing);
 
@@ -202,22 +204,29 @@ public:
 			//Run any _all.txt files in preceding dirs & paths
 			for (const String& path : _paths)
 			{
-				int start = 0;
+				size_t start = 0;
 				String searchPath = path;
 				do
 				{
 					String preFile = searchPath + "_all.txt";
-					if (IO::FileExists(preFile.GetData()))
+					if (IO::FileExists(preFile.begin()))
 					{
-						if (resource) _ResourceRead(*resource, IO::ReadFile(preFile.GetData()), ".txt", ctx);
-						else resource = _CreateResource(IO::ReadFile(preFile.GetData()), lowerName, ".txt", ctx);
+						if (resource) _ResourceRead(*resource, IO::ReadFile(preFile.begin()), ".txt", ctx);
+						else resource = _CreateResource(IO::ReadFile(preFile.begin()), lowerName, ".txt", ctx);
 					}
 
-					int stop = name.IndexOf('/', start);
-					if (stop == -1) stop = (int)name.GetLength(); //todo: casting size_t to int.. probably always gonna be fine though
+					auto stop = IteratorUtils::IndexOf(name.begin(), name.end(), '/', start);
+					if (stop != IteratorUtils::INVALID_INDEX)
+					{
+						searchPath += name.SubString(start, stop) + '/';
+						start = stop + 1;
+					}
+					else
+					{
+						searchPath += '/';
+						start = searchPath.GetLength();
+					}
 
-					searchPath += name.SubString(start, stop) + '/';
-					start = stop + 1;
 				} while (start < name.GetLength());
 
 				if (&path == info.path)
@@ -225,8 +234,8 @@ public:
 			}
 			
 			//..Then the resource
-			if (resource) _ResourceRead(*resource, IO::ReadFile(info.fullpath.GetData()), info.extension, ctx);
-			else resource = _CreateResource(IO::ReadFile(info.fullpath.GetData()), lowerName, info.extension, ctx);
+			if (resource) _ResourceRead(*resource, IO::ReadFile(info.fullpath.begin()), info.extension, ctx);
+			else resource = _CreateResource(IO::ReadFile(info.fullpath.begin()), lowerName, info.extension, ctx);
 
 			if (resource)
 			{
@@ -236,7 +245,7 @@ public:
 					return SharedPointer<T>(*existing);
 				}
 
-				return SharedPointer<T>(_map.Set(lowerName, SharedPointerData<T>(resource, 0)));
+				return SharedPointer<T>(_map.Emplace(lowerName, resource, 0));
 			}
 		}
 		else
@@ -246,23 +255,29 @@ public:
 
 			for (const String& path : _paths)
 			{
-				int start = 0;
+				size_t start = 0;
 				String searchPath = path;
 				do
 				{
 					String preFile = searchPath + "_all.txt";
-					if (IO::FileExists(preFile.GetData()))
+					if (IO::FileExists(preFile.begin()))
 					{
-						if (resource) _ResourceRead(*resource, IO::ReadFile(preFile.GetData()), ".txt", ctx);
-						else resource = _CreateResource(IO::ReadFile(preFile.GetData()), lowerName, ".txt", ctx);
+						if (resource) _ResourceRead(*resource, IO::ReadFile(preFile.begin()), ".txt", ctx);
+						else resource = _CreateResource(IO::ReadFile(preFile.begin()), lowerName, ".txt", ctx);
 					}
 
-					int stop = name.IndexOf('/', start);
-					if (stop == -1) stop = (int)name.GetLength(); //todo: casting size_t to int.. probably always gonna be fine though
-
-					searchPath += name.SubString(start, stop) + '/';
-					start = stop + 1;
-				} while (IO::DirectoryExists(searchPath.GetData()) && start < name.GetLength());
+					auto stop = IteratorUtils::IndexOf(name.begin(), name.end(), '/', start);
+					if (stop != IteratorUtils::INVALID_INDEX)
+					{
+						searchPath += name.SubString(start, stop) + '/';
+						start = stop + 1;
+					}
+					else
+					{
+						searchPath += '/';
+						start = searchPath.GetLength();
+					}
+				} while (IO::DirectoryExists(searchPath.begin()) && start < name.GetLength());
 			}
 
 			if (_CreateAlternative(resource, name, ctx))
@@ -273,7 +288,7 @@ public:
 					return SharedPointer<T>(*existing);
 				}
 
-				return SharedPointer<T>(_map.Set(lowerName, SharedPointerData<T>(resource, 0)));
+				return SharedPointer<T>(_map.Emplace(lowerName, resource, 0));
 			}
 			else if (resource)
 				delete resource;
@@ -291,24 +306,18 @@ public:
 
 	SharedPointer<T> Find(const T* ptr)
 	{
-		Buffer<Pair<const String, SharedPointerData<T>>*> buffer = _map.ToKVBuffer();
-
-		for (Pair<const String, SharedPointerData<T>>* kv : buffer)
-		{
-			if (kv->second.GetPtr() == ptr)
-				return SharedPointer<T>(kv->second);
-		}
+		for (Pair<const String, SharedPointerData<T>>& kv : _map)
+			if (kv.second.GetPtr() == ptr)
+				return SharedPointer<T>(kv.second);
 
 		return SharedPointer<T>();
 	}
 
 	String FindNameOf(const T* resource) const
 	{
-		Buffer<Pair<const String, const SharedPointerData<T>>*> buffer = _map.ToKVBuffer();
-
-		for (size_t i = 0; i < buffer.GetSize(); ++i)
-			if (buffer[i]->second.GetPtr() == resource)
-				return buffer[i]->first;
+		for (const Pair<const String, SharedPointerData<T>>& kv : _map)
+			if (kv.second.GetPtr() == resource)
+				return kv.first;
 
 		return "None";
 	}
@@ -329,16 +338,18 @@ public:
 
 	virtual void GetAllPossibleKeys(Buffer<String>& resultsOut, const Context& ctx, const String& path = "", bool recursive = true) const override
 	{
-		for (const String* key : _map.ToKBuffer())
+		for (const Pair<const String, SharedPointerData<T>>& kv : _map)
 		{
 			if (path.GetLength() > 0)
 			{
-				int slash = key->IndexOf('/');
-				if (slash < 0 || key->SubString(0, (size_t)slash + 1) != path)
+				size_t slash = IteratorUtils::IndexOf(kv.first.begin(), kv.first.end(), '/');
+				if (slash == IteratorUtils::INVALID_INDEX || kv.first.SubString(0, slash + 1) != path)
 					continue;
 			}
 
-			resultsOut.OrderedAdd(*key);
+			resultsOut.Insert(
+				resultsOut.PositionToIndex(IteratorUtils::FirstGreaterPosition(resultsOut.begin(), resultsOut.end(), kv.first)), 
+				kv.first);
 		}
 
 		Buffer<const AssetManagerBase*> fallbacks = _GetFallbackManagers(ctx);
@@ -359,7 +370,7 @@ public:
 				{
 					String check = p;
 
-					for (int i = 0;;)
+					for (size_t i = 0;;)
 					{
 						if (IO::FileExists(CSTR(check, "_all.txt")))
 						{
@@ -370,9 +381,9 @@ public:
 							break;
 						}
 
-						int s = i;
-						i = path.IndexOf('/', s);
-						if (i < 0 || i >= path.GetLength() - 1)
+						size_t s = i;
+						i = IteratorUtils::IndexOf(path.begin(), path.end(), '/', s);
+						if (i == IteratorUtils::INVALID_INDEX || i == path.GetLength() - 1)
 							break;
 
 						check += path.SubString(s, i) + '/';
@@ -395,7 +406,7 @@ private:
 	{
 		String d = path + dir;
 
-		if (!IO::DirectoryExists(d.GetData()))
+		if (!IO::DirectoryExists(d.begin()))
 			return;
 
 		if (fallbacks)
@@ -414,15 +425,15 @@ private:
 			String f = dir + filename;
 			String full = path + f;
 
-			if (IO::IsDirectory(full.GetData()))
+			if (IO::IsDirectory(full.begin()))
 			{
 				if (recursive)
 					_FindAllKeysForPath(path, f + '/', results, fallbacks, ctx, true);
 			}
 			else
 			{
-				int extIndex = f.IndexOf('.');
-				if (extIndex >= 0)
+				auto extIndex = IteratorUtils::IndexOf(f.begin(), f.end(), '.');
+				if (extIndex != IteratorUtils::INVALID_INDEX)
 				{
 					String fpath = f.ToLower();
 					String name = fpath.SubString(0, extIndex);
@@ -431,8 +442,10 @@ private:
 					for (const String& extension : _extensions)
 						if (ext == extension)
 						{
-							if (NameIsValid(name) && results.IndexOfFirst(name) == -1)
-								results.OrderedAdd(name);
+							if (NameIsValid(name) && IteratorUtils::FirstEqualPosition(results.begin(), results.end(), name) == results.end())
+								results.Insert(
+									results.PositionToIndex(IteratorUtils::FirstGreaterPosition(results.begin(), results.end(), name)),
+									name);
 
 							break;
 						}

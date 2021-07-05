@@ -45,8 +45,15 @@ using MemberGetter = MemberFunction<T, RETURNTYPE>;
 template<typename T, typename V>
 using MemberSetter = MemberFunction<T, void, const V&>;
 
+template <typename T>
+class Array;
+
+class Context;
+
+#include "String.hpp"
+
 template<typename T>
-using MemberCommandPtr = MemberFunction<T, void, const Buffer<String>&, const Context&>;
+using MemberCommandPtr = MemberFunction<T, void, const Array<String>&, const Context&>;
 
 template<typename T, typename RETURNTYPE>
 using ContextualMemberGetter = MemberFunction<T, RETURNTYPE, const Context&>;

@@ -1,11 +1,13 @@
 #include "Container.hpp"
+#include <ELCore/IteratorUtils.hpp>
+#include <ELCore/Sorting.hpp>
 
 void UIContainer::_OnChildGained(UIElement *child)
 {
 	for (size_t i = 0; i < _children.GetSize(); ++i)
 		if (child->GetZ() > _children[i]->GetZ())
 		{
-			_children.Insert(child, i);
+			_children.Insert(i, child);
 			return;
 		}
 
@@ -14,12 +16,14 @@ void UIContainer::_OnChildGained(UIElement *child)
 
 void UIContainer::_OnChildLost(UIElement *child)
 {
-	_children.Remove(child);
+	auto indx = IteratorUtils::IndexOf(_children.begin(), _children.end(), child);
+	if (indx != IteratorUtils::INVALID_INDEX)
+		_children.Remove(indx);
 }
 
 void UIContainer::_SortChildren()
 {
-	_children.Sort<float>([](UIElement* const& e) -> float { return -e->GetZ(); });
+	Sorting::Quicksort<UIElement*, float>(_children.begin(), 0, _children.GetSize() - 1, [](UIElement*const& e) -> float { return -e->GetZ(); });
 }
 
 void UIContainer::Update(float deltaTime)

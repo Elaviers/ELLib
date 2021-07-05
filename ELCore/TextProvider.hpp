@@ -11,7 +11,7 @@ public:
 	TextProvider() {}
 	virtual ~TextProvider() {}
 
-	bool IsEmpty() const { return _strings.IsEmpty(); }
+	constexpr bool IsEmpty() const { return _strings.GetSize() == 0; }
 
 	Text Get(const String& key) const;
 

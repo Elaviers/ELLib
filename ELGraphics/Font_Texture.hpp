@@ -17,14 +17,14 @@ class FontTexture : public Font
 	int _rowH = 0;
 	int _yOffset = 0;
 
-	void _CMD_texture(const Buffer<String>& args, const Context& ctx);
-	void _CMD_region(const Buffer<String>& args, const Context& ctx);
+	void _CMD_texture(const Array<String>& args, const Context& ctx);
+	void _CMD_region(const Array<String>& args, const Context& ctx);
 
 protected:
 	virtual void ReadText(const String&, const Context&) override;
 
 public:
-	FontTexture() : _texture(nullptr) {}
+	FontTexture() {}
 
 	virtual ~FontTexture() {}
 

@@ -1,4 +1,4 @@
-#include "Hashing.hpp"
+#include "SHA256.hpp"
 
 const uint32 cube_roots[64] = {
 	0x428a2f98, 0x71374491, 0xb5c0fbcf, 0xe9b5dba5, 0x3956c25b, 0x59f111f1, 0x923f82a4, 0xab1c5ed5,
@@ -25,7 +25,8 @@ inline uint32 RightRotate(uint32 x, size_t amount) {
 	return (x << (32 - amount)) | (x >> amount);
 }
 
-void Hashing::HashSha256(const void* in, size_t length, byte out[32]) {
+void SHA256::Hash(const void* in, size_t length, byte(&out)[32]) const
+{
 	//Initialise hashvalues with square roots of first 8 primes
 	uint32 hashvalues[8] = { 0x6a09e667, 0xbb67ae85, 0x3c6ef372, 0xa54ff53a, 0x510e527f, 0x9b05688c, 0x1f83d9ab, 0x5be0cd19 };
 

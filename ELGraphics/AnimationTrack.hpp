@@ -37,9 +37,9 @@ public:
 	{
 		if (_keyframes.GetSize() == 0)
 			_keyframes.Add(Keyframe<T>(time, value, interp));
-		else if (time > _keyframes.Last().time)
+		else if (time > _keyframes[_keyframes.GetSize() - 1].time)
 		{
-			if (!_TypesAreAlmostEqual(value, _keyframes.Last().value))
+			if (!_TypesAreAlmostEqual(value, _keyframes[_keyframes.GetSize() - 1].value))
 				_keyframes.Add(Keyframe<T>(time, value, interp));
 		}
 		else

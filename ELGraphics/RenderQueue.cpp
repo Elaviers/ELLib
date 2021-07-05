@@ -3,22 +3,18 @@
 #include <ELMaths/Projection.hpp>
 #include <ELSys/GLProgram.hpp>
 
-List<const RenderEntry*>& RenderQueue::_GetQueue(int priority)
+RenderQueue::EntryPtrListType& RenderQueue::_GetQueue(int priority)
 {
-	for (auto it = _queues.begin(); it.IsValid(); ++it)
+	for (auto it = _queues.begin(); it; ++it)
 	{
 		if (it->priority > priority)
-			return _queues.Insert(
-				it, 
-				priority,
-				NewHandler(&_PtrPoolType::NewArray, _ptrPool), 
-				DeleteHandler(&_PtrPoolType::DeleteHandler, _ptrPool))->queue;
+			return _queues.Emplace(it, priority, _memory.GetAllocator<RenderEntry*>()).queue;
 
 		if (it->priority == priority)
 			return it->queue;
 	}
 
-	return _queues.Emplace(priority, NewHandler(&_PtrPoolType::NewArray, _ptrPool), DeleteHandler(&_PtrPoolType::DeleteHandler, _ptrPool))->queue;
+	return _queues.EmplaceBack(priority, _memory.GetAllocator<RenderEntry*>()).queue;
 }
 
 void RenderQueue::Clear()
@@ -28,8 +24,7 @@ void RenderQueue::Clear()
 	for (QueueGroup& q : _queues)
 		q.queue.Clear();
 
-	_entryPool.Clear();
-	_ptrPool.Clear();
+	_memory.Clear();
 }
 
 void RenderQueue::Render(ERenderChannels channels, const MeshManager* meshManager, const TextureManager* textureManager, int lightCount) const
@@ -48,13 +43,13 @@ void RenderQueue::Render(ERenderChannels channels, const MeshManager* meshManage
 
 void RenderQueue::AddEntry(const RenderEntry* entry, int priority)
 {
-	_GetQueue(priority).Add(entry);
+	_GetQueue(priority).AddBack(entry);
 }
 
 RenderEntry& RenderQueue::CreateEntry(ERenderChannels renderChannels, int priority)
 {
-	RenderEntry& entry = *_entries.Emplace(renderChannels, NewHandler(&_EntryPoolType::NewArray, _entryPool), DeleteHandler(&_EntryPoolType::DeleteHandler, _entryPool));
-	_GetQueue(priority).Emplace(&entry);
+	RenderEntry& entry = _entries.EmplaceBack(renderChannels, _memory.GetAllocator<RenderEntry>());
+	_GetQueue(priority).EmplaceBack(&entry);
 	return entry;
 }
 

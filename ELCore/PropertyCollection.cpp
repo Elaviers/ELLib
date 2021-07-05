@@ -40,7 +40,7 @@ void PropertyCollection::Clear()
 	_properties.Clear();
 }
 
-String PropertyCollection::HandleCommand(void* obj, const Buffer<String>& tokens, const Context& ctx) const
+String PropertyCollection::HandleCommand(void* obj, const Array<String>& tokens, const Context& ctx) const
 {
 	if (tokens.GetSize() > 0)
 	{
@@ -48,7 +48,7 @@ String PropertyCollection::HandleCommand(void* obj, const Buffer<String>& tokens
 
 		if (property)
 		{
-			Buffer<String> args(&tokens[1], tokens.GetSize() - 1);
+			VBuffer<String> args(&tokens[1], tokens.GetSize() - 1);
 			return property->HandleCommand(obj, args, ctx);
 		}
 	}

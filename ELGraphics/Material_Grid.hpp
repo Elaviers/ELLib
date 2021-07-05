@@ -23,13 +23,13 @@ class MaterialGrid : public Material
 
 	void _TryCalculateElements();
 
-	void _CMD_texture(const Buffer<String> &args, const Context&);
-	void _CMD_rows(const Buffer<String> &args, const Context&);
-	void _CMD_columns(const Buffer<String> &args, const Context&);
-	void _CMD_element(const Buffer<String> &args, const Context&);
+	void _CMD_texture(const Array<String> &args, const Context&);
+	void _CMD_rows(const Array<String> &args, const Context&);
+	void _CMD_columns(const Array<String> &args, const Context&);
+	void _CMD_element(const Array<String> &args, const Context&);
 
 public:
-	MaterialGrid() : Material(ERenderChannels::UNLIT), _texture(nullptr) {}
+	MaterialGrid() : Material(ERenderChannels::UNLIT) {}
 
 	virtual ~MaterialGrid() {}
 

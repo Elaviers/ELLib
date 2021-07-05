@@ -5,6 +5,15 @@
 
 namespace Utilities
 {
+	template <typename Base, typename Param>
+	struct ReplaceParam;
+
+	template <template <typename> typename Base, typename Param, typename _P1>
+	struct ReplaceParam<Base<_P1>, Param>
+	{
+		using Type = Base<Param>;
+	};
+
 	template <typename T>
 	inline void Swap(T &a, T &b)
 	{

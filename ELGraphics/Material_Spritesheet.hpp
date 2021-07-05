@@ -16,7 +16,7 @@ protected:
 	const Vector2& _GetFrameSize() const { return _frameSize; }
 	void _SetFrameSize(const Vector2& frameSize) { _frameSize = frameSize; _UpdateFrameData(); }
 
-	void _CMD_tex(const Buffer<String>& args, const Context& ctx)
+	void _CMD_tex(const Array<String>& args, const Context& ctx)
 	{
 		MaterialSprite::_CMD_tex(args, ctx);
 		_UpdateFrameData();

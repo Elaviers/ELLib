@@ -46,7 +46,7 @@ Buffer<byte> IO::ReadFile(const char *filename, bool silent)
 		buffer.SetSize(fileSize.LowPart);
 
 		#pragma warning(suppress: 28193) //False positive
-		BOOL success = ::ReadFile(file, buffer.Elements(), fileSize.LowPart, NULL, NULL);
+		BOOL success = ::ReadFile(file, buffer.begin(), fileSize.LowPart, NULL, NULL);
 
 		if (!silent && success == FALSE)
 			Debug::Error(CSTR("Could not read file \"", filename, '\"'));
@@ -112,7 +112,7 @@ Buffer<String> _FindFilesInDirectoryRecursive(const char* rootDir, const char* d
 					String filename(String::Concat(dir, data.cFileName));
 
 					if (data.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)
-						filenames += _FindFilesInDirectoryRecursive(rootDir, CSTR(filename, '/'), wildcard);
+						filenames.AddMultiple(_FindFilesInDirectoryRecursive(rootDir, CSTR(filename, '/'), wildcard));
 					else
 						filenames.Add(filename);
 					
@@ -162,7 +162,7 @@ String IO::OpenFileDialog(const wchar_t* dir, const Buffer<Pair<const wchar_t*>>
 	HRESULT result = ::CoCreateInstance(CLSID_FileOpenDialog, NULL, CLSCTX_ALL, IID_IFileOpenDialog, (void**)&fileOpenDialog);
 	if (SUCCEEDED(result))
 	{
-		fileOpenDialog->SetFileTypes((UINT)_fileTypes.GetSize(), _fileTypes.Elements());
+		fileOpenDialog->SetFileTypes((UINT)_fileTypes.GetSize(), _fileTypes.begin());
 
 		IShellItem* folder;
 
@@ -184,7 +184,7 @@ String IO::OpenFileDialog(const wchar_t* dir, const Buffer<Pair<const wchar_t*>>
 				result = item->GetDisplayName(SIGDN_FILESYSPATH, &chosenPath);
 
 				if (SUCCEEDED(result))
-					value = String::FromWide(chosenPath);
+					value = StringUtils::FromWide(chosenPath);
 
 				item->Release();
 			}
@@ -213,7 +213,7 @@ String IO::SaveFileDialog(const wchar_t* dir, const Buffer<Pair<const wchar_t*>>
 		SHCreateItemFromParsingName(fullPath, NULL, IID_PPV_ARGS(&folder));
 
 		fileSaveDialog->SetDefaultExtension(L"lvl");
-		fileSaveDialog->SetFileTypes((UINT)_fileTypes.GetSize(), _fileTypes.Elements());
+		fileSaveDialog->SetFileTypes((UINT)_fileTypes.GetSize(), _fileTypes.begin());
 		fileSaveDialog->SetFolder(folder);
 
 		result = fileSaveDialog->Show(NULL);
@@ -229,7 +229,7 @@ String IO::SaveFileDialog(const wchar_t* dir, const Buffer<Pair<const wchar_t*>>
 
 				if (SUCCEEDED(result))
 				{
-					value = String::FromWide(chosenPath);
+					value = StringUtils::FromWide(chosenPath);
 				}
 
 				item->Release();

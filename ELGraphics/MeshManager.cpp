@@ -1,11 +1,11 @@
 #include "MeshManager.hpp"
 #include "IO.hpp"
 
-Mesh* MeshManager::_CreateResource(const Buffer<byte>& data, const String& name, const String& ext, const Context& ctx)
+Mesh* MeshManager::_CreateResource(const Array<byte>& data, const String& name, const String& ext, const Context& ctx)
 {
 	if (ext == ".obj")
 	{
-		Mesh* mesh = IO::ReadOBJFile(String(data));
+		Mesh* mesh = IO::ReadOBJFile(String(data.begin(), data.GetSize()));
 
 		if (mesh == nullptr)
 			Debug::Error(CSTR("Could not load OBJ \"", name, "\""));

@@ -178,6 +178,8 @@
     </PreBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="Allocator.hpp" />
+    <ClInclude Include="Array.hpp" />
     <ClInclude Include="Asset.hpp" />
     <ClInclude Include="Buffer.hpp" />
     <ClInclude Include="ByteReader.hpp" />
@@ -188,23 +190,30 @@
     <ClInclude Include="Event.hpp" />
     <ClInclude Include="Function.hpp" />
     <ClInclude Include="Handle.hpp" />
-    <ClInclude Include="Hashing.hpp" />
+    <ClInclude Include="Hasher.hpp" />
     <ClInclude Include="Hashmap.hpp" />
     <ClInclude Include="IEEE754.hpp" />
+    <ClInclude Include="IteratorUtils.hpp" />
+    <ClInclude Include="KeyDoesNotExist.hpp" />
     <ClInclude Include="List.hpp" />
     <ClInclude Include="MacroUtilities.hpp" />
     <ClInclude Include="Map.hpp" />
     <ClInclude Include="MemberFunction.hpp" />
+    <ClInclude Include="MurmurHash3.hpp" />
     <ClInclude Include="NumberedSet.hpp" />
+    <ClInclude Include="PagedMemory.hpp" />
     <ClInclude Include="Pair.hpp" />
     <ClInclude Include="Pool.hpp" />
     <ClInclude Include="Property.hpp" />
     <ClInclude Include="PropertyCollection.hpp" />
     <ClInclude Include="RigidProperty.hpp" />
     <ClInclude Include="RigidPropertyCollection.hpp" />
+    <ClInclude Include="SHA256.hpp" />
     <ClInclude Include="SharedPointer.hpp" />
+    <ClInclude Include="Sorting.hpp" />
     <ClInclude Include="StackAllocator.hpp" />
     <ClInclude Include="String.hpp" />
+    <ClInclude Include="StringUtils.hpp" />
     <ClInclude Include="Text.hpp" />
     <ClInclude Include="TextProvider.hpp" />
     <ClInclude Include="Types.hpp" />
@@ -216,15 +225,17 @@
     <ClCompile Include="ByteWriter.cpp" />
     <ClCompile Include="Axes.cpp" />
     <ClCompile Include="IEEE754.cpp" />
-    <ClCompile Include="MH2.cpp" />
+    <ClCompile Include="MurmurHash3.cpp" />
     <ClCompile Include="PropertyCollection.cpp" />
     <ClCompile Include="RigidPropertyCollection.cpp" />
     <ClCompile Include="SHA256.cpp" />
     <ClCompile Include="SharedPointer.cpp" />
     <ClCompile Include="StackAllocator.cpp" />
-    <ClCompile Include="String.cpp" />
     <ClCompile Include="Text.cpp" />
     <ClCompile Include="TextProvider.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <Natvis Include="ELCore.natvis" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

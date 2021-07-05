@@ -19,8 +19,8 @@ public:
 
 	void Clear();
 
-	String HandleCommand(void* obj, const Buffer<String>& tokens, const Context&) const;
-	String HandleCommand(void* obj, const String& command, const Context& ctx) const { return HandleCommand(obj, command.Split(" "), ctx); }
+	String HandleCommand(void* obj, const Array<String>& tokens, const Context&) const;
+	String HandleCommand(void* obj, const String& command, const Context& ctx) const { return HandleCommand(obj, command.Split<VAllocator<String>>(" "), ctx); }
 
 	void Transfer(const void* from, void* to, const Context& ctx) const;
 	Property* Find(const String& name) const;

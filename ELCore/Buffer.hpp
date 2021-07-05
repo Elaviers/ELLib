@@ -1,363 +1,382 @@
 #pragma once
-#include "Function.hpp"
-#include "Types.hpp"
-#include "Utilities.hpp"
+#include "Allocator.hpp"
+#include "Array.hpp"
 #include <initializer_list>
-#include <utility>
 
-/*
-	Basically just a dynamically sized array
-	Always guaranteed to be continous in memory
-*/
-
-template <typename T>
+template <typename T, typename AllocatorType = DefaultAllocator<T>>
 class Buffer
 {
-private:
-	const NewHandler _handlerNew;
-	const DeleteHandler _handlerDelete;
-
-	union
-	{
-		T* _elements;
-		byte* _raw;
-	};
-
-	size_t _size;
-
-	byte* _AllocRawData(size_t newSize) const
-	{
-		if (_handlerNew)
-			return _handlerNew(sizeof(T) * newSize);
-
-		return new byte[sizeof(T) * newSize];
-	}
-
-	void _DestroyData()
-	{
-		for (size_t i = 0; i < _size; ++i)
-			_elements[i].~T();
-
-		if (_handlerDelete)
-			_handlerDelete(_raw);
-		else
-			delete[] _raw;
-	}
-
-	template <typename S>
-	void _Quicksort(size_t first, size_t last, S(*func)(const T&))
-	{
-		if (first >= last)
-			return;
-
-		const S pivot = func(_elements[(first + last) / 2]);
-
-		size_t i = first, j = last;
-		while (true)
-		{
-			while (func(_elements[i]) < pivot)
-				++i;
-
-			while (func(_elements[j]) > pivot)
-				--j;
-
-			if (i >= j)
-				break;
-
-			Utilities::Swap(_elements[i], _elements[j]);
-			++i; --j;
-		}
-
-		_Quicksort(first, j, func);
-		_Quicksort(j + 1, last, func);
-	}
-
 public:
-	Buffer() : _raw(nullptr), _size(0) {}
-	Buffer(const NewHandler& newHandler, const DeleteHandler& deleteHandler) : Buffer(), _handlerNew(newHandler), _handlerDelete(deleteHandler) {}
+	using size_type = size_t;
+	using value_type = T;
 
-	Buffer(const std::initializer_list<T>& elements) : _size(elements.size())
+private:
+	template <typename _T, typename _Alloc>
+	friend class Buffer;
+
+	class Proxy : public AllocatorType, public Array<T>
 	{
-		_raw = _AllocRawData(_size);
+		friend Buffer;
 
-		for (size_t i = 0; i < _size; ++i)
-			new (_elements + i) T(std::move(elements.begin()[i]));
-	}
+	public:
+		constexpr Proxy() noexcept : Array<T>(nullptr, 0) {}
+		constexpr Proxy(const AllocatorType& allocator) noexcept : AllocatorType(allocator), Array<T>(nullptr, 0) {}
 
-	Buffer(const T* data, size_t size) : _size(size)
-	{
-		_raw = _AllocRawData(_size);
-
-		for (size_t i = 0; i < _size; ++i)
-			new (_elements + i) T(data[i]);
-	}
-
-	Buffer(const Buffer& other) : _size(other._size)
-	{
-		_raw = _AllocRawData(_size);
-
-		for (size_t i = 0; i < _size; ++i)
-			new (_elements + i) T(other[i]);
-	}
-
-	Buffer(Buffer&& other) noexcept
-	{
-		operator=(std::move(other));
-	}
-
-	~Buffer()
-	{
-		_DestroyData();
-	}
-
-	size_t GetSize() const { return _size; }
-	const T* Elements() const { return _elements; }
-	T* Elements() { return _elements; }
-
-	T& operator[](size_t index) { return _elements[index]; }
-	const T& operator[](size_t index) const { return _elements[index]; }
-
-	T& Last() { return _elements[_size - 1]; }
-	const T& Last() const { return _elements[_size - 1]; }
-
-	void SetSize(size_t size)
-	{
-		if (size == _size) return;
-		if (size > _size) return Grow(size - _size);
-		return Shrink(_size - size);
-	}
-
-	void Grow(size_t amount)
-	{
-		if (amount > 0)
+		constexpr Proxy(const Proxy& other) : AllocatorType((const AllocatorType&)other), Array<T>(nullptr, other._size) {}
+		
+		constexpr Proxy(Proxy&& other) noexcept : AllocatorType(std::move((AllocatorType&)other)), Array<T>(other._elements, other._size)
 		{
-			size_t size = _size + amount;
-			byte* newData = _AllocRawData(size);
-			for (size_t i = 0; i < _size; ++i)
-				new (newData + sizeof(T) * i) T(std::move(_elements[i]));
-
-			byte* newDataStart = newData + _size * sizeof(T);
-			for (size_t i = 0; i < amount; ++i)
-				new (newDataStart + sizeof(T) * i) T();
-
-			_DestroyData();
-			_raw = newData;
-			_size = size;
+			other._elements = nullptr;
+			other._size = 0;
 		}
-	}
 
-	void Shrink(size_t amount)
-	{
-		if (amount > 0)
+		constexpr Proxy& operator=(const Proxy& other) 
 		{
-			if (amount < _size)
-			{
-				size_t size = _size - amount;
-				byte* newData = _AllocRawData(size);
-
-				for (size_t i = 0; i < size; ++i)
-					new (newData + sizeof(T) * i) T(std::move(_elements[i]));
-
-				_DestroyData();
-				_raw = newData;
-				_size = size;
-			}
-			else
-				Clear();
-		}
-	}
-
-	template <typename... ARGS>
-	T& Emplace(ARGS&&... args)
-	{
-		byte* newData = _AllocRawData(_size + 1);
-		for (size_t i = 0; i < _size; ++i)
-			new (newData + sizeof(T) * i) T(std::move(_elements[i]));
-
-		_DestroyData();
-		_raw = newData;
-		++_size;
-		return *new (_elements + _size - 1) T(static_cast<ARGS&&>(args)...);
-	}
-
-	T& Add(const T& item) { return Emplace(item); }
-	T& Add(T&& item) { return Emplace(std::move(item)); }
-
-	void Clear()
-	{
-		_DestroyData();
-		_raw = nullptr;
-		_size = 0;
-	}
-
-	T* Insert(const T& item, size_t pos) { return pos > _size ? nullptr : Insert(std::move(T(item)), pos); }
-	T* Insert(T&& item, size_t pos)
-	{
-		if (pos > _size) return nullptr;
-
-		byte* newData = _AllocRawData(_size + 1);
-		for (size_t i = 0; i < pos; ++i)
-			new (newData + sizeof(T) * i) T(std::move(_elements[i]));
-
-		new (newData + sizeof(T) * pos) T(std::move(item));
-
-		for (size_t i = pos; i < _size; ++i)
-			new (newData + sizeof(T) * (i + 1)) T(std::move(_elements[i]));
-
-		_DestroyData();
-		_raw = newData;
-		_size++;
-
-		return &_elements[pos];
-	}
-
-	T& OrderedAdd(const T& item) { return OrderedAdd(std::move(T(item))); }
-	T& OrderedAdd(T&& item)
-	{
-		for (size_t i = 0; i < _size; ++i)
-			if (_elements[i] > item)
-				return *Insert(std::move(item), i);
-
-		return Add(std::move(item));
-	}
-
-	void RemoveIndex(size_t index)
-	{
-		if (index < _size)
-		{
-			_size--;
-			_elements[index].~T();
-
-			byte* newData = _AllocRawData(_size);
-
-			for (size_t i = 0; i < index; ++i)
-				new (newData + sizeof(T) * i) T(std::move(_elements[i]));
-
-			for (size_t i = index; i < _size; ++i)
-				new (newData + sizeof(T) * i) T(std::move(_elements[i + 1]));
-
-			_DestroyData();
-			_raw = newData;
-		}
-	}
-
-	//Removes anything equivalent to item from the array
-	void Remove(const T& item)
-	{
-		for (size_t i = 0; i < _size;)
-		{
-			if (_elements[i] == item)
-				RemoveIndex(i);
-			else
-				++i;
-		}
-	}
-
-	template <typename P>
-	requires Concepts::Predicate<P, const T&>
-	void Remove(const P& predicate)
-	{
-		for (size_t i = 0; i < _size;)
-		{
-			if (predicate(_elements[i]))
-				RemoveIndex(i);
-			else
-				++i;
-		}
-	}
-
-	Buffer operator+(const T& other) { return operator+(std::move(T(other))); }
-	Buffer operator+(T&& other)
-	{
-		Buffer result;
-		result._size = _size + 1;
-		result._raw = _AllocRawData(result._size);
-
-		for (size_t i = 0; i < _size; ++i)
-			new (result._elements + i) T(_elements[i]);
-
-		new (result._elements + _size) T(std::move(other));
-		return result;
-	}
-
-	Buffer operator+(const Buffer& other) const
-	{
-		Buffer result;
-		result._size = _size + other._size;
-		result._raw = _AllocRawData(result._size);
-
-		for (size_t i = 0; i < _size; ++i)
-			new (result._elements + i) T(_elements[i]);
-
-		for (size_t i = 0; i < other._size; ++i)
-			new (result._elements + _size + i) T(other._elements[i]);
-
-		return result;
-	}
-
-	Buffer& operator+=(const Buffer& other)
-	{
-		return *this = *this + other;
-	}
-
-	Buffer& operator=(const Buffer& other)
-	{
-		_DestroyData();
-		_size = other._size;
-		_raw = _AllocRawData(_size);
-
-		for (size_t i = 0; i < _size; ++i)
-			new (_elements + i) T(other[i]);
-
-		return *this;
-	}
-
-	Buffer& operator=(Buffer&& other) noexcept
-	{
-		if (_handlerNew || other._handlerNew || _handlerDelete || other._handlerDelete)
-		{
-			operator=((const Buffer&)other);
-			other.Clear();
+			AllocatorType::operator=((const AllocatorType&)other);
+			this->_elements = nullptr;
+			this->_size = other._size;
 			return *this;
 		}
 
-		_raw = other._raw;
-		_size = other._size;
-		other._raw = nullptr;
-		other._size = 0;
+		constexpr Proxy& operator=(Proxy&& other) noexcept
+		{
+			AllocatorType::operator=(std::move((AllocatorType&)other));
+			this->_elements = other._elements;
+			this->_size = other._size;
+			other._elements = nullptr;
+			other._size = 0;
+			return *this;
+		}
+	} _proxy;
+
+	T*& _elements = _proxy._elements;
+	size_type& _size = _proxy._size;
+
+	constexpr void _DestroyElements()
+	{
+		for (size_type i = 0; i < _size; ++i)
+			_elements[i].~T();
+
+		_proxy.deallocate(_elements, _size);
+	}
+
+public:
+	constexpr Buffer() noexcept {}
+
+	constexpr Buffer(const AllocatorType& allocator) noexcept : _proxy(allocator) {}
+	
+	constexpr Buffer(const std::initializer_list<T>& elements, const AllocatorType& allocator = AllocatorType()) :
+		_proxy(allocator)
+	{
+		if (_size = elements.size())
+		{
+			_elements = _proxy.allocate(_size);
+
+			size_type i = 0;
+			for (const T& elem : elements)
+				new (_elements + i++) T(elem);
+		}
+	}
+
+	constexpr Buffer(const T* elements, size_type size, const AllocatorType& allocator = AllocatorType()) : _proxy(allocator)
+	{
+		if (_size = size)
+		{
+			_elements = _proxy.allocate(_size);
+
+			for (size_type i = 0; i < _size; ++i)
+				new (_elements + i) T(elements[i]);
+		}
+	}
+
+	constexpr Buffer(const Array<T>& array, const AllocatorType& allocator = AllocatorType()) : Buffer(array.begin(), array.GetSize(), allocator) {}
+
+	constexpr Buffer(const Buffer& other) : _proxy(other._proxy)
+	{
+		if (_size)
+		{
+			_elements = _proxy.allocate(_size);
+			for (size_type i = 0; i < _size; ++i)
+				new (_elements + i) T(other._elements[i]);
+		}
+	}
+
+	constexpr Buffer(Buffer&& other) noexcept : _proxy(std::move(other._proxy)) {}
+
+	constexpr ~Buffer() noexcept
+	{
+		_DestroyElements();
+	}
+
+	constexpr Buffer& operator=(const Buffer& other)
+	{
+		_proxy = other._proxy;
+		if (_size)
+		{
+			_elements = _proxy.allocate(_size);
+			for (size_type i = 0; i < _size; ++i)
+				new (_elements + i) T(other._elements[i]);
+		}
+
 		return *this;
 	}
 
-	bool operator==(const Buffer& other) const
+	constexpr Buffer& operator=(Buffer&& other) noexcept
 	{
-		if (_size != other._size) return false;
+		_proxy = std::move(other._proxy);
+		return *this;
+	}
 
-		for (size_t i = 0; i < _size; ++i)
-			if (_elements[i] != other[i])
+	constexpr operator Array<T>&() noexcept
+	{
+		return _proxy;
+	}
+
+	constexpr operator const Array<T>&() const noexcept
+	{
+		return _proxy;
+	}
+
+	/*
+		SIZE
+	*/
+
+	constexpr size_type GetSize() const noexcept { return _size; }
+
+	constexpr void Clear()
+	{
+		_DestroyElements();
+		_elements = nullptr;
+		_size = 0;
+	}
+
+	constexpr void Shrink(size_type amount)
+	{
+		if (amount)
+		{
+			if (amount >= _size)
+				return Clear();
+
+			size_type newSize = _size - amount;
+			T* newElements = _proxy.allocate(newSize);
+
+			for (size_type i = 0; i < newSize; ++i)
+				new (newElements + i) T(std::move(_elements[i]));
+
+			_DestroyElements();
+			_elements = newElements;
+			_size = newSize;
+		}
+	}
+
+	template <typename... Args>
+	constexpr void Grow(size_type amount, Args&&... defaultCtorArgs)
+	{
+		if (amount)
+		{
+			size_type newSize = _size + amount;
+			T* newElements = _proxy.allocate(newSize);
+
+			for (size_type i = 0; i < _size; ++i)
+				new (newElements + i) T(std::move(_elements[i]));
+
+			for (size_type i = _size; i < newSize; ++i)
+				new (newElements + i) T(std::forward<Args>(defaultCtorArgs)...);
+
+			_DestroyElements();
+			_elements = newElements;
+			_size = newSize;
+		}
+	}
+
+	template <typename... Args>
+	constexpr void SetSize(size_type size, Args&&... defaultCtorArgs)
+	{
+		if (size > _size) Grow(size - _size, std::forward<Args>(defaultCtorArgs)...);
+		else if (size < _size) Shrink(_size - size);
+	}
+
+	/*
+		INSERTION
+	*/
+
+	template <typename... Args>
+	constexpr T& Insert(size_type index, Args&&... ctorArgs)
+	{
+		T* newElements = _proxy.allocate(_size + 1);
+
+		for (size_type i = 0; i < index; ++i)
+			new (newElements + i) T(std::move(_elements[i]));
+
+		for (size_type i = index; i < _size; ++i)
+			new (newElements + i + 1) T(std::move(_elements[i]));
+
+		new (newElements + index) T(std::forward<Args>(ctorArgs)...);
+
+		_proxy.deallocate(_elements, _size);
+		_elements = newElements;
+		++_size;
+
+		return _elements[_size - 1];
+	}
+
+	template <typename... Args>
+	constexpr T& Emplace(Args&&... ctorArgs)
+	{
+		T* newElements = _proxy.allocate(_size + 1);
+		for (size_type i = 0; i < _size; ++i)
+			new (newElements + i) T(std::move(_elements[i]));
+
+		_DestroyElements();
+		_elements = newElements;
+
+		T* element = new (_elements + _size) T(std::forward<Args>(ctorArgs)...);
+		++_size;
+		return *element;
+	}
+
+	constexpr T& Add(const T& element)
+	{
+		return Emplace(element);
+	}
+
+	constexpr T& Add(T&& element)
+	{
+		return Emplace(std::move(element));
+	}
+
+	constexpr Buffer& AddMultiple(const T* elements, size_type count)
+	{
+		if (count)
+		{
+			size_type newSize = _size + count;
+			T* newElements = _proxy.allocate(newSize);
+
+			for (size_type i = 0; i < _size; ++i)
+				new (newElements + i) T(std::move(_elements[i]));
+
+			T* firstAddr = newElements + _size;
+			for (size_type i = 0; i < count; ++i)
+				new (firstAddr + i) T(elements[i]);
+
+			_DestroyElements();
+			_elements = newElements;
+			_size = newSize;
+		}
+
+		return *this;
+	}
+
+	constexpr Buffer& AddMultiple(const Buffer& other)
+	{
+		AddMultiple(other._elements, other._size);
+		return *this;
+	}
+
+	constexpr Buffer& AddMultiple(Buffer&& other)
+	{
+		if (other._size)
+		{
+			size_type newSize = _size + other._size;
+			T* newElements = _proxy.allocate(newSize);
+
+			for (size_type i = 0; i < _size; ++i)
+				new (newElements + i) T(std::move(_elements[i]));
+
+			T* firstAddr = newElements + _size;
+			for (size_type i = 0; i < other._size; ++i)
+				new (firstAddr + i) T(std::move(other._elements[i]));
+
+			other.Clear();
+			_DestroyElements();
+			_elements = newElements;
+			_size = newSize;
+		}
+
+		return *this;
+	}
+
+	/*
+		REMOVAL
+	*/
+
+	constexpr void Remove(size_type from, size_type to)
+	{
+		if (from > to)
+			std::swap(from, to);
+
+		if (from > _size) return;
+		if (to > _size)
+		{
+			Shrink(_size - from);
+			return;
+		}
+
+		size_type elementsRemoved = to - from;
+		size_type newSize = _size - elementsRemoved;
+		T* newElements = _proxy.allocate(newSize);
+
+		for (size_type i = 0; i < from; ++i)
+			new (newElements + i) T(std::move(_elements[i]));
+
+		for (size_type i = to; i < _size; ++i)
+			new (newElements + i - elementsRemoved) T(std::move(_elements[i]));
+
+		_DestroyElements();
+		_elements = newElements;
+		_size = newSize;
+	}
+
+	constexpr void Remove(size_type index)
+	{
+		if (index > _size) return;
+
+		T* newElements = _proxy.allocate(_size + 1);
+
+		for (size_type i = 0; i < index; ++i)
+			new (newElements + i) T(std::move(_elements[i]));
+
+		for (size_type i = index + 1; i < _size; ++i)
+			new (newElements + i - 1) T(std::move(_elements[i]));
+
+		_DestroyElements();
+		_elements = newElements;
+		--_size;
+	}
+
+	/*
+		MEMBER ACCESS
+	*/
+
+	constexpr T& operator[](size_type index) { return _elements[index]; }
+	constexpr const T& operator[](size_type index) const { return _elements[index]; }
+
+	constexpr size_type PositionToIndex(const T* position) const noexcept { return position - begin(); }
+
+	/*
+		ITERATION
+	*/
+
+	constexpr T* begin() noexcept { return _elements; }
+	constexpr const T* begin() const noexcept { return _elements; }
+	constexpr T* end() noexcept { return _elements ? (_elements + _size) : nullptr; }
+	constexpr const T* end() const noexcept { return _elements ? (_elements + _size) : nullptr; }
+
+	/*
+		OTHER
+	*/
+
+	constexpr bool Matches(const Buffer& other) const
+	{
+		if (other.GetSize() != _size) return false;
+
+		for (size_type i = 0; i < _size; ++i)
+			if (_elements[i] != other._elements[i])
 				return false;
 
 		return true;
 	}
-
-	int IndexOfFirst(const T& item) const
-	{
-		for (size_t i = 0; i < _size; ++i)
-			if (_elements[i] == item)
-				return (int)i;
-
-		return -1;
-	}
-
-	//For range-based for
-	T* begin() { return _size ? _elements : nullptr; }
-	const T* begin() const { return _size ? _elements : nullptr; }
-	T* end() { return _size ? (_elements + _size) : nullptr; }
-	const T* end() const { return _size ? (_elements + _size) : nullptr; }
-
-	template <typename S>
-	void Sort(S(*func)(const T&))
-	{
-		if (_size >= 2)
-			_Quicksort(0, _size - 1, func);
-	}
 };
+
+template <typename T>
+using VBuffer = Buffer<T, VAllocator<T>>;

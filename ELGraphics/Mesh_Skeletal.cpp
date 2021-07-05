@@ -3,7 +3,7 @@
 
 void Mesh_Skeletal::UpdateRenderer()
 {
-	_renderer.GL().Create(vertices.Elements(), (GLsizei)vertices.GetSize(), elements.Elements(), (GLsizei)elements.GetSize());
+	_renderer.GL().Create(vertices.begin(), (GLsizei)vertices.GetSize(), elements.begin(), (GLsizei)elements.GetSize());
 }
 
 enum class EEFileVersion
@@ -85,7 +85,7 @@ void Mesh_Skeletal::Write(ByteWriter& writer) const
 
 	size_t jointDataSize = 0;
 
-	for (auto it = skeleton.FirstListElement(); it.IsValid(); ++it)
+	for (auto it = skeleton.FirstListElement(); it; ++it)
 	{
 		jointBuffer[jointId++] = &*it;
 
@@ -149,7 +149,7 @@ void Mesh_Skeletal::Write(ByteWriter& writer) const
 		}
 
 		writer.Write_uint32((uint32)parentId);
-		writer.Write_cstr(joint->name.GetData());
+		writer.Write_cstr(joint->name.begin());
 		joint->bindingMatrix.Write(writer);
 	}
 
